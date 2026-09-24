@@ -1,0 +1,241 @@
+<!-- pages/index/index.wxml -->
+<view class="hero">
+  <view class="hero-title">北京市企业职工养老金测算器</view>
+  <view class="muted">数据本地计算，不采集姓名与身份证号 · 政策参数版本 {{policyVersion}}</view>
+  <view class="muted">测算结果仅供参考，以社保经办机构核定为准</view>
+</view>
+
+<!-- 步骤一：基本信息 -->
+<view class="card">
+  <view class="card-title">① 基本信息</view>
+  <view class="row">
+    <text class="label">性别</text>
+    <view>
+      <text class="opt {{gender==='male'?'opt-on':''}}" data-v="male" bindtap="setGender">男</text>
+      <text class="opt {{gender==='female'?'opt-on':''}}" data-v="female" bindtap="setGender">女</text>
+    </view>
+  </view>
+  <view class="row" wx:if="{{gender==='female'}}">
+    <text class="label">女性身份</text>
+    <view>
+      <text class="opt {{femaleType==='worker'?'opt-on':''}}" data-v="worker" bindtap="setFemaleType">女工人(原50)</text>
+      <text class="opt {{femaleType==='cadre'?'opt-on':''}}" data-v="cadre" bindtap="setFemaleType">女干部(原55)</text>
+    </view>
+  </view>
+  <view class="row">
+    <text class="label">出生年月</text>
+    <picker mode="date" fields="month" value="{{birthYM}}" bindchange="onBirth">
+      <text class="value">{{birthYM}} ›</text>
+    </picker>
+  </view>
+  <view class="row">
+    <text class="label">参加工作年月</text>
+    <picker mode="date" fields="month" value="{{workStartYM}}" bindchange="onWorkStart">
+      <text class="value">{{workStartYM}} ›</text>
+    </picker>
+  </view>
+  <!-- Bug26：企业实际参保缴费起始为基本信息，全部人员可填；窗口起点优先取此值，留空回退参工月 -->
+  <view class="row">
+    <text class="label">企业实际参保缴费起始</text>
+    <picker mode="date" fields="month" value="{{enterpriseInsuredYM}}" bindchange="onEnterpriseInsured">
+      <text class="value">{{enterpriseInsuredYM || enterpriseInsuredPh}} ›</text>
+    </picker>
+  </view>
+  <view class="muted">如与参加工作月一致可留空；有补缴/跨制度转入/中断重参保时，按实际参保起始填写（N应缴窗口自该月起）。</view>
+  <view class="row">
+    <text class="label">拟退休年月（可手工调整）</text>
+    <picker mode="date" fields="month" value="{{retireYM}}" bindchange="onRetire">
+      <text class="value">{{retireYM}} ›</text>
+    </picker>
+  </view>
+  <view class="tag tag-official" style="display:inline-block;margin-top:8rpx">P-05 法定退休年月自动对照</view>
+  <view class="muted" style="margin-top:6rpx">{{retireHint}}</view>
+  <view class="muted">依据全国人大常委会《关于实施渐进式延迟法定退休年龄的决定》（2025-01-01施行）：男/原55岁女职工每4个月延1个月、原50岁女职工每2个月延1个月；可弹性提前/延迟各不超过3年，提前不低于原法定年龄，且须满足最低缴费年限（2030年起由15年逐步提高至20年）。</view>
+</view>
+
+<!-- 步骤二：视同缴费 -->
+<view class="card">
+  <view class="card-title">② 视同缴费年限（按档案认定起止年月）</view>
+  <!-- Bug22：显式“有/无视同缴费年限”状态（默认无），与性别/31号文同款两段式 -->
+  <view class="row">
+    <text class="label">是否有经认定的视同缴费年限</text>
+    <view>
+      <text class="opt {{!hasDeemed?'opt-on':''}}" data-v="no" bindtap="setHasDeemed">无视同缴费年限</text>
+      <text class="opt {{hasDeemed?'opt-on':''}}" data-v="yes" bindtap="setHasDeemed">有视同缴费年限</text>
+    </view>
+  </view>
+
+  <!-- 有视同：两个 picker 可选值（微信 date picker 无清空交互，切回“无视同”即清空） -->
+  <block wx:if="{{hasDeemed}}">
+    <view class="row">
+      <text class="label">视同起始年月</text>
+      <picker mode="date" fields="month" value="{{deemedStartYM}}" bindchange="onDeemedStart">
+        <text class="value">{{deemedStartYM || deemedStartPh}} ›</text>
+      </picker>
+    </view>
+    <view class="row">
+      <text class="label">视同终止年月</text>
+      <picker mode="date" fields="month" value="{{deemedEndYM}}" bindchange="onDeemedEnd">
+        <text class="value">{{deemedEndYM || deemedEndPh}} ›</text>
+      </picker>
+    </view>
+  </block>
+  <!-- 无视同：灰字明确提示，且起止字段必为空（Bug22） -->
+  <view class="muted" wx:else>无视同缴费年限（N同=0）。</view>
+
+  <!-- Bug24 I-1：以下为制度时点方法口径（1992-10/1998-06 为制度月，非案号数据），保留；开头补状态提示 -->
+  <view class="muted">仅当您有经人事档案/社保经办认定的视同缴费年限时填写；无视同请保持开关关闭。视同缴费年限指实行个人缴费前按国家规定计算的连续工龄，按认定的起止年月填写；两端均含当月。北京企业职工个人缴费自 1992-10 起；其中 1992-09（含）以前部分进 G同（N同），1992-10~1998-06 部分进 G实（N实98），1998-07 后的部分不进过渡性养老金（31号文人员由 R补 补偿）。视同缴费指数 Z同指数 固定为 1.0（京劳社养发〔2007〕21号）。</view>
+</view>
+
+<!-- 步骤三：缴费记录（月度/年度两种录入模式） -->
+<view class="card">
+  <view class="card-title">③ 实际缴费记录（单位 / 灵活就业）</view>
+  <view class="row">
+    <text class="opt {{entryMode==='month'?'opt-on':''}}" data-v="month" bindtap="setEntryMode">分段月度录入</text>
+    <text class="opt {{entryMode==='year'?'opt-on':''}}" data-v="year" bindtap="setEntryMode">年度模式录入</text>
+  </view>
+
+  <!-- 月度模式 -->
+  <block wx:if="{{entryMode==='month'}}">
+    <view class="muted">每段填起止年月与月缴费基数（元/月）；段间断开的月份视为断缴（指数计0但计入N应缴分母）。</view>
+    <block wx:for="{{segments}}" wx:key="index">
+      <view class="seg">
+        <view class="seg-head">
+          <text class="opt {{item.type==='enterprise'?'opt-on':''}}" data-i="{{index}}" data-v="enterprise" bindtap="setSegType">单位参保</text>
+          <text class="opt {{item.type==='flexible'?'opt-on':''}}" data-i="{{index}}" data-v="flexible" bindtap="setSegType">灵活就业(20%,8%入账)</text>
+          <text class="del" data-i="{{index}}" bindtap="delSegment">删除</text>
+        </view>
+        <view class="row">
+          <text class="label">起</text>
+          <picker mode="date" fields="month" value="{{item.startYM}}" data-i="{{index}}" data-k="startYM" bindchange="onSegDate">
+            <text class="value">{{item.startYM}} ›</text>
+          </picker>
+          <text class="label">止</text>
+          <picker mode="date" fields="month" value="{{item.endYM}}" data-i="{{index}}" data-k="endYM" bindchange="onSegDate">
+            <text class="value">{{item.endYM}} ›</text>
+          </picker>
+        </view>
+        <view class="row">
+          <text class="label">月缴费基数(元)</text>
+          <input type="digit" placeholder="如 10000" value="{{item.baseMonthly}}" data-i="{{index}}" bindinput="onSegBase" />
+        </view>
+      </view>
+    </block>
+    <button class="mini-btn" bindtap="addSegment">＋ 增加缴费段</button>
+    <button class="mini-btn" bindtap="copyLastSegment">复制上一段（起止顺延12个月，FR-04）</button>
+    <button class="mini-btn" bindtap="fillAtCaliber">按上年全口径平均工资档次填充(60%/100%/300%)</button>
+  </block>
+
+  <!-- 年度模式 FR-05：年缴费基数 + 年内缴费月数1-12 + 区间起始月，自动展开为月段 -->
+  <block wx:if="{{entryMode==='year'}}">
+    <view class="muted">按年录入「年缴费基数（当年合计）+ 年内缴费月数(1~12) + 区间起始月」，系统按 年缴费基数÷缴费月数 自动折算为每月缴费基数，自起始月起连续排满缴费月数；年内未缴费月份指数计0、分母仍计12个月（spec 4.5）。</view>
+    <block wx:for="{{yearRows}}" wx:key="index">
+      <view class="seg">
+        <view class="seg-head">
+          <text class="opt {{item.type==='enterprise'?'opt-on':''}}" data-i="{{index}}" data-v="enterprise" bindtap="setYearRowType">单位参保</text>
+          <text class="opt {{item.type==='flexible'?'opt-on':''}}" data-i="{{index}}" data-v="flexible" bindtap="setYearRowType">灵活就业</text>
+          <text class="del" data-i="{{index}}" bindtap="delYearRow">删除</text>
+        </view>
+        <view class="row">
+          <text class="label">年份</text>
+          <input type="number" placeholder="如 2024" value="{{item.year}}" data-i="{{index}}" data-k="year" bindinput="onYearRow" />
+        </view>
+        <view class="row">
+          <text class="label">区间起始月</text>
+          <input type="number" placeholder="1~12，如 11" value="{{item.startMonth}}" data-i="{{index}}" data-k="startMonth" bindinput="onYearRow" />
+          <text class="label">年内缴费月数</text>
+          <input type="number" placeholder="1~12" value="{{item.months}}" data-i="{{index}}" data-k="months" bindinput="onYearRow" />
+        </view>
+        <view class="row">
+          <text class="label">年缴费基数(元)</text>
+          <input type="digit" placeholder="当年缴费基数合计，如 6142" value="{{item.annualBase}}" data-i="{{index}}" data-k="annualBase" bindinput="onYearRow" />
+        </view>
+      </view>
+    </block>
+    <button class="mini-btn" bindtap="addYearRow">＋ 增加年度行</button>
+  </block>
+
+  <!-- E-05：60%-300% 核定区间越界黄字（允许录入，仅提示） -->
+  <view wx:for="{{boundWarnings}}" wx:key="*this" class="warn-text">⚠ {{item}}</view>
+</view>
+
+<!-- 步骤四：个人账户养老金（Bug25：原账户卡与人员身份卡合并，内含两项） -->
+<view class="card">
+  <view class="card-title">④ 个人账户养老金</view>
+
+  <!-- 项① 个人账户储蓄额（原④内容，绑定不变） -->
+  <view class="subhead">① 个人账户储蓄额</view>
+  <view class="row">
+    <text class="label">个人账户累计储存额(元)</text>
+    <!-- Bug24 I-4：删具体案例值 672920 -->
+    <input type="digit" placeholder="请填写累计储存额（允许填0）" value="{{accountBalanceManual}}" bindinput="onManualBalance" />
+  </view>
+  <view class="row">
+    <text class="label">该余额所在年月</text>
+    <picker mode="date" fields="month" value="{{manualBalanceYM}}" bindchange="onManualBalanceYM">
+      <text class="value">{{manualBalanceYM || manualBalancePh}} ›</text>
+    </picker>
+  </view>
+  <view class="row">
+    <text class="label">未来段记账年利率(%)</text>
+    <input type="digit" placeholder="如 1.5（工程口径，按月复利）" value="{{futureMonthlyRatePct}}" bindinput="onFutureMonthlyRate" />
+  </view>
+  <view class="muted">自余额所在次月起至退休前一月按月滚动：每月末 余额 = 余额×(1+年利率/12) + 月缴费基数×8%；记账利率为工程假设，结果标【预估】，实际以社保经办与官方公布利率为准。R储=官方『个人账户累计储存额』（京劳社养发〔2007〕21号）。</view>
+
+  <!-- 项② 人员身份与 R补（原人员身份卡内容并入；参保起始字段已按 Bug26 移至基本信息） -->
+  <view class="subhead">② 人员身份与 R补（31号文·个人账户补贴额 Z补贴）<text class="tag tag-official">京劳社养发〔2007〕31号</text></view>
+  <view class="row">
+    <text class="label">是否属于31号文人员</text>
+    <view>
+      <text class="opt {{doc31Eligible?'':'opt-on'}}" data-v="no" bindtap="setDoc31">否·一直在企业参保</text>
+      <text class="opt {{doc31Eligible?'opt-on':''}}" data-v="yes" bindtap="setDoc31">是·机关事业转企业/调入/军转</text>
+    </view>
+  </view>
+  <view class="muted">R补（31号文·个人账户补贴额 Z补贴）：给 1998 年后从机关事业单位调入（或转制、军转）到企业的人员的一项虚拟补贴——因为您在原单位期间没建企业个人账户，退休时按当时社会平均工资和历年账户记账比例模拟出一笔金额，再乘您参保后的实际缴费指数；它只用来增加每月个人账户养老金（J账户=(R储+R补)÷M），不打进您真实的个人账户、不能提取或继承。普通企业职工 R补=0，J账户=R储÷M 不变。</view>
+  <block wx:if="{{doc31Eligible}}">
+    <!-- Bug24 I-6：删写死年月，动态绑定当前 case 的参工月/视同起止 -->
+    <view class="warn-text">申报31号文人员须确保①“参加工作年月”（{{workStartYM}}）与②视同起止年月（{{deemedStartYM}}~{{deemedEndYM}}，开关置“有”）已填写：N实98（由系统自动计算）与N同1992-09截断均以此为据。</view>
+    <view class="row">
+      <text class="label">调动/入伍/转制到企业年月</text>
+      <picker mode="date" fields="month" value="{{doc31TransferYM}}" bindchange="onDoc31Transfer">
+        <text class="value">{{doc31TransferYM || doc31TransferPh}} ›</text>
+      </picker>
+    </view>
+    <view class="label" style="margin:12rpx 0 8rpx">已领取的一次性补贴扣除区间（京劳社养发〔2002〕27号等，非必填）</view>
+    <!-- Bug24 I-7：placeholder 删具体年份，只留格式示范 -->
+    <textarea class="ta" placeholder="登记已领取一次性补贴的年月区间（每行一段，格式 YYYY-MM~YYYY-MM）；大多数人留空即可；登记段从Z补贴累加区间扣除（AC-RC-08）" value="{{subsidyExcludedText}}" bindinput="onSubsidyExcluded" auto-height />
+    <view class="muted">说明：如果您早年（按2002年相关文件）已经现金领取过一次性个人账户补贴，那么对应年限不能再重复算进 Z补贴；这个框只用来登记已领取的年月区间做扣除，大多数人留空即可。Z补贴按参保前未建账期间模拟：[(C1992/12×3)+C1993]×2%+[C1994~C1997+C1998/2]×5%+[C1998/2+C1999~C2005]×11%+[C2006~Cn]×8%，再×参保后Z实指数；为虚拟计发额度，不计入账户实际储存额。C下标取相应年度上一年社平（C1992=1991年2877元）。</view>
+  </block>
+</view>
+
+<!-- 步骤五：计发基数与缺口参数 -->
+<view class="card">
+  <view class="card-title">⑤ 计发基数 C平 与缺口年度数据</view>
+  <view class="row">
+    <text class="label">C平 使用年度</text>
+    <picker range="{{baseYearOptions}}" value="{{baseYearIndex}}" bindchange="onBaseYearChange">
+      <text class="value">{{baseYearOptions[baseYearIndex]}} 年度（{{pensionBase[baseYearOptions[baseYearIndex]]}} 元/月）›</text>
+    </picker>
+  </view>
+  <view class="row">
+    <text class="label">手工覆盖 C平(元/月，可选)</text>
+    <input type="digit" placeholder="留空用官方值（须&gt;0）" value="{{cPingOverride}}" bindinput="onCPing" />
+  </view>
+  <view class="label" style="margin:12rpx 0 8rpx">1991-1994 缺口年度月平均工资 C年（每行 YYYY=数值，可留空）</view>
+  <textarea class="ta" placeholder="1991=xxx&#10;1992=xxx&#10;1993=xxx&#10;1994=xxx&#10;（按C的年度录入：1992年缴费取C1991）" value="{{customCYearText}}" bindinput="onCustomCYear" auto-height />
+  <view class="muted">官方归档表始于1995年度（T-10）；这里按 C 的年度录入（缴费年指数=X年/C上一年）；不补录时对应年度缴费指数按0计并给出提示。</view>
+</view>
+
+<view wx:if="{{errorMsg}}" class="card error-text">{{errorMsg}}</view>
+
+<button class="btn-primary" bindtap="onCalculate">开始测算</button>
+<button class="btn-ghost" bindtap="onReset">清空本地录入数据</button>
+
+<!-- 批次2 #11：计算等待遮罩（同步重运算前一帧渲染） -->
+<view class="calc-mask" wx:if="{{calculating}}">
+  <view class="calc-box">
+    <view class="calc-spinner"></view>
+    <view class="calc-text">计算中…</view>
+    <view class="calc-sub">正在本地测算，请稍候</view>
+  </view>
+</view>

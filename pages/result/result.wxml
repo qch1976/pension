@@ -1,0 +1,223 @@
+<!-- pages/result/result.wxml -->
+<!-- 第二轮修复：{{}} 表达式内只允许 ASCII 标识符；中文值一律由 result.js 视图模型(vm/vmYearly/ui)提供 -->
+
+<!-- BUG-16：结果页首帧前的接棒遮罩（与输入页同名同款，样式在 app.wxss）；首帧内容就绪后同帧关闭 -->
+<view class="calc-mask" wx:if="{{pageLoading}}">
+  <view class="calc-box">
+    <view class="calc-spinner"></view>
+    <view class="calc-text">计算中…</view>
+    <view class="calc-sub">正在本地测算，请稍候</view>
+  </view>
+</view>
+
+<view wx:if="{{ready}}">
+
+  <!-- 资格提示条 -->
+  <view class="card {{r.meta.eligible?'ok':'bad'}}">
+    <view><text class="strong">{{r.meta.personType}}</text> · 退休年龄 {{r.meta.retireAge}} 岁 · 计发月数 M={{vm.it.m}}</view>
+    <view class="muted">实缴{{r.intermediates.actualPaidMonths}}月 + 视同{{r.intermediates.deemedMonths}}月 = {{r.meta.totalMonths}}月；最低要求 {{r.meta.minRequiredMonths}}月</view>
+    <view class="{{r.meta.eligible?'ok-text':'error-text'}}">{{vm.eligibleText}}</view>
+  </view>
+
+  <!-- P-05 渐进式延迟法定退休年龄对照（GAP-01） -->
+  <view class="card" wx:if="{{r.meta.retireSchedule}}">
+    <view class="card-title">法定退休年龄对照（P-05）<text class="tag tag-official" data-id="P05" catchtap="showRef">官方</text></view>
+    <view class="row"><text class="label">对照表法定退休年月</text><text class="value">{{r.meta.retireSchedule.statutoryYM}}</text></view>
+    <view class="row"><text class="label">本次拟退休年月</text><text class="value">{{r.meta.retireSchedule.chosenYM}}（{{r.meta.retireSchedule.offsetWord}} {{r.meta.retireSchedule.chosenOffsetMonths===0?0:(r.meta.retireSchedule.chosenOffsetMonths>0?r.meta.retireSchedule.chosenOffsetMonths:-r.meta.retireSchedule.chosenOffsetMonths)}} 个月）</text></view>
+    <view class="row"><text class="label">弹性退休允许区间</text><text class="value">{{r.meta.retireSchedule.flexibleMinYM}} ~ {{r.meta.retireSchedule.flexibleMaxYM}}</text></view>
+    <view class="muted">依据全国人大常委会《关于实施渐进式延迟法定退休年龄的决定》（2025-01-01施行）：男/原55岁女职工每4个月延1个月、原50岁女职工每2个月延1个月；弹性提前/延迟各不超过3年，提前不低于原法定年龄。M 按本次实际退休年龄（满整岁）取计发月数表。</view>
+  </view>
+
+  <!-- 总额大字卡 + 三分项 -->
+  <view class="card total-card">
+    <view class="muted">退休首月基本养老金（元/月）</view>
+    <view class="total">¥ {{totalDisplay}}</view>
+    <view class="parts">
+      <view class="part">
+        <view class="muted">基础养老金 J基础</view>
+        <view class="strong">¥ {{vm.pension.basic}}</view>
+      </view>
+      <view class="part">
+        <view class="muted">个人账户养老金 J账户</view>
+        <view class="strong">¥ {{vm.pension.account}}</view>
+      </view>
+      <view class="part">
+        <view class="muted">过渡性养老金 J过渡</view>
+        <view class="strong">¥ {{vm.pension.transitional}}</view>
+      </view>
+    </view>
+    <view class="muted">总额 = J基础 + J账户 + J过渡 = {{vm.pension.basic}} + {{vm.pension.account}} + {{vm.pension.transitional}}；过渡性养老金 = G同(¥{{vm.it.gDeemed}}) + G实(¥{{vm.it.gReal}})，仅中人享有；J账户 对31号文人员已按（R储+R补）÷M 计入（见下）。</view>
+  </view>
+
+  <!-- 中间变量卡 -->
+  <view class="card">
+    <view class="card-title">中间变量（精确到月）</view>
+    <view class="row"><text class="label">C平（{{r.inputs.baseYear}}年度计发基数）</text><text class="value">¥{{vm.it.cPing}} <text class="tag tag-official" data-id="P10" bindtap="showRef">官方 P10</text></text></view>
+    <view class="muted" style="margin:0 0 8rpx 220rpx">{{vm.notes.cPing}}</view>
+    <view class="row"><text class="label">Z实指数</text><text class="value">{{vm.it.zReal}} <text class="tag tag-official" data-id="P03" bindtap="showRef">29号文 P03</text></text></view>
+    <view class="row"><text class="label">Z同指数</text><text class="value">{{vm.it.zDeemed}}（=1.0）<text class="tag tag-official" data-id="P02" bindtap="showRef">官方 P02</text></text></view>
+    <view class="row"><text class="label">N应缴（Z实分母口径）</text><text class="value">{{vm.yearsText.nShould}} <text class="tag tag-official" data-id="P03" bindtap="showRef">29号文 P03</text></text></view>
+    <view class="muted" style="margin:0 0 8rpx 220rpx">{{vm.notes.nShould}}</view>
+    <view class="row"><text class="label">N实同（基础养老金年限）</text><text class="value">{{vm.yearsText.nRealDeemed}} <text class="tag tag-official" data-id="P02" bindtap="showRef">官方 P02</text></text></view>
+    <view class="muted" style="margin:0 0 8rpx 220rpx">{{vm.notes.nRealDeemed}}</view>
+    <view class="row"><text class="label">N同（1992-09前视同）</text><text class="value">{{vm.yearsText.nDeemed}}</text></view>
+    <view class="row"><text class="label">N实98（连续工龄口径）</text><text class="value">{{vm.yearsText.n98}}</text></view>
+    <view class="muted" style="margin:0 0 8rpx 220rpx">{{vm.notes.n98}}</view>
+    <view class="row"><text class="label">R储（个人账户累计储存额）</text><text class="value">¥{{vm.rStore.total}} <text class="tag tag-official" data-id="P04" bindtap="showRef">官方 P04</text></text></view>
+    <view class="muted" style="margin:0 0 8rpx 220rpx">{{vm.rStore.explain}}</view>
+
+    <view class="row"><text class="label">R补（Z补贴·虚拟计发额）</text><text class="value">¥{{vm.subsidy.amount}} <text class="tag tag-official" data-id="P13" bindtap="showRef">31号文 P13</text></text></view>
+    <view class="muted" style="margin:0 0 8rpx 220rpx">{{vm.notes.rBu}}</view>
+    <view class="muted" style="margin:0 0 8rpx 220rpx">{{vm.subsidy.statusText}}</view>
+    <block wx:if="{{vm.subsidy.showFormula}}">
+      <view class="muted" style="margin:0 0 4rpx 220rpx">{{vm.subsidy.detailText}}</view>
+      <view wx:for="{{vm.subsidy.tiers}}" wx:key="ratePct" class="muted" style="margin:0 0 2rpx 240rpx">档 {{item.ratePct}}：{{item.months}}个月，月模拟额合计 ¥{{item.sumCWage}}，分档值 ¥{{item.bracket}}</view>
+      <view class="muted" style="margin:0 0 8rpx 220rpx">{{vm.subsidy.notIncludedNote}}</view>
+    </block>
+    <view class="row"><text class="label">G同</text><text class="value">¥{{vm.it.gDeemed}}</text></view>
+    <view class="muted" wx:if="{{vm.it.gDeemed===0}}" style="margin:0 0 8rpx 220rpx">{{vm.notes.gTongZero}}</view>
+    <view class="row"><text class="label">G实</text><text class="value">¥{{vm.it.gReal}}</text></view>
+  </view>
+
+  <!-- 公式溯源区（ref 键与 policyRefs 完全一致，点击可弹窗） -->
+  <view class="card">
+    <view class="card-title">计算步骤与政策引用（点标签查文号/原文）</view>
+    <block wx:for="{{r.formulaLines}}" wx:key="key">
+      <view class="formula">
+        <view class="strong">{{item.text}}
+          <text class="tag tag-official" data-id="{{item.ref}}" catchtap="showRef">{{item.ref}}</text>
+        </view>
+        <view class="muted expr">{{item.expr}}</view>
+      </view>
+    </block>
+  </view>
+
+  <!-- 灵活就业成本 -->
+  <view class="card" wx:if="{{r.flexInfo.months>0}}">
+    <view class="card-title">灵活就业段信息（不进入计发公式，仅成本提示）</view>
+    <view class="row"><text class="label">灵活就业月数</text><text class="value">{{r.flexInfo.months}} 月</text></view>
+    <view class="row"><text class="label">累计缴费成本（按20%）</text><text class="value">¥{{r.flexInfo.totalCost}}</text></view>
+    <view class="row"><text class="label">其中入账比例</text><text class="value">8% 入个人账户 <text class="tag tag-official" data-id="P12" bindtap="showRef">官方 P12</text></text></view>
+  </view>
+
+  <!-- 个人账户按年利息/年末余额（FR-11：当年利息、年末本息余额、利率来源可追溯） -->
+  <view class="card" wx:if="{{vmYearly.length}}">
+    <view class="card-title">个人账户按年记账（当年利息 / 年末本息余额）</view>
+    <view class="acct-table">
+      <view class="ac-row ac-h"><text>年度</text><text>当年利息</text><text>年末本息余额</text><text>记账利率</text></view>
+      <view class="ac-row" wx:for="{{vmYearly}}" wx:key="year">
+        <text>{{item.year}}</text>
+        <text>¥{{item.interest}}</text>
+        <text>¥{{item.endBalance}}</text>
+        <text>
+          {{item.rateText}}
+          <text wx:if="{{item.rateSource==='official'}}" class="tag tag-official">官方</text>
+          <text wx:if="{{item.rateSource==='fixed'}}" class="tag tag-assume">固定</text>
+          <text wx:if="{{item.rateSource==='assumed'}}" class="tag tag-pending">待官方核实</text>
+          <text wx:if="{{item.rateSource==='future-monthly'}}" class="tag tag-assume">月滚工程</text>
+        </text>
+      </view>
+    </view>
+    <view class="warn">· 标【待官方核实】年度为人社部尚未公布记账利率，采用预估利率（工程假设）；2022年网络另有6.12%版本，本规格采官方公布4.12%（待确认 T-03）；2025年利率2.62%为媒体口径，待官方发布（待确认 T-04）。</view>
+  </view>
+
+  <!-- #13 Z实指数年度明细账（Xn / C(n−1)，n=1992~退休年；引擎产出，本层只格式化） -->
+  <view class="card">
+    <view class="card-title">Z实指数 年度明细账（Xn / C(n−1)）<text class="tag tag-official" data-id="P03" bindtap="showRef">29号文 P03</text></view>
+    <!-- Bug24 O-2：卡头说明全动态（边界年/窗口年行数绑当前案；12116 为制度值） -->
+    <view class="muted" style="margin-bottom:12rpx">{{vm.notes.annualHead}}</view>
+    <scroll-view scroll-y class="annual-scroll">
+      <view class="annual-table">
+        <view class="an-row an-h"><text>年份</text><text>应缴月</text><text>实缴月</text><text>Xn(元/年)</text><text>C(n−1)(元/年)</text><text>Z年指数</text><text>口径</text><text>来源</text></view>
+        <view class="an-row" wx:for="{{vmAnnual}}" wx:key="year">
+          <text>{{item.year}}</text>
+          <text>{{item.windowMonths}}</text>
+          <text>{{item.paidMonths}}</text>
+          <text>{{item.xText}}</text>
+          <text>{{item.cText}}</text>
+          <text>{{item.zYearText}}</text>
+          <text wx:if="{{item.capped}}" class="tag tag-assume">封顶3.0</text>
+          <text wx:else>年值</text>
+          <text>
+            <text wx:if="{{item.source==='official'}}" class="tag tag-official">官方</text>
+            <text wx:if="{{item.source==='assumed'}}" class="tag tag-assume">预估</text>
+            <text wx:if="{{item.source==='custom'}}" class="tag tag-assume">手录</text>
+            <text wx:if="{{item.source==='missing'}}" class="tag tag-pending">缺分母</text>
+            <text wx:if="{{item.source==='mixed'}}">{{item.sourceText}}</text>
+          </text>
+        </view>
+      </view>
+    </scroll-view>
+    <!-- Bug24 O-3/O-4：勾稽与封顶脚注全动态，无案号/旧数值 -->
+    <view class="warn" style="margin-top:12rpx">· {{vm.notes.ledgerReconcile}}</view>
+    <view class="warn" style="margin-top:8rpx">· {{vm.notes.cap}}</view>
+  </view>
+
+  <!-- 逐月明细按年折叠 -->
+  <view class="card">
+    <view class="card-title">逐月缴费/指数/入账明细（按年展开，含当年利息与年末余额）</view>
+    <block wx:for="{{monthlyGroups}}" wx:key="year" wx:for-item="g">
+      <view class="year-head" data-y="{{g.year}}" bindtap="toggleYear">
+        <text>{{g.year}} 年（{{g.items.length}}个月，入账合计¥{{g.principalSum}}）</text>
+        <text class="muted">{{expandedYear===g.year?ui.collapse:ui.expand}}</text>
+      </view>
+      <view wx:if="{{expandedYear===g.year}}">
+        <view class="yr-sum" wx:if="{{g.account}}">
+          <text>{{g.year}} 当年利息：¥{{g.account.interest}}</text>
+          <text>年末本息余额：¥{{g.account.endBalance}}</text>
+          <text>利率：{{g.account.rateText}}
+            <text wx:if="{{g.account.rateSource==='official'}}" class="tag tag-official">官方</text>
+            <text wx:if="{{g.account.rateSource==='fixed'}}" class="tag tag-assume">固定</text>
+            <text wx:if="{{g.account.rateSource==='assumed'}}" class="tag tag-pending">待官方核实</text>
+            <text wx:if="{{g.account.rateSource==='future-monthly'}}" class="tag tag-assume">月滚工程</text>
+          </text>
+        </view>
+        <view class="month-table">
+          <view class="mt-row mt-h"><text>年月</text><text>身份</text><text>基数</text><text>C年</text><text>月指数</text><text>封顶</text><text>8%入账</text></view>
+          <view class="mt-row" wx:for="{{g.items}}" wx:key="ym" wx:for-item="m">
+            <text>{{m.ym}}</text>
+            <text>{{m.typeText}}</text>
+            <text>{{m.base}}</text>
+            <text>{{m.c}}<text wx:if="{{m.cSource==='assumed'}}" class="tag tag-pending">预估</text><text wx:if="{{m.cSource==='custom'}}" class="tag tag-assume">手录</text></text>
+            <text>{{m.z}}<text wx:if="{{m.capped}}" class="tag tag-assume">原{{m.zRawText}}</text></text>
+            <text>{{m.capped?'3.0':'—'}}</text>
+            <text>{{m.p8}}</text>
+          </view>
+        </view>
+      </view>
+    </block>
+    <button class="mini-btn" bindtap="exportCsv">导出明细 CSV（复制到剪贴板，可粘贴 Excel/微信）</button>
+  </view>
+
+  <!-- 警告/假设提示 -->
+  <view class="card" wx:if="{{r.meta.warnings.length}}">
+    <view class="card-title">数据提示与假设说明</view>
+    <view class="warn" wx:for="{{r.meta.warnings}}" wx:key="*this">· {{item}}</view>
+  </view>
+
+  <view class="card">
+    <view class="muted">政策参数版本：{{r.meta.policyDataVersion}}；数据来源见各引用标签（官方/工程假设/待确认三级标注）。测算结果仅供参考，以北京市社保经办机构核定为准。</view>
+  </view>
+
+  <button class="mini-btn" open-type="share">分享给朋友</button>
+  <button class="btn-primary" bindtap="back">返回修改</button>
+</view>
+
+<!-- 无结果空态 -->
+<view wx:else class="card">
+  <view class="strong">未找到测算结果</view>
+  <view class="muted">请返回首页完成录入并点击“开始测算”。</view>
+  <button class="btn-primary" bindtap="back">返回首页</button>
+</view>
+
+<!-- 政策引用弹窗 -->
+<view wx:if="{{refDetail}}" class="mask" bindtap="closeRef">
+  <view class="modal" catchtap="noop">
+    <view class="strong">{{refDetail.name}}</view>
+    <view class="muted">文号：{{refDetail.docNo}}</view>
+    <view>条款：{{refDetail.clause}}</view>
+    <view class="muted">生效：{{refDetail.effective}} · {{refDetail.status}}</view>
+    <view class="muted url">URL：{{refDetail.url}}</view>
+    <button class="mini-btn" bindtap="closeRef">知道了</button>
+  </view>
+</view>

@@ -1,0 +1,52 @@
+/* pages/result/result.wxss */
+.ok { border-left: 8rpx solid #0a7f2e; }
+.bad { border-left: 8rpx solid #c02a26; }
+.ok-text { color: #0a7f2e; }
+.strong { font-weight: 600; }
+.total-card { text-align: center; }
+.total { font-size: 64rpx; font-weight: 700; color: #165dff; margin: 16rpx 0; }
+.parts { display: flex; justify-content: space-around; margin: 20rpx 0; }
+.part { flex: 1; }
+.formula { padding: 14rpx 0; border-bottom: 1rpx solid #f0f0f0; }
+.formula:last-child { border-bottom: none; }
+.expr { margin-top: 8rpx; line-height: 1.6; word-break: break-all; }
+.year-head {
+  display: flex; justify-content: space-between;
+  padding: 18rpx 8rpx; border-bottom: 1rpx solid #f0f0f0;
+}
+.month-table { padding: 8rpx 0; }
+.mt-row {
+  display: flex; font-size: 22rpx; padding: 6rpx 0;
+}
+.mt-row text { flex: 1; text-align: center; word-break: break-all; }
+.mt-h { font-weight: 600; color: #4e5969; }
+.mask {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+  display: flex; align-items: center; justify-content: center; z-index: 99;
+}
+.modal {
+  width: 80%; background: #fff; border-radius: 16rpx; padding: 32rpx;
+  line-height: 1.8;
+}
+.url { word-break: break-all; }
+
+/* 个人账户按年记账表（GAP-02） */
+.acct-table { width: 100%; }
+.ac-row { display: flex; font-size: 22rpx; padding: 8rpx 0; border-bottom: 1rpx solid #f2f3f5; }
+.ac-row text { flex: 1; text-align: center; word-break: break-all; }
+.ac-h { font-weight: 600; color: #4e5969; }
+.yr-sum {
+  display: flex; justify-content: space-between; gap: 12rpx;
+  background: #f7f8fa; border-radius: 8rpx; padding: 10rpx 12rpx;
+  font-size: 22rpx; color: #4e5969; margin-bottom: 8rpx;
+}
+
+/* #13 Z实指数年度明细账 */
+.annual-scroll { max-height: 60vh; width: 100%; box-sizing: border-box; }
+.annual-table { width: 100%; }
+.an-row {
+  display: flex; font-size: 22rpx; padding: 8rpx 0;
+  border-bottom: 1rpx solid #f2f3f5;
+}
+.an-row text { flex: 1; text-align: center; word-break: break-all; min-width: 0; }
+.an-h { font-weight: 600; color: #4e5969; }

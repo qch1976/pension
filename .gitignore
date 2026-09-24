@@ -1,0 +1,32 @@
+﻿# ============================================================
+# pension .gitignore (backup / log / run-output excluded)
+# ============================================================
+
+# ---- backup snapshots (all levels) ----
+backup/
+backup-*/
+docs/backup/
+
+# ---- logs / run results ----
+*.log
+*.err
+*.exit
+_sess0-*.log
+autotest/**/logs/
+autotest/output/
+autotest/gui/job.txt
+autotest/gui/job-result.json
+tests/round1-fixes-output.txt
+tests/test-results-*.json
+
+# ---- dependencies ----
+node_modules/
+
+# ---- OS / editor ----
+Thumbs.db
+Desktop.ini
+.DS_Store
+*.tmp
+*.bak
+.vscode/
+.idea/

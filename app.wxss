@@ -1,0 +1,103 @@
+/**app.wxss**/
+page {
+  background: #f4f5f7;
+  font-size: 28rpx;
+  color: #1f2329;
+}
+.card {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin: 20rpx 24rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+}
+.card-title {
+  font-weight: 600;
+  font-size: 30rpx;
+  margin-bottom: 16rpx;
+}
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 72rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+.row:last-child { border-bottom: none; }
+.label { color: #4e5969; }
+.value { color: #1f2329; }
+.muted { color: #86909c; font-size: 24rpx; }
+.tag { display: inline-block; font-size: 20rpx; border-radius: 6rpx; padding: 0 8rpx; line-height: 1.6; white-space: nowrap; }
+.tag-official { color: #0a7f2e; font-size: 20rpx; border: 1rpx solid #0a7f2e; border-radius: 6rpx; padding: 0 6rpx; margin-left: 8rpx; }
+.tag-assume { color: #d4690c; font-size: 20rpx; border: 1rpx solid #d4690c; border-radius: 6rpx; padding: 0 6rpx; margin-left: 8rpx; }
+.tag-pending { color: #c02a26; font-size: 20rpx; border: 1rpx solid #c02a26; border-radius: 6rpx; padding: 0 6rpx; margin-left: 8rpx; }
+.btn-primary {
+  background: #165dff;
+  color: #fff;
+  border-radius: 12rpx;
+  margin: 32rpx 24rpx;
+}
+.btn-ghost {
+  background: #fff;
+  color: #165dff;
+  border: 1rpx solid #165dff;
+  border-radius: 12rpx;
+  margin: 16rpx 24rpx;
+}
+.warn {
+  color: #d4690c;
+  font-size: 24rpx;
+  line-height: 1.6;
+}
+.warn-text {
+  color: #d4690c;
+  font-size: 24rpx;
+  line-height: 1.6;
+  margin-top: 8rpx;
+}
+.error-text { color: #c02a26; }
+input { text-align: center; min-width: 240rpx; } /* 批次2 #7：所有输入框数字水平居中 */
+
+/* 批次2 #11 + BUG-16：计算等待遮罩（从 index.wxss 上移至全局，输入页/结果页同名同款保证视觉连续） */
+.calc-mask {
+  position: fixed;
+  inset: 0;
+  left: 0; right: 0; top: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+.calc-box {
+  width: 320rpx;
+  padding: 40rpx 32rpx 32rpx;
+  background: #fff;
+  border-radius: 16rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.calc-spinner {
+  width: 64rpx;
+  height: 64rpx;
+  border: 6rpx solid #e5e6eb;
+  border-top-color: #165dff;
+  border-radius: 50%;
+  animation: calc-spin 0.8s linear infinite;
+}
+@keyframes calc-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.calc-text {
+  margin-top: 20rpx;
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #1f2329;
+}
+.calc-sub {
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: #86909c;
+}

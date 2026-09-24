@@ -1,0 +1,1 @@
+﻿const fs=require(`fs`);const j=JSON.parse(fs.readFileSync(process.argv[1],`utf8`));console.log(`PARSE_OK ok=`+j.ok);for(const c of Object.values(j.cases)){console.log(c.case,c.totals,`fatal=`+c.fatal)}
