@@ -14,7 +14,7 @@ const cp = require('child_process');
 const PROJECT = 'C:\\Users\\Administrator\\Desktop\\Wechat projects\\pension';
 const SDK_DIR = 'C:\\Users\\Administrator\\wechat-automation\\node_modules\\miniprogram-automator';
 const OUT = path.join(PROJECT, 'autotest', 'output', 't3');
-const AUTO_PORT = 9580;
+const AUTO_PORT = 9583;
 fs.mkdirSync(OUT, { recursive: true });
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -44,6 +44,15 @@ function portListening(port) {
     sock.once('error', () => done(false));
     setTimeout(() => done(false), 1500);
   });
+}
+
+async function waitPort(port, timeoutMs) {
+  const t0 = Date.now();
+  while (Date.now() - t0 < timeoutMs) {
+    if (await portListening(port)) return true;
+    await sleep(1000);
+  }
+  return false;
 }
 
 async function waitFor(logBuf, re, timeoutMs) {
@@ -118,8 +127,8 @@ function validatePng(p) {
   const mAuto = await waitFor(logBuf, /\bauto\b/i, 30000);
   rec('cli log: auto', mAuto, '√ auto marker');
 
-  // ---- 4. auto port listening
-  const listenOk = await portListening(AUTO_PORT);
+  // ---- 4. auto port listening（轮询等端口真正 Listen，消除标记与端口就绪竞态）
+  const listenOk = await waitPort(AUTO_PORT, 30000);
   rec('auto port listening ' + AUTO_PORT, listenOk, {});
   if (!listenOk) {
     fs.writeFileSync(path.join(OUT, 'cli-auto.log'), logBuf.buf, 'utf8');
@@ -140,25 +149,32 @@ function validatePng(p) {
     finish(result, OUT); process.exit(1);
   }
 
-  // ---- 6. checkVersion
+  // ---- 6. checkVersion + 预热（playbook：connect 后预热约 10s）
   try {
     const v = await mp.checkVersion();
     rec('checkVersion', true, v);
   } catch (e) { rec('checkVersion', false, String(e.message || e)); }
+  await sleep(10000);
 
-  // ---- 7. ensure index page ready
-  let page = null, pagePath = '', dataKeys = 0;
+  // ---- 7. ensure index page ready（currentPage/page.data 逐次容错，不被单次 flaky 打断）
+  let page = null, pagePath = '', dataKeys = 0, relaunchTried = false;
   try {
     const t0 = Date.now();
-    while (Date.now() - t0 < 60000) {
-      page = await mp.currentPage();
-      pagePath = page && page.path || '';
-      if (pagePath.indexOf('pages/index/index') >= 0) {
-        const dd = await page.data();
-        dataKeys = dd ? Object.keys(dd).length : 0;
-        if (dataKeys > 5) break;
+    while (Date.now() - t0 < 70000) {
+      try {
+        page = await mp.currentPage();
+        pagePath = page && page.path || '';
+      } catch (e) {
+        page = null; pagePath = '';
       }
-      if (Date.now() - t0 > 8000 && pagePath.indexOf('pages/index/index') < 0) {
+      if (pagePath.indexOf('pages/index/index') >= 0) {
+        try {
+          const dd = await page.data();
+          dataKeys = dd ? Object.keys(dd).length : 0;
+        } catch (e) { dataKeys = 0; }
+        if (dataKeys > 5) break;
+      } else if (!relaunchTried && Date.now() - t0 > 6000) {
+        relaunchTried = true;
         try { await mp.reLaunch('/pages/index/index'); } catch (e) {}
       }
       await sleep(1500);
@@ -167,8 +183,9 @@ function validatePng(p) {
       { path: pagePath, dataKeys: dataKeys });
   } catch (e) { rec('index page ready', false, String(e.message || e)); }
 
-  // ---- 8. native screenshot with retries (1.5s/3s/6s)
+  // ---- 8. native screenshot with retries (1.5s/3s/6s)；先删旧文件，保证被校验 PNG 必为本轮生成
   const shotPath = path.join(OUT, 't3-simulator.png');
+  try { fs.unlinkSync(shotPath); } catch (e) {}
   let shotOk = false, shotInfo = null, shotErr = null;
   for (let i = 0; i < 3; i++) {
     try {

@@ -56,7 +56,7 @@ const EXPECT = {
     const payload = {
       gender: 'male', femaleType: 'worker',
       birthYM: '1973-07', workStartYM: '1995-07', retireYM: '2033-07',
-      deemedStartYM: '1995-07', deemedEndYM: '2000-10', // #5 视同起止（两端含当月）
+      hasDeemed: true, deemedStartYM: '1995-07', deemedEndYM: '2000-10', // T4: Bug22 校验要求 hasDeemed 开关置有
       entryMode: 'month', segments: buildSegments(E.z, E.type),
       accountBalanceManual: '672920', manualBalanceYM: '2026-08', futureMonthlyRatePct: '1.5',
       doc31Eligible: true, doc31TransferYM: '2000-11', enterpriseInsuredYM: '2000-11',
