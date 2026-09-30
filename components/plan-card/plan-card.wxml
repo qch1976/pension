@@ -1,0 +1,33 @@
+<!-- components/plan-card/plan-card.wxml -->
+<view class="plan-card">
+  <view class="plan-head">
+    <text class="plan-name">方案 {{index}}</text>
+    <text class="plan-del" wx:if="{{canDelete}}" data-i="{{index}}" bindtap="onDelete">删除</text>
+  </view>
+
+  <!-- ① 退休年月 -->
+  <view class="row">
+    <text class="label">退休年月</text>
+    <picker mode="date" fields="month" value="{{plan.retireYM}}" bindchange="onRetire">
+      <text class="value">{{plan.retireYM}}<text wx:if="{{!plan.retireYM}}">请选择（默认法定退休年月）</text> ›</text>
+    </picker>
+  </view>
+
+  <!-- ② Z 值 -->
+  <view class="row">
+    <text class="label">Z 值</text>
+    <input class="z-input" type="digit" placeholder="0.60~3.00（步进0.1）" value="{{plan.z}}" bindinput="onZ" />
+  </view>
+
+  <!-- ③ 缴费性质 -->
+  <view class="row">
+    <text class="label">缴费性质</text>
+    <view>
+      <text class="opt {{plan.segType==='flexible'?'opt-on':''}}" data-v="flexible" bindtap="setSegType">灵活就业(20%)</text>
+      <text class="opt {{plan.segType==='enterprise'?'opt-on':''}}" data-v="enterprise" bindtap="setSegType">企业职工(8%)</text>
+    </view>
+  </view>
+
+  <!-- 校验红字（越界阻断提示） -->
+  <view wx:for="{{errors}}" wx:key="*this" class="plan-err">⚠ {{item}}</view>
+</view>

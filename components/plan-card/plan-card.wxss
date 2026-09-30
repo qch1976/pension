@@ -1,0 +1,51 @@
+/* components/plan-card/plan-card.wxss */
+.plan-card {
+  background: #fff;
+  border: 1rpx solid #e5e6eb;
+  border-radius: 14rpx;
+  padding: 20rpx 24rpx;
+  margin: 20rpx 24rpx;
+}
+.plan-head {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8rpx;
+}
+.plan-name {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #1f2329;
+}
+.plan-del {
+  margin-left: auto;
+  color: #c02a26;
+  font-size: 24rpx;
+  padding: 6rpx 8rpx;
+}
+.z-input {
+  flex: 1;
+  background: #f7f8fa;
+  border-radius: 8rpx;
+  padding: 8rpx 16rpx;
+  font-size: 28rpx;
+}
+.opt {
+  display: inline-block;
+  padding: 8rpx 20rpx;
+  margin: 6rpx;
+  border: 1rpx solid #c9cdd4;
+  border-radius: 999rpx;
+  color: #4e5969;
+  font-size: 26rpx;
+}
+.opt-on {
+  background: #165dff;
+  border-color: #165dff;
+  color: #fff;
+}
+.plan-err {
+  color: #c02a26;
+  font-size: 24rpx;
+  line-height: 1.5;
+  margin-top: 6rpx;
+}

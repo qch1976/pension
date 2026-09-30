@@ -1,0 +1,20 @@
+<!-- components/plan-list/plan-list.wxml -->
+<view class="plan-list">
+  <view class="plan-list-title">方案卡（1~3 个，方案差异仅退休年月/Z/缴费性质）</view>
+
+  <block wx:for="{{plans}}" wx:key="index">
+    <plan-card
+      plan="{{item}}"
+      index="{{index + 1}}"
+      ctx="{{ctx}}"
+      bind:change="onCardChange"
+      bind:errorchange="onCardError"
+      bind:delete="removePlan"
+    ></plan-card>
+  </block>
+
+  <button class="plan-add {{addDisabled?'plan-add-disabled':''}}"
+          disabled="{{addDisabled}}" bindtap="addPlan">
+    ＋ 添加方案（最多 3 个）
+  </button>
+</view>

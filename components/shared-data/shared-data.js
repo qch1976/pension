@@ -153,6 +153,16 @@ Component({
       }
     },
 
+    // ---- 对外：读取共享上下文（性别/女性身份/出生），供方案卡确定退休区间 ----
+    getContext: function () {
+      var d = this.data;
+      return {
+        gender: d.gender,
+        femaleType: d.femaleType,
+        birthYM: d.birthYM
+      };
+    },
+
     // ---- 对外：读取已持久化的共享草稿（独立 key），供三方案一致引用 ----
     readDraft: function () {
       return wx.getStorageSync(DRAFT_KEY);

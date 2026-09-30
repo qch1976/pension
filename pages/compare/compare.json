@@ -1,6 +1,7 @@
 {
   "navigationBarTitleText": "方案比较",
   "usingComponents": {
-    "shared-data": "/components/shared-data/shared-data"
+    "shared-data": "/components/shared-data/shared-data",
+    "plan-list": "/components/plan-list/plan-list"
   }
 }

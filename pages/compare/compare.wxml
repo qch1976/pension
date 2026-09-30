@@ -1,5 +1,8 @@
 <!-- pages/compare/compare.wxml -->
-<!-- D2：共享历史数据区（≤2026-08，三方案共用）；方案卡区域 D3 实现 -->
+<!-- D2：共享历史数据区（≤2026-08，三方案共用） -->
 <shared-data id="sharedData"></shared-data>
+
+<!-- D3：方案卡（1~3 个方案，3 项差异 + 增删 + Z/区间校验） -->
+<plan-list id="planList" ctx="{{ctx}}"></plan-list>
 
 <button class="back-btn" bindtap="backEntry">返回选项页</button>
