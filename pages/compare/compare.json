@@ -1,4 +1,6 @@
 {
   "navigationBarTitleText": "方案比较",
-  "usingComponents": {}
+  "usingComponents": {
+    "shared-data": "/components/shared-data/shared-data"
+  }
 }
