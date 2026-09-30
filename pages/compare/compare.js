@@ -2,6 +2,12 @@
 // Phase-1 方案输入页。
 //  D2：共享历史数据区组件（≤2026-08，三方案共用、只录一次）。
 //  D3：方案卡组件（1~3 个方案，3 项差异 + 增删 + Z/区间校验）。
+//  D8：开始比较 -> 组装共享引擎入参 + 有效方案，进入比较结果页。
+var PM = require('../../calculator/planModel.js');
+var D = require('../../calculator/dateUtil.js');
+
+var PAYLOAD_KEY = 'pension_compare_payload_v1';
+
 Page({
   data: {
     ctx: { gender: '', femaleType: '', birthYM: '' }
@@ -24,6 +30,54 @@ Page({
       ? shared.getContext()
       : { gender: '', femaleType: '', birthYM: '' };
     this.setData({ ctx: ctx });
+  },
+
+  // D8：开始比较
+  startCompare: function () {
+    var shared = this.selectComponent('#sharedData');
+    var planList = this.selectComponent('#planList');
+    if (!shared || !planList) return;
+
+    // 共享入参（内部已保存草稿并做 ≤2026-08 校验）
+    var built = shared.buildValidatedInput();
+    if (!built.ok) {
+      wx.showToast({ title: built.error || '共享历史数据校验未通过', icon: 'none', duration: 2600 });
+      return;
+    }
+
+    // 取有效、非空、填全的方案
+    var ctx = this.data.ctx;
+    var plans = planList.getPlans().filter(function (p) {
+      return PM.isValidPlan(p, ctx, D);
+    });
+
+    if (plans.length < PM.MIN_PLANS_TO_COMPARE) {
+      wx.showToast({
+        title: '请至少填全 ' + PM.MIN_PLANS_TO_COMPARE + ' 个不同方案（退休年月/Z/缴费性质）',
+        icon: 'none', duration: 2600
+      });
+      return;
+    }
+
+    // 去重（同退休/Z/性质视为同方案）
+    var seen = {}, distinct = [];
+    plans.forEach(function (p) {
+      var k = p.retireYM + '|' + String(p.z).trim() + '|' + p.segType;
+      if (!seen[k]) { seen[k] = 1; distinct.push(p); }
+    });
+    if (distinct.length < PM.MIN_PLANS_TO_COMPARE) {
+      wx.showToast({ title: '方案内容相同，比较至少需 2 个不同方案', icon: 'none', duration: 2600 });
+      return;
+    }
+
+    // 载荷走 storage（结果页直接读，不依赖页面栈传参）
+    wx.setStorageSync(PAYLOAD_KEY, { sharedInput: built.input, plans: distinct });
+    wx.navigateTo({
+      url: '/pages/compare-result/compare-result',
+      fail: function () {
+        wx.showToast({ title: '打开结果页失败，请重试', icon: 'none' });
+      }
+    });
   },
 
   // redirectTo 进入后无返回栈：返回选项页

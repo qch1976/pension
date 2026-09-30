@@ -1,6 +1,230 @@
 <!-- pages/compare-result/compare-result.wxml -->
-<view class="ph">
-  <view class="ph-title">比较结果</view>
-  <view class="ph-desc">将展示各方案的 P月、R续、回本月数（0%/用户利率）与 ROI 对比（D8 实现）。</view>
-  <button class="ph-btn ph-btn-ghost" bindtap="backCompare">返回方案输入页</button>
+<view class="cr" wx:if="{{ready}}">
+
+  <!-- 顶部：利率输入 + 政策入口 -->
+  <view class="cr-topbar">
+    <view class="cr-rate">
+      <text class="cr-rate-label">回本年利率(%)</text>
+      <input class="cr-rate-input" type="digit" value="{{rateInput}}" bindinput="onRateInput" />
+      <view class="cr-rate-btn" bindtap="applyRate">应用</view>
+    </view>
+    <view class="cr-policy-entry" bindtap="openPolicy">政策依据</view>
+  </view>
+
+  <!-- ============ 比较表（行=指标，列=方案） ============ -->
+  <scroll-view scroll-x class="cr-table-scroll">
+    <view class="cr-table">
+
+      <!-- 表头 -->
+      <view class="cr-row cr-row-head">
+        <view class="cr-cell cr-cell-label">方案</view>
+        <view class="cr-cell {{c.grey ? 'cr-cell-grey' : ''}}" wx:for="{{view.columns}}" wx:for-item="c" wx:key="id">
+          <view class="cr-head-name">{{c.name}}</view>
+          <view class="cr-badges">
+            <text class="cr-badge cr-badge-base" wx:if="{{c.id === view.baselineId}}">基准</text>
+            <text class="cr-badge cr-badge-est" wx:if="{{c.estimated}}">预估</text>
+            <text class="cr-badge cr-badge-grey" wx:if="{{c.grey}}">不可按月领</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 退休年月 -->
+      <view class="cr-row">
+        <view class="cr-cell cr-cell-label">退休年月</view>
+        <view class="cr-cell {{c.grey ? 'cr-cell-grey' : ''}}" wx:for="{{view.columns}}" wx:for-item="c" wx:key="id">{{c.retireYM}}</view>
+      </view>
+
+      <!-- 缴费性质 -->
+      <view class="cr-row">
+        <view class="cr-cell cr-cell-label">缴费性质</view>
+        <view class="cr-cell {{c.grey ? 'cr-cell-grey' : ''}}" wx:for="{{view.columns}}" wx:for-item="c" wx:key="id">{{c.segLabel}}</view>
+      </view>
+
+      <!-- Z -->
+      <view class="cr-row">
+        <view class="cr-cell cr-cell-label">Z（月缴费指数）</view>
+        <view class="cr-cell {{c.grey ? 'cr-cell-grey' : ''}}" wx:for="{{view.columns}}" wx:for-item="c" wx:key="id">{{c.z}}</view>
+      </view>
+
+      <!-- 缴费月数 -->
+      <view class="cr-row">
+        <view class="cr-cell cr-cell-label">缴费月数</view>
+        <view class="cr-cell {{c.grey ? 'cr-cell-grey' : ''}}" wx:for="{{view.columns}}" wx:for-item="c" wx:key="id">{{c.contMonths}}月</view>
+      </view>
+
+      <!-- P月（三分项可展开） -->
+      <view class="cr-row">
+        <view class="cr-cell cr-cell-label">月养老金（P月）</view>
+        <view class="cr-cell {{c.grey ? 'cr-cell-grey' : ''}}" wx:for="{{view.columns}}" wx:for-item="c" wx:key="id">
+          <view class="cr-p-line" data-id="{{c.id}}" bindtap="toggleComponents">
+            <text class="cr-p-val">{{c.pMonthly}}</text>
+            <text class="cr-p-toggle">{{showComponents[c.id] ? '收起' : '分项'}}</text>
+          </view>
+          <view class="cr-comp" wx:if="{{showComponents[c.id]}}">
+            <view class="cr-comp-row"><text>基础</text><text>{{c.jBasic}}</text></view>
+            <view class="cr-comp-row"><text>账户</text><text>{{c.jAccount}}</text></view>
+            <view class="cr-comp-row"><text>过渡</text><text>{{c.jTransit}}</text></view>
+          </view>
+        </view>
+      </view>
+
+      <!-- R续 -->
+      <view class="cr-row">
+        <view class="cr-cell cr-cell-label">继续缴费（R续）</view>
+        <view class="cr-cell {{c.grey ? 'cr-cell-grey' : ''}}" wx:for="{{view.columns}}" wx:for-item="c" wx:key="id">
+          <view class="cr-r-total">{{c.rContinued}}</view>
+          <view class="cr-r-sub">月均{{c.monthlyBurden}}</view>
+        </view>
+      </view>
+
+      <!-- 回本月数：0% 列 -->
+      <view class="cr-row">
+        <view class="cr-cell cr-cell-label">回本月数（0%）</view>
+        <view class="cr-cell {{c.grey ? 'cr-cell-grey' : ''}}" wx:for="{{view.columns}}" wx:for-item="c" wx:key="id">
+          <view class="cr-pb-text">{{c.pb0.text}}</view>
+          <view class="cr-pb-sub">{{c.pb0.sub}}</view>
+        </view>
+      </view>
+
+      <!-- 回本月数：用户利率列 -->
+      <view class="cr-row">
+        <view class="cr-cell cr-cell-label">回本月数（{{view.userRatePercent}}%）</view>
+        <view class="cr-cell {{c.grey ? 'cr-cell-grey' : ''}}" wx:for="{{view.columns}}" wx:for-item="c" wx:key="id">
+          <view class="cr-pb-text">{{c.pbU.text}}</view>
+          <view class="cr-pb-sub">{{c.pbU.sub}}</view>
+        </view>
+      </view>
+
+      <!-- ROI -->
+      <view class="cr-row">
+        <view class="cr-cell cr-cell-label">ROI</view>
+        <view class="cr-cell {{c.grey ? 'cr-cell-grey' : ''}}" wx:for="{{view.columns}}" wx:for-item="c" wx:key="id">
+          <text class="{{c.roiBlocked ? 'cr-roi-blocked' : 'cr-roi-ok'}}">{{c.roiText}}</text>
+        </view>
+      </view>
+
+      <!-- 下钻入口 -->
+      <view class="cr-row">
+        <view class="cr-cell cr-cell-label">数值下钻</view>
+        <view class="cr-cell {{c.grey ? 'cr-cell-grey' : ''}}" wx:for="{{view.columns}}" wx:for-item="c" wx:key="id">
+          <view class="cr-drill-entry" data-id="{{c.id}}" bindtap="openDrill">查看明细</view>
+        </view>
+      </view>
+
+    </view>
+  </scroll-view>
+
+  <!-- ============ 纯CSS条形对比（P月 / ROI，零图表库） ============ -->
+  <view class="cr-bars">
+    <view class="cr-bars-title">月养老金对比（P月）</view>
+    <view class="cr-bar-item" wx:for="{{view.columns}}" wx:for-item="c" wx:key="id">
+      <view class="cr-bar-label">{{c.name}}</view>
+      <view class="cr-bar-track">
+        <view class="cr-bar-fill cr-bar-fill-p {{c.grey ? 'cr-bar-fill-grey' : ''}}" style="width: {{c.barP}}%"></view>
+      </view>
+      <view class="cr-bar-val">{{c.pMonthly}}</view>
+    </view>
+
+    <view class="cr-bars-title cr-bars-title-gap">ROI 对比</view>
+    <view class="cr-bar-item" wx:for="{{view.columns}}" wx:for-item="c" wx:key="id">
+      <view class="cr-bar-label">{{c.name}}</view>
+      <view class="cr-bar-track">
+        <view class="cr-bar-fill cr-bar-fill-roi" style="width: {{c.barRoi}}%"></view>
+      </view>
+      <view class="cr-bar-val {{c.roiBlocked ? 'cr-roi-blocked' : ''}}">{{c.roiText}}</view>
+    </view>
+  </view>
+
+  <button class="cr-back" bindtap="backCompare">返回方案输入页</button>
+</view>
+
+<!-- 载荷缺失 -->
+<view class="cr-empty" wx:if="{{!ready}}">
+  <view class="cr-empty-text">{{loadError}}</view>
+  <button class="cr-back" bindtap="backCompare">返回方案输入页</button>
+</view>
+
+<!-- ============ 下钻弹窗 ============ -->
+<view class="cr-mask" wx:if="{{drillId}}" bindtap="closeDrill">
+  <view class="cr-sheet" catchtap="">
+    <view class="cr-sheet-head">
+      <text class="cr-sheet-title">数值下钻</text>
+      <text class="cr-sheet-close" bindtap="closeDrill">关闭</text>
+    </view>
+
+    <scroll-view scroll-y class="cr-sheet-body" wx:if="{{drill}}">
+      <!-- 历史段 -->
+      <view class="cr-dr-section">
+        <view class="cr-dr-h">历史缴费段（≤2026-08）</view>
+        <view class="cr-dr-row" wx:for="{{drill.history}}" wx:for-item="h" wx:for-index="hi" wx:key="hi">
+          <text>{{h.startYM}} 至 {{h.endYM}}</text>
+          <text>{{h.baseMonthly}}（{{h.typeLabel}}）</text>
+        </view>
+      </view>
+
+      <!-- 视同 -->
+      <view class="cr-dr-section">
+        <view class="cr-dr-h">视同缴费</view>
+        <view class="cr-dr-row">
+          <text>{{drill.deemed.text}}</text>
+        </view>
+      </view>
+
+      <!-- 账户 -->
+      <view class="cr-dr-section">
+        <view class="cr-dr-h">个人账户锚点</view>
+        <view class="cr-dr-row">
+          <text>余额 {{drill.account.balance}}（{{drill.account.balanceYM}}）</text>
+        </view>
+      </view>
+
+      <!-- customCYear -->
+      <view class="cr-dr-section">
+        <view class="cr-dr-h">自定义年度缴费基数</view>
+        <view class="cr-dr-row" wx:for="{{drill.customCYear}}" wx:for-item="cy" wx:key="year">
+          <text>{{cy.year}}年：{{cy.value}}</text>
+        </view>
+        <view class="cr-dr-row" wx:if="{{drill.customCYear.length === 0}}"><text>无</text></view>
+      </view>
+
+      <!-- J三分项 -->
+      <view class="cr-dr-section">
+        <view class="cr-dr-h">月养老金三分项</view>
+        <view class="cr-dr-row"><text>P月</text><text>{{drill.pension.total}}</text></view>
+        <view class="cr-dr-row"><text>基础</text><text>{{drill.pension.jBasic}}</text></view>
+        <view class="cr-dr-row"><text>账户</text><text>{{drill.pension.jAccount}}</text></view>
+        <view class="cr-dr-row"><text>过渡</text><text>{{drill.pension.jTransition}}</text></view>
+      </view>
+
+      <!-- 三段现金流 -->
+      <view class="cr-dr-section" wx:if="{{drill.cashflow}}">
+        <view class="cr-dr-h">相对基准净差额现金流</view>
+        <view class="cr-dr-row"><text>并存缴费期合计</text><text>{{drill.cashflow.sumConcurrent}}</text></view>
+        <view class="cr-dr-row"><text>基准退休后冲抵期合计</text><text>{{drill.cashflow.sumOffset}}</text></view>
+        <view class="cr-dr-row"><text>候选退休后月多领</text><text>{{drill.cashflow.deltaMonthly}}</text></view>
+        <view class="cr-dr-cf" wx:for="{{drill.cashflow.monthly}}" wx:for-item="cf" wx:key="ym">
+          <text>{{cf.ym}}</text>
+          <text class="{{cf.stage === 1 ? 'cr-cf-s1' : 'cr-cf-s2'}}">{{cf.d}}</text>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+</view>
+
+<!-- ============ 政策弹窗 ============ -->
+<view class="cr-mask" wx:if="{{policyOpen}}" bindtap="closePolicy">
+  <view class="cr-sheet" catchtap="">
+    <view class="cr-sheet-head">
+      <text class="cr-sheet-title">政策依据</text>
+      <text class="cr-sheet-close" bindtap="closePolicy">关闭</text>
+    </view>
+    <scroll-view scroll-y class="cr-sheet-body">
+      <view class="cr-pol" wx:for="{{view.policies}}" wx:for-item="p" wx:key="id">
+        <view class="cr-pol-name">{{p.name}}</view>
+        <view class="cr-pol-no">文号：{{p.docNo}}</view>
+        <view class="cr-pol-clause">条款：{{p.clause}}</view>
+        <view class="cr-pol-url">来源：{{p.url}}</view>
+      </view>
+    </scroll-view>
+  </view>
 </view>

@@ -1,8 +1,12 @@
 /* pages/compare/compare.wxss */
+.compare-btn {
+  margin: 24rpx;
+  border-radius: 12rpx;
+}
 .back-btn {
   background: #fff;
   color: #165dff;
   border: 1rpx solid #165dff;
   border-radius: 12rpx;
-  margin: 24rpx;
+  margin: 0 24rpx 24rpx;
 }
