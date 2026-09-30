@@ -1,0 +1,6 @@
+<!-- pages/compare-result/compare-result.wxml -->
+<view class="ph">
+  <view class="ph-title">比较结果</view>
+  <view class="ph-desc">将展示各方案的 P月、R续、回本月数（0%/用户利率）与 ROI 对比（D8 实现）。</view>
+  <button class="ph-btn ph-btn-ghost" bindtap="backCompare">返回方案输入页</button>
+</view>

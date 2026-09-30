@@ -1,0 +1,7 @@
+<!-- pages/compare/compare.wxml -->
+<view class="ph">
+  <view class="ph-title">方案比较</view>
+  <view class="ph-desc">在此录入 1~3 个方案的退休年月、Z 值与缴费性质（D2/D3 实现）。</view>
+  <button class="ph-btn" type="primary" bindtap="goResult">查看比较结果页（连通占位）</button>
+  <button class="ph-btn ph-btn-ghost" bindtap="backEntry">返回选项页</button>
+</view>

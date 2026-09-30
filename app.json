@@ -1,7 +1,10 @@
 {
   "pages": [
+    "pages/entry/entry",
     "pages/index/index",
-    "pages/result/result"
+    "pages/result/result",
+    "pages/compare/compare",
+    "pages/compare-result/compare-result"
   ],
   "window": {
     "navigationBarTextStyle": "black",
