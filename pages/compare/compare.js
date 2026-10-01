@@ -59,12 +59,9 @@ Page({
       return;
     }
 
-    // 去重（同退休/Z/性质视为同方案）
-    var seen = {}, distinct = [];
-    plans.forEach(function (p) {
-      var k = p.retireYM + '|' + String(p.z).trim() + '|' + p.segType;
-      if (!seen[k]) { seen[k] = 1; distinct.push(p); }
-    });
+    // 去重（同退休/Z/性质视为同方案）——复用 planModel 纯函数，便于单测（REQ-01-DUP-000~002）
+    var dedup = PM.dedupPlans(plans);
+    var distinct = dedup.distinct;
     if (distinct.length < PM.MIN_PLANS_TO_COMPARE) {
       wx.showToast({ title: '方案内容相同，比较至少需 2 个不同方案', icon: 'none', duration: 2600 });
       return;

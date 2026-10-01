@@ -144,6 +144,49 @@ function belowCompareAfterRemove(count) {
   return (count - 1) < MIN_PLANS_TO_COMPARE;
 }
 
+// ---- REQ-01-DUP-000~002 方案去重纯函数（node 可断言）----
+function normStr(v) {
+  return String(v == null ? '' : v).trim();
+}
+
+// 方案差异指纹 = (退休年月, Z, 缴费性质)。三项一致视为同一方案（REQ-01-DUP-000）。
+// Z 数值归一：trim 后非空且为有限数则按 Number 归一（'0.60' 与 '0.6' 视为同一 Z）；非数字回退原串。
+function planFingerprint(plan) {
+  plan = plan || {};
+  var retireYM = normStr(plan.retireYM);
+  var zRaw = normStr(plan.z);
+  var zKey = zRaw;
+  if (zRaw !== '') {
+    var n = Number(zRaw);
+    if (isFinite(n)) zKey = String(n);
+  }
+  var segType = normStr(plan.segType);
+  return retireYM + '|' + zKey + '|' + segType;
+}
+
+// 去重：按指纹保留首次出现的方案，相同方案丢弃。返回 { distinct, duplicates }。
+// duplicates 记录被去掉的 { index, fingerprint }（供 UI 置灰/提示，REQ-01-DUP-001）。
+function dedupPlans(plans) {
+  var seen = {};
+  var distinct = [];
+  var duplicates = [];
+  (plans || []).forEach(function (p, i) {
+    var k = planFingerprint(p);
+    if (seen[k]) {
+      duplicates.push({ index: i, fingerprint: k });
+    } else {
+      seen[k] = 1;
+      distinct.push(p);
+    }
+  });
+  return { distinct: distinct, duplicates: duplicates };
+}
+
+// 去重后仍需 >= MIN_PLANS_TO_COMPARE 个不同方案才可比较（REQ-01-DUP-002）。
+function canCompareDistinct(plans) {
+  return dedupPlans(plans).distinct.length >= MIN_PLANS_TO_COMPARE;
+}
+
 module.exports = {
   MAX_PLANS: MAX_PLANS,
   MIN_PLANS_TO_COMPARE: MIN_PLANS_TO_COMPARE,
@@ -163,5 +206,8 @@ module.exports = {
   validateRetireYM: validateRetireYM,
   planErrors: planErrors,
   canAdd: canAdd,
-  belowCompareAfterRemove: belowCompareAfterRemove
+  belowCompareAfterRemove: belowCompareAfterRemove,
+  planFingerprint: planFingerprint,
+  dedupPlans: dedupPlans,
+  canCompareDistinct: canCompareDistinct
 };
