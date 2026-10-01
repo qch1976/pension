@@ -220,24 +220,72 @@ ROI_k = (P月_k − P月基准_k) / R续_k        （无量纲，保留 4 位，
 | Q8 | 比较图用**纯 CSS 条形**，零三方图表依赖 |
 | Q9 | 2026-09 当月基数按年分母 **12116** 起算 |
 
-### 11.1 需求覆盖矩阵（REQ ID → 来源 → 验收/用例映射预留）
+### 11.1 需求覆盖矩阵（REQ / testcase / bug 映射）
 
-| REQ ID | 来源 | testcase 映射（待 Tester 填写） |
-|---|---|---|
-| REQ-01-SCOPE-000~003 | INPUT-COMMON Phase-1 §1/§5 | TC-__ |
-| REQ-01-NAV-000~001 | Phase-1 §1 | TC-__ |
-| REQ-01-OPT-000~002 | Phase-1 §1 | TC-__ |
-| REQ-01-SHR-000~003 | Phase-1 §4；Q1 | TC-__ |
-| REQ-01-PLN-000~005 | Phase-1 §2/§3；Q2 | TC-__ |
-| REQ-01-PLN-006 | Phase-1 §5；Q9 | TC-__ |
-| REQ-01-LEG-000~002 | Phase-1 §3（合法范围）；P-05 | TC-__ |
-| REQ-01-DUP-000~002 | Phase-1 §3/§4 | TC-__ |
-| REQ-01-CAL-000 | Phase-1 §5；Q7 | TC-__ |
-| REQ-01-CAL-001 | Phase-1 §5；Q3 | TC-__ |
-| REQ-01-CAL-002~003 | Phase-1 §5；Q4/Q6 | TC-__ |
-| REQ-01-CAL-004 | Phase-1 §5；Q5 | TC-__ |
-| REQ-01-RES-000~004 | Phase-1 §5；Q8 | TC-__ |
-| REQ-01-NFR-000~003 | Phase-0 NFR | TC-__ |
+> 编号与表头遵循 requirement-coverage-matrix 技能（workspace 副本 md5=95d689eb）：testcase 类型仅 UT/CT/ST/GT；一条 testcase 一个 owner（architect/developer/tester），编号按 owner 号段取——architect 0000~0999、developer 1000~3999、tester 4000~9999；phase 结束由 owner 在本 phase 新增 case 中选定 regression case。下表已于 2026-10-02 经项目主批准，由 Manager 合并三份草案（architect 表骨架 / developer 20 例 / tester 16 例，含新增 UT-1008）。
+
+#### 11.1.1 REQ 索引（REQ ID → 来源）
+
+| REQ ID | 来源 |
+|---|---|
+| REQ-01-SCOPE-000~003 | INPUT-COMMON Phase-1 §1/§5 |
+| REQ-01-NAV-000~001 | Phase-1 §1 |
+| REQ-01-OPT-000~002 | Phase-1 §1 |
+| REQ-01-SHR-000~003 | Phase-1 §4；Q1 |
+| REQ-01-PLN-000~005 | Phase-1 §2/§3；Q2 |
+| REQ-01-PLN-006 | Phase-1 §5；Q9 |
+| REQ-01-LEG-000~002 | Phase-1 §3（合法范围）；P-05 |
+| REQ-01-DUP-000~002 | Phase-1 §3/§4 |
+| REQ-01-CAL-000 | Phase-1 §5；Q7 |
+| REQ-01-CAL-001 | Phase-1 §5；Q3 |
+| REQ-01-CAL-002~003 | Phase-1 §5；Q4/Q6 |
+| REQ-01-CAL-004 | Phase-1 §5；Q5 |
+| REQ-01-RES-000~004 | Phase-1 §5；Q8 |
+| REQ-01-NFR-000~003 | Phase-0 NFR |
+
+#### 11.1.2 Testcase 覆盖矩阵（36 例：developer 20 + tester 16）
+
+| requirement ID | req brief description | owner | regression (yes/no) | testcase ID | case brief and script folder+name | testcase result | bug ID | bug brief and ticket folder+name |
+|---|---|---|---|---|---|---|---|---|
+| REQ-01-SHR-000~003; NFR-002 | 共享数据区字段/校验/独立草稿 key | developer | no | TST-01-UT-1000 | 共享区单测 `tests/shared-data-check.js` | Pass | — | — |
+| REQ-01-PLN-000~005; LEG-000 | 方案卡 Z 0.60~3.00/性质/年月区间/卡增删 | developer | no | TST-01-UT-1001 | 方案模型单测 `tests/plan-model-check.js` | Pass | — | — |
+| REQ-01-PLN-006; NFR-002 | 自动段 B_m=Z×C_m、2026-09 按 12116、只调不改引擎 | developer | no | TST-01-UT-1002 | 组装器单测 `tests/plan-assembler-check.js` | Pass | — | — |
+| REQ-01-CAL-001 | R续=ΣB_m×rate，企业8%/灵活20%，逐月 | developer | yes | TST-01-UT-1003 | R续单测 `tests/r-contribution-check.js` | Pass | — | — |
+| REQ-01-CAL-002,003 | 回本月数三分支、0%/用户利率双列 | developer | no | TST-01-UT-1004 | 回本单测 `tests/payback-check.js` | Pass | — | — |
+| REQ-01-CAL-004; LEG-002 | ROI=(P月−P月基准)/R续、0投入基准、不足年限阻断 | developer | no | TST-01-UT-1005 | ROI单测 `tests/roi-check.js` | Pass | — | — |
+| REQ-01-CAL-000; RES-000~004; NFR-001 | 结果视图模型：角标/三分项/条归一/下钻/灰显 | developer | yes | TST-01-UT-1006 | 结果模型单测 `tests/compare-result-model-check.js` | Pass | — | — |
+| REQ-01-NFR-002,003 | Phase-0 零回归（基线 131 过/4 历史失败 TC-C-114/207/214、TC-X-007b） | developer | yes | TST-01-UT-1007 | 套件守卫 `autotest/run-unit-tests.bat`→`tests/run-tests.js` | Pass（4 历史失败不变） | — | — |
+| REQ-01-DUP-000~002 | 去重指纹=(退休年月,Z,性质)、相同置灰、去重后≥2 | developer | no | TST-01-UT-1008 | 去重单测（31 断言）`tests/plan-dedup-check.js`（commit 4377760） | Pass | — | — |
+| REQ-01-SHR-001,002 | 共享段越界(2030-12>2026-08) toast | developer | no | TST-01-GT-1000 | GUI case0 `autotest/gui/phase1-gui-regression.js`（端口 61001） | Pass | — | — |
+| REQ-01-DUP-002; PLN-005 | 不足 2 方案 toast | developer | no | TST-01-GT-1001 | GUI case1 同上 | Pass | — | — |
+| REQ-01-SHR-000; PLN-000 | compare 录入态 .compare-btn 就绪 | developer | no | TST-01-GT-1002 | GUI case2 同上 | Pass | — | — |
+| REQ-01-RES-000,004; CAL-000 | 进结果页、比较表行列、预估3/基准1角标 | developer | yes | TST-01-GT-1003 | GUI case3 同上 | Pass | — | — |
+| REQ-01-CAL-000; RES-000 | P月三分项展开=3（基础/账户/过渡） | developer | no | TST-01-GT-1004 | GUI case4 同上 | Pass | — | — |
+| REQ-01-RES-001; CAL-002 | P月·ROI 纯CSS条归一化%、6% 利率改算 | developer | no | TST-01-GT-1005 | GUI case5 同上 | Pass | — | — |
+| REQ-01-RES-002; CAL-002,003 | 下钻三段现金流（并存/冲抵/月多领）+逐月 | developer | yes | TST-01-GT-1006 | GUI case6 同上 | Pass | — | — |
+| REQ-01-RES-003 | 政策弹窗≥4（183号令+渐进延迟办法） | developer | no | TST-01-GT-1007 | GUI case7 同上 | Pass | — | — |
+| REQ-01-LEG-001,002; CAL-004; RES-004 | 不足年限整列灰显、ROI 红字不可用、不可按月领角标 | developer | yes | TST-01-GT-1008 | GUI case8 同上 | Pass | — | — |
+| REQ-01-NFR-003 | 整项目 cli preview 真实编译，失败非零（AppID wx9c012db494b84dae、142.9KB、exit0） | developer | yes | TST-01-CT-1000 | 编译门禁 `autotest/compile-gate/compile-gate.bat` | Pass | — | — |
+| REQ-01-NFR-003 | 每场景 fresh 进程/端口、案间端口释放轮询 | developer | no | TST-01-CT-1001 | 编排器 `autotest/gui/phase1-orchestrate.ps1` | Pass | — | — |
+| REQ-01-CAL-001 | R续 3 组首原理=116313.60/418728.96/226617.66（独立取值，不采信回显） | tester | yes | TST-01-ST-4000 | 独立复算 `t23-evidence/t23-independent-sample.js` | Pass | — | — |
+| REQ-01-CAL-000 | J基础 6683.19/7068.76/7490.48、J账户 1798.56/2000/2136.75、J过渡0，勾稽=P月 8481.75/9068.76/9627.23 | tester | no | TST-01-ST-4001 | 独立三分项复算 `t23-evidence/t23-independent-sample.js` | Pass | — | — |
+| REQ-01-CAL-004 | ROI=(P月−停保基准)/R续=1.89%/0.65%/1.44%；0投入基准随各方案 | tester | yes | TST-01-ST-4002 | 独立 ROI 复算 `t23-evidence/t23-independent-sample.js` | Pass | — | — |
+| REQ-01-CAL-002,003 | 利率 0%/6% 三分支；利率不改 ROI | tester | no | TST-01-ST-4003 | 利率分支复算 `t23-evidence/t23-rate-check.js` | Pass | — | — |
+| REQ-01-LEG-001,002; CAL-004 | 不足年限(历史48月) eligible=false、ROI blocked，不模拟一次性待遇 | tester | no | TST-01-ST-4004 | 不足年限复算 `t23-evidence/t23-insuf-check.js` | Pass | — | — |
+| REQ-01-SHR-001,002 | 共享段越界 toast（独立 61301 段复跑） | tester | no | TST-01-GT-4000 | GUI case0 `t23-evidence/t23-gui-regression.js` | Pass | — | — |
+| REQ-01-PLN-005; DUP-002 | 不足 2 方案 toast（独立复跑） | tester | no | TST-01-GT-4001 | GUI case1 同上 | Pass | — | — |
+| REQ-01-SHR-000; PLN-000 | compare 录入态就绪（独立复跑） | tester | no | TST-01-GT-4002 | GUI case2 同上 | Pass | — | — |
+| REQ-01-RES-000,004; CAL-000 | 结果主表+角标主路径（独立复跑） | tester | yes | TST-01-GT-4003 | GUI case3 同上 | Pass | — | — |
+| REQ-01-CAL-000; RES-000 | P月三分项展开（独立复跑） | tester | no | TST-01-GT-4004 | GUI case4 同上 | Pass | — | — |
+| REQ-01-RES-001; CAL-002 | CSS 条归一化、6% 改算（独立复跑） | tester | no | TST-01-GT-4005 | GUI case5 同上 | Pass | — | — |
+| REQ-01-RES-002; CAL-002,003 | 下钻三段现金流（独立复跑） | tester | yes | TST-01-GT-4006 | GUI case6 同上 | Pass | — | — |
+| REQ-01-RES-003 | 政策弹窗≥4（独立复跑） | tester | no | TST-01-GT-4007 | GUI case7 同上 | Pass | — | — |
+| REQ-01-LEG-001,002; CAL-004; RES-004 | 不足年限灰显/ROI 阻断边界（独立复跑） | tester | yes | TST-01-GT-4008 | GUI case8 同上 | Pass | — | — |
+| REQ-01-NFR-003 | 整项目 cli preview 编译独立确证（exit0、142.9KB） | tester | no | TST-01-CT-4000 | 独立门禁 `t23-evidence`（Start-Process） | Pass | — | — |
+| REQ-01-NFR-002,003 | Phase-0 零回归独立复跑：135 总/131 过/4 历史失败，零新增、向后兼容 | tester | yes | TST-01-UT-4000 | 独立零回归复跑 `t23-evidence` | Pass（4 历史失败不变） | — | — |
+
+**勾稽：** 36 个 testcase（developer 20 = UT 9/GT 9/CT 2；tester 16 = GT 9/ST 5/CT 1/UT 1），编号跨 owner 号段零冲突；regression=yes 共 13 个（developer 7 + tester 6）。本轮无 FAIL、无新增 BUG，bug 列全为「—」。40 条 REQ 全部至少被一个 testcase 覆盖（SCOPE/NAV/OPT 由架构侧导航结构 + GUI 主路径与门禁间接覆盖，其独立用例后续按需补充）。
+
 
 ---
 
