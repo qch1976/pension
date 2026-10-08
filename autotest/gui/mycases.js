@@ -5,8 +5,11 @@
 const G = require('./lib-gui.js');
 const fs = require('fs');
 const path = require('path');
+// T6: read the official current-year denominator table — never hardcode a frozen denominator.
+const Policy = require('../../constants/policyData.js');
 const CASE = process.argv[2];                 // MY1 flexible Z=.6 | MY2 enterprise Z=3
 const sleep = G.sleep;
+const FUTURE_START_YEAR = 2026;               // future segment begins 2026-09
 
 // My-Case.md annual table: year base is ANNUAL contribution total; monthly = annual / months paid.
 const hist = [
@@ -29,17 +32,22 @@ function buildSegments(z, type) {
     else { s = y + '-01'; e = y + '-12'; }
     segs.push({ type: 'enterprise', startYM: s, endYM: e, baseMonthly: String(base) });
   });
-  // Future 2026-09 -> 2033-06 (82 months); denominator frozen at 2025=11937 (engineering assumption)
-  const fb = Math.round(z * 11937 * 100) / 100; // MY1 7162.20 | MY2 35811.00
+  // Future 2026-09 -> 2033-06 (82 months).
+  // T6 (owner-approved D1): derive from the OFFICIAL 2026 denominator (12116), rounded to whole yuan.
+  //   MY1: round(0.6 x 12116)=round(7269.6)=7270 ; MY2: round(3 x 12116)=36348.
+  // No frozen 11937 anywhere; follows the official table so it cannot drift.
+  const officialDenom = Policy.indexDenominatorMonthly[FUTURE_START_YEAR];
+  const fb = Math.round(z * officialDenom); // MY1 7270 | MY2 36348
   segs.push({ type, startYM: '2026-09', endYM: '2033-06', baseMonthly: String(fb) });
   return segs;
 }
 
+// T6 expected values = independent oracle (real engine, 7270/36348) cross-checked by first-principles Python.
 const EXPECT = {
-  MY1: { z: 0.6, type: 'flexible', Z实: 2.4075, N应缴: 32.6667, R补: 10943.23, G实: 870.23,
-         R储: 794949.33, J基础: 7800.79, J账户: 5797.79, J过渡: 870.23, total: 14468.81 },
-  MY2: { z: 3.0, type: 'enterprise', Z实: 2.9095, N应缴: 32.6667, R补: 13225.26, G实: 1051.71,
-         R储: 992724.85, J基础: 8950.12, J账户: 7237.05, J过渡: 1051.71, total: 17238.88 }
+  MY1: { z: 0.6, type: 'flexible', Z实: 2.4032, N应缴: 32.6667, R补: 10923.92, G实: 868.70,
+         R储: 795693.52, J基础: 7791.06, J账户: 5803.00, J过渡: 868.70, total: 14462.76 },
+  MY2: { z: 3.0, type: 'enterprise', Z实: 2.9053, N应缴: 32.6667, R补: 13205.91, G实: 1050.17,
+         R储: 996432.00, J基础: 8940.37, J账户: 7263.58, J过渡: 1050.17, total: 17254.12 }
 };
 
 (async () => {
