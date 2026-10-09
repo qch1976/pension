@@ -56,6 +56,30 @@ page {
   margin-top: 8rpx;
 }
 .error-text { color: #c02a26; }
+
+/* E4：文件输入按钮 / 可滚动错误列表 / 错误行（全局，供 index 与 compare 复用） */
+.mini-btn {
+  background: #fff;
+  border: 1rpx dashed #165dff;
+  color: #165dff;
+  font-size: 26rpx;
+  border-radius: 10rpx;
+  margin-top: 16rpx;
+}
+.err-scroll {
+  max-height: 360rpx;
+  margin-top: 12rpx;
+  padding: 8rpx 4rpx;
+  background: #fff7f7;
+  border: 1rpx solid #ffd8d6;
+  border-radius: 10rpx;
+}
+.error-line {
+  color: #c02a26;
+  font-size: 24rpx;
+  line-height: 1.6;
+  padding: 4rpx 12rpx;
+}
 input { text-align: center; min-width: 240rpx; } /* 批次2 #7：所有输入框数字水平居中 */
 
 /* 批次2 #11 + BUG-16：计算等待遮罩（从 index.wxss 上移至全局，输入页/结果页同名同款保证视觉连续） */

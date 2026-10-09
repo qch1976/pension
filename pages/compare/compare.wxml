@@ -1,4 +1,22 @@
 <!-- pages/compare/compare.wxml -->
+<!-- E4：手工/文件输入切换（默认手工，手工零差异） -->
+<view class="card">
+  <view class="card-title">输入方式</view>
+  <view class="row">
+    <text class="opt {{inputMode==='manual'?'opt-on':''}}" data-v="manual" bindtap="setInputMode">手工输入</text>
+    <text class="opt {{inputMode==='file'?'opt-on':''}}" data-v="file" bindtap="setInputMode">文件输入(.md/.txt)</text>
+  </view>
+  <block wx:if="{{inputMode==='file'}}">
+    <view class="muted">从微信会话选择方案比较 Case 文件（共用 common 块）；差异项以界面为准，取消不改动。</view>
+    <button class="mini-btn" bindtap="onChooseCaseFile">选择 Case 文件</button>
+    <view wx:if="{{fileName}}" class="muted">已保存输入副本：{{fileName}}</view>
+    <view wx:for="{{fileNotices}}" wx:key="*this" class="warn-text">ℹ {{item}}</view>
+    <scroll-view scroll-y class="err-scroll" wx:if="{{fileErrors.length}}">
+      <view wx:for="{{fileErrors}}" wx:key="*this" class="error-line">• {{item}}</view>
+    </scroll-view>
+  </block>
+</view>
+
 <!-- D2：共享历史数据区（≤2026-08，三方案共用） -->
 <shared-data id="sharedData"></shared-data>
 

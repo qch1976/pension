@@ -8,8 +8,16 @@ var Engine = require('../../calculator/pensionEngine.js');
 var Schedule = require('../../calculator/retireSchedule.js');
 var D = require('../../calculator/dateUtil.js');
 var Model = require('../../calculator/inputPageModel.js'); // 批次2 #6/#11 纯函数页面模型
+var caseImport = require('../../services/caseImport.js');
+var fileStore = require('../../services/fileStore.js');
 
 function addMonthsYM(ym, n) { return D.toYM(D.toIndex(ym) + n); }
+
+// E4：错误项格式化为「字段/行号 + 原因」可显示文本
+function fmtErr(e) {
+  var loc = e.line ? ('第' + e.line + '行') : (e.field ? ('字段 ' + e.field) : '');
+  return (loc ? loc + '：' : '') + e.reason;
+}
 
 // P-05：出生年月 + 性别/身份 -> 法定退休年月（FR-02）
 function computeStatutoryRetireYM(gender, femaleType, birthYM) {
@@ -26,7 +34,12 @@ function indexDenomOfYear(yearY) {
 }
 
 Page({
-  data: Model.buildInitialData(P),
+  data: Object.assign({
+    inputMode: 'manual',     // 手工 / 文件（默认手工，手工流程零差异）
+    fileName: '',
+    fileErrors: [],
+    fileNotices: []
+  }, Model.buildInitialData(P)),
 
   onLoad: function () {
     var saved = wx.getStorageSync('pension_input_v1');
@@ -59,6 +72,53 @@ Page({
 
   // BUG-27：草稿仅持久化用户录入/选择，不落政策静态字段（避免旧版本号/旧计发基数被回写）。
   saveDraft: function () { wx.setStorageSync('pension_input_v1', Model.pickUserData(this.data)); },
+
+  // ---- E4：输入模式切换（手工/文件） ----
+  setInputMode: function (e) {
+    this.setData({ inputMode: e.currentTarget.dataset.v });
+  },
+
+  // 选择会话 Case 文件并串联：保存->解析->校验->回填/错误列表
+  onChooseCaseFile: function () {
+    var self = this;
+    var store = fileStore.getDefault();
+    wx.showLoading({ title: '读取中', mask: true });
+    caseImport.importFromConversation('basic', store).then(function (r) {
+      wx.hideLoading();
+      if (r.cancelled) return; // 取消安静返回
+      self.applyImportResult(r, 'basic');
+    }).catch(function () {
+      wx.hideLoading();
+      wx.showToast({ title: '导入失败，请重试', icon: 'none' });
+    });
+  },
+
+  applyImportResult: function (r, mode) {
+    var v = r.validation || {};
+    var patch = {
+      fileName: r.savedName || '',
+      fileErrors: (v.invalidOrMissing || []).map(fmtErr),
+      fileNotices: ((r.parsed && r.parsed.notices) || []).map(function (n) { return n.reason; })
+    };
+    // Q3：正确字段直接回填同一套表单（pageData 已映射）。
+    if (v.pageData) {
+      var pd = v.pageData;
+      if (pd.yearRows) {
+        patch.yearRows = pd.yearRows.map(function (yr) {
+          return { year: yr.year, startMonth: yr.startMonth, annualBase: yr.annualBase,
+            months: yr.months, type: 'enterprise' };
+        });
+      }
+      ['gender', 'femaleType', 'birthYM', 'workStartYM', 'retireYM', 'hasDeemed',
+       'deemedStartYM', 'deemedEndYM', 'accountBalanceManual', 'manualBalanceYM',
+       'futureMonthlyRatePct', 'entryMode', 'enterpriseInsuredYM'].forEach(function (k) {
+        if (pd[k] !== undefined) patch[k] = pd[k];
+      });
+    }
+    this.setData(patch, this.refreshRetireHint);
+    try { this.saveDraft(); } catch (e) {}
+    if (v.ok) wx.showToast({ title: v.summary || '导入成功', icon: 'none' });
+  },
 
   setGender: function (e) {
     this.setData({ gender: e.currentTarget.dataset.v }, this.refreshDefaultRetire);

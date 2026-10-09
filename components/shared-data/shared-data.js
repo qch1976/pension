@@ -168,6 +168,20 @@ Component({
       return wx.getStorageSync(DRAFT_KEY);
     },
 
+    // ---- E4：文件导入 common 后回填同一套共享表单（只覆盖出现的键） ----
+    applyPrefill: function (pageData) {
+      var base = Model.buildInitialData(P);
+      var patch = {};
+      Object.keys(pageData || {}).forEach(function (k) {
+        // 只接受页面模型已有键，避免注入静态/未知字段
+        if (Object.prototype.hasOwnProperty.call(base, k)) patch[k] = pageData[k];
+      });
+      // 共享区不承载方案级 retire/future 利率差异项，剔除
+      delete patch.retireYM;
+      this.setData(patch, this.recomputeWarnings);
+      try { this.saveDraft(); } catch (e) {}
+    },
+
     // ---- 清空共享录入（只清 compare 草稿，不触碰 Phase-0 pension_input_v1） ----
     clearShared: function () {
       this.setData(Model.buildResetData(P), this.recomputeWarnings);

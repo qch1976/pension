@@ -5,12 +5,23 @@
 //  D8：开始比较 -> 组装共享引擎入参 + 有效方案，进入比较结果页。
 var PM = require('../../calculator/planModel.js');
 var D = require('../../calculator/dateUtil.js');
+var caseImport = require('../../services/caseImport.js');
+var fileStore = require('../../services/fileStore.js');
+
+function fmtErr(e) {
+  var loc = e.line ? ('第' + e.line + '行') : (e.field ? ('字段 ' + e.field) : '');
+  return (loc ? loc + '：' : '') + e.reason;
+}
 
 var PAYLOAD_KEY = 'pension_compare_payload_v1';
 
 Page({
   data: {
-    ctx: { gender: '', femaleType: '', birthYM: '' }
+    ctx: { gender: '', femaleType: '', birthYM: '' },
+    inputMode: 'manual',
+    fileName: '',
+    fileErrors: [],
+    fileNotices: []
   },
 
   onReady: function () {
@@ -80,5 +91,38 @@ Page({
   // redirectTo 进入后无返回栈：返回选项页
   backEntry: function () {
     wx.redirectTo({ url: '/pages/entry/entry' });
+  },
+
+  // ---- E4：手工/文件输入切换 ----
+  setInputMode: function (e) {
+    this.setData({ inputMode: e.currentTarget.dataset.v });
+  },
+
+  onChooseCaseFile: function () {
+    var self = this;
+    var store = fileStore.getDefault();
+    wx.showLoading({ title: '读取中', mask: true });
+    caseImport.importFromConversation('compare', store).then(function (r) {
+      wx.hideLoading();
+      if (r.cancelled) return;
+      var v = r.validation || {};
+      var shared = self.selectComponent('#sharedData');
+      if (shared && v.pageData && v.ok) {
+        shared.applyPrefill(v.pageData); // common 预置共享区
+      } else if (shared && v.pageData) {
+        // 部分导入：正确部分仍回填，错误项列出待手工补齐
+        shared.applyPrefill(v.pageData);
+      }
+      self.setData({
+        fileName: r.savedName || '',
+        fileErrors: (v.invalidOrMissing || []).map(fmtErr),
+        fileNotices: ((r.parsed && r.parsed.notices) || []).map(function (n) { return n.reason; })
+      });
+      self.syncCtx();
+      if (v.ok) wx.showToast({ title: '共用数据已导入，请添加方案', icon: 'none' });
+    }).catch(function () {
+      wx.hideLoading();
+      wx.showToast({ title: '导入失败，请重试', icon: 'none' });
+    });
   }
 });

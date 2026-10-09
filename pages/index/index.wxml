@@ -5,6 +5,24 @@
   <view class="muted">测算结果仅供参考，以社保经办机构核定为准</view>
 </view>
 
+<!-- E4：输入方式切换（手工/文件，默认手工） -->
+<view class="card">
+  <view class="card-title">输入方式</view>
+  <view class="row">
+    <text class="opt {{inputMode==='manual'?'opt-on':''}}" data-v="manual" bindtap="setInputMode">手工输入</text>
+    <text class="opt {{inputMode==='file'?'opt-on':''}}" data-v="file" bindtap="setInputMode">文件输入(.md/.txt)</text>
+  </view>
+  <block wx:if="{{inputMode==='file'}}">
+    <view class="muted">从微信会话选择 Case 文件；取消不做任何改动。正确字段直接填入下方表单，错误/缺失项列出后可逐条手工补齐。</view>
+    <button class="mini-btn" bindtap="onChooseCaseFile">选择 Case 文件</button>
+    <view wx:if="{{fileName}}" class="muted">已保存输入副本：{{fileName}}</view>
+    <view wx:for="{{fileNotices}}" wx:key="*this" class="warn-text">ℹ {{item}}</view>
+    <scroll-view scroll-y class="err-scroll" wx:if="{{fileErrors.length}}">
+      <view wx:for="{{fileErrors}}" wx:key="*this" class="error-line">• {{item}}</view>
+    </scroll-view>
+  </block>
+</view>
+
 <!-- 步骤一：基本信息 -->
 <view class="card">
   <view class="card-title">① 基本信息</view>
