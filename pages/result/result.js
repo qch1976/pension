@@ -10,6 +10,7 @@
 var app = getApp();
 var REFS = require('../../constants/policyRefs.js');
 var D = require('../../calculator/dateUtil.js');
+var reportShare = require('../../services/reportShare.js');
 
 // ---------------------------------------------------------------------------
 // #12a R储 政策说明视图
@@ -226,6 +227,7 @@ Page({
     formulaRefs: {},
     totalDisplay: 0,
     showIneligible: false,
+    reportBusy: false,
     ui: { collapse: '收起 ▲', expand: '展开 ▼' } // 模板内三元文案外置，保证 {{}} 内无中文
   },
 
@@ -341,6 +343,7 @@ Page({
         z: d.z ? d.z.toFixed(4) : '0.0000',
         zRawText: d.zRaw ? d.zRaw.toFixed(4) : '0.0000', // BUG-18：封顶前原值（供审计）
         capped: !!d.zCapped,                              // BUG-18：月指数封顶标记
+        capText: d.zCapped ? '3.0' : '—',                 // ASCII 外置：封顶文案（避免 {{}} 内中文/全角）
         p8: d.principal8
       });
       groupMap[y].principalSum += d.principal8;
@@ -386,6 +389,41 @@ Page({
   noop: function () {},
 
   back: function () { wx.navigateBack(); },
+
+  // E6：生成 txt 报告 → 写沙箱 → 分享到所选会话（成功/取消均正常，不影响已生成文件 OUT-003）
+  onShareReport: function () {
+    var self = this;
+    if (this.data.reportBusy || !this.data.r) return;
+    this.setData({ reportBusy: true });
+    reportShare.exportAndShare('basic', this.data.r, {}).then(function (st) {
+      self.setData({ reportBusy: false });
+      var title;
+      if (st.shared) title = '已分享，报告也已存沙箱';
+      else if (st.shareCancelled) title = '已取消分享，报告已存沙箱';
+      else title = '报告已存沙箱';
+      wx.showToast({ title: title, icon: 'none', duration: 2200 });
+    }).catch(function () {
+      self.setData({ reportBusy: false });
+      wx.showToast({ title: '报告生成失败，请重试', icon: 'none' });
+    });
+  },
+
+  // E6/NFR-003：保存到电脑（仅 PC/开发工具可用）；不可用时安静降级并提示
+  onSaveReportToDisk: function () {
+    var self = this;
+    if (this.data.reportBusy || !this.data.r) return;
+    this.setData({ reportBusy: true });
+    reportShare.exportAndShare('basic', this.data.r, { share: false, askSaveToDisk: true })
+      .then(function (st) {
+        self.setData({ reportBusy: false });
+        if (st.savedToDisk) wx.showToast({ title: '已保存到电脑', icon: 'none' });
+        else if (!st.diskAvailable) wx.showToast({ title: '当前环境不支持存电脑，已存沙箱', icon: 'none' });
+        else wx.showToast({ title: '已取消，报告仍存沙箱', icon: 'none' });
+      }).catch(function () {
+        self.setData({ reportBusy: false });
+        wx.showToast({ title: '报告生成失败，请重试', icon: 'none' });
+      });
+  },
 
   // FR-11 / GAP-06：导出逐月/按年明细 + #13 年度指数 CSV（写入剪贴板）
   exportCsv: function () {

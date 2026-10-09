@@ -58,7 +58,7 @@
         <view class="cr-cell {{c.grey ? 'cr-cell-grey' : ''}}" wx:for="{{view.columns}}" wx:for-item="c" wx:key="id">
           <view class="cr-p-line" data-id="{{c.id}}" bindtap="toggleComponents">
             <text class="cr-p-val">{{c.pMonthly}}</text>
-            <text class="cr-p-toggle">{{showComponents[c.id] ? '收起' : '分项'}}</text>
+            <text class="cr-p-toggle">{{toggleTexts[c.id]}}</text>
           </view>
           <view class="cr-comp" wx:if="{{showComponents[c.id]}}">
             <view class="cr-comp-row"><text>基础</text><text>{{c.jBasic}}</text></view>
@@ -135,6 +135,8 @@
     </view>
   </view>
 
+  <button class="mini-btn" bindtap="onShareReport" disabled="{{reportBusy}}">导出 txt 报告并分享到微信</button>
+  <button class="mini-btn" bindtap="onSaveReportToDisk" disabled="{{reportBusy}}">保存报告到电脑（PC/开发工具）</button>
   <button class="cr-back" bindtap="backCompare">返回方案输入页</button>
 </view>
 
