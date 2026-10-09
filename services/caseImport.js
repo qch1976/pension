@@ -49,12 +49,10 @@ function importFromConversation(mode, store) {
       var parsed = caseFile.parseCaseFile(text, mode);
       var validation = caseValidator.validate(parsed, mode);
 
-      // 持久化输入副本（Q3 跨界面补齐需要原文），失败不阻断导入。
-      var savedName = null;
-      if (store) {
-        try {
-          savedName = store.saveInput(chosen.tempFilePath, chosen.name);
-        } catch (e) { savedName = null; }
+      // 持久化输入副本（Q3 跨界面补齐需要原文），异步落盘、失败不阻断导入。
+      if (store && typeof store.saveInput === 'function') {
+        try { store.saveInput(chosen.tempFilePath, chosen.name).catch(function () {}); }
+        catch (e) { /* 同步型 store 或不可用：忽略 */ }
       }
 
       return {
@@ -62,7 +60,7 @@ function importFromConversation(mode, store) {
         cancelled: false,
         parsed: parsed,
         validation: validation,
-        savedName: savedName
+        savedName: chosen.name || null
       };
     }).catch(function (e) {
       var reason = (e && e.errMsg) ? e.errMsg : ((e && e.message) || '文件读取失败');

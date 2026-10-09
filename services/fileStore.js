@@ -73,11 +73,22 @@ function createFileStore(wxLike, opts) {
 
   // ---- STORE-000：惰性建目录；recursive:true，已存在不报错（Q8）----
   var ensured = null;
+  // mkdir 在真实开发者工具上即使 recursive:true，目录已存在也会 fail "file already exists"。
+  // 按 Q8“目录已存在不报错”：命中 already exists 即视为成功（inputs/outputs 仅由本模块创建，
+  // 且 writeOutput/saveInput 对同名路径先 stat 校验为目录，避免与同名文件冲突）。
+  function ensureOneDir(dirPath) {
+    return call('mkdir', { dirPath: dirPath, recursive: true })
+      .catch(function (e) {
+        var msg = String((e && e.errMsg) || e || '');
+        if (/already exists/i.test(msg)) return { existed: true };
+        throw e;
+      });
+  }
   function ensureDirs() {
     if (ensured) return ensured;
     ensured = Promise.resolve()
-      .then(function () { return call('mkdir', { dirPath: dirInputs(), recursive: true }); })
-      .then(function () { return call('mkdir', { dirPath: dirOutputs(), recursive: true }); })
+      .then(function () { return ensureOneDir(dirInputs()); })
+      .then(function () { return ensureOneDir(dirOutputs()); })
       .then(function () { return { inputs: dirInputs(), outputs: dirOutputs() }; })
       .catch(function (e) { ensured = null; throw e; });
     return ensured;
