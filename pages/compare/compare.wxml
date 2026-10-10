@@ -1,5 +1,8 @@
 <!-- pages/compare/compare.wxml -->
 <!-- E4：手工/文件输入切换（默认手工，手工零差异） -->
+<view class="hero">
+  <view class="muted">数据本地计算，不采集姓名与身份证号 · 政策参数版本 {{policyVersion}}</view>
+</view>
 <view class="card">
   <view class="card-title">输入方式</view>
   <view class="row">

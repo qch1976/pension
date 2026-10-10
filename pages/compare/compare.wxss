@@ -1,4 +1,19 @@
 /* pages/compare/compare.wxss */
+/* Bug29：补入与 index 页一致的输入方式胶囊按钮/高亮样式（原样，不改 JS/WXML） */
+.opt {
+  display: inline-block;
+  padding: 8rpx 20rpx;
+  margin: 6rpx 6rpx;
+  border: 1rpx solid #c9cdd4;
+  border-radius: 999rpx;
+  color: #4e5969;
+  font-size: 26rpx;
+}
+.opt-on {
+  background: #165dff;
+  border-color: #165dff;
+  color: #fff;
+}
 .compare-btn {
   margin: 24rpx;
   border-radius: 12rpx;

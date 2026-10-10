@@ -5,6 +5,7 @@
 //  D8：开始比较 -> 组装共享引擎入参 + 有效方案，进入比较结果页。
 var PM = require('../../calculator/planModel.js');
 var D = require('../../calculator/dateUtil.js');
+var P = require('../../constants/policyData.js');
 var caseImport = require('../../services/caseImport.js');
 var fileStore = require('../../services/fileStore.js');
 
@@ -19,6 +20,7 @@ Page({
   data: {
     ctx: { gender: '', femaleType: '', birthYM: '' },
     inputMode: 'manual',
+    policyVersion: P.version,
     fileName: '',
     fileErrors: [],
     fileNotices: []

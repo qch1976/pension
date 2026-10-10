@@ -115,3 +115,17 @@ I changed the value of POLICY_DATA.version from '2026.09.23-bug2224' to '2026.09
 - Bug 1~4 首次提出于 2026-09-21，其余分组依次延续；Bug 19/20/21 为 YDL 对已发现问题的补充明示 + 数据更正。
 - 本清单仅收录 customer（YDL）明确提出「改/核实/检查」的项，不含 tester/architect/developer 自查发现的问题。
 - Bug 27 是项目主自己修改的，没有通过Claw AI的处理。Chat历史里没有。
+
+
+``` phase 2 ```
+## Bug 28
+The specification of phase2 and the dedicated test coverage matrix are not in .\docs\ on 开发服务器。And pls confirm the initial covreage matrix has same REQ items and owner assigned with the dedicated test coverage matrix.
+
+## Bug 29
+"方案比较"输入页面，"输入方式"选择时，"手工输入"和"文件输入"两个按钮，没有缺省也没有高亮。反观"基本计算"输入页面，就是对的。
+
+## Bug 30
+"基本计算"输入页面和"方案比较"输入页面，都没有更新版本信息。
+
+## Bug 31
+"基本计算"输入页面和"方案比较"输入页面里，"文件输入"方式测试过吗？测试用的.txt文件放在哪里?
