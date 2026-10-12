@@ -134,7 +134,19 @@ function collectYearRowWarnings(P, rows) {
   return warns;
 }
 
-// 共享历史数据 -> 引擎输入（retireYM/futureMonthlyRate 为方案级，占位 null，D4 按方案合并）
+// 解析共享区记账年利率（%）：手工/文件缺省 1.5%；清空视为不计息(null→静态分支)；越界 0~20 报错。
+// BUG-02-0005（Q1=B）：三方案共用一个记账利率，放共享区，common 文件利率作为缺省。
+function parseSharedRatePct(raw) {
+  var s = (raw == null ? '' : String(raw)).trim();
+  if (s === '') return { rate: 0.015, usedDefault: true };
+  var n = parseFloat(s);
+  if (!isFinite(n)) throw new Error('记账年利率须为数字（%）');
+  if (n < 0 || n > 20) throw new Error('记账年利率超出合理范围(0~20%)：' + n);
+  return { rate: n / 100, usedDefault: false };
+}
+
+// 共享历史数据 -> 引擎输入（retireYM 为方案级，占位 null，D4 按方案合并）
+// BUG-02-0005：futureMonthlyRate 不再写死 null，透传共享区单一记账利率到每方案。
 function buildSharedInput(P, D, data, cutoff) {
   cutoff = cutoff || SHARED_CUTOFF_YM;
   if (data.entryMode === 'year') validateYearRows(data.yearRows);
@@ -168,7 +180,8 @@ function buildSharedInput(P, D, data, cutoff) {
     segments: segs,
     accountBalanceManual: data.accountBalanceManual === '' ? null : parseFloat(data.accountBalanceManual),
     accountBalanceManualYM: data.manualBalanceYM || null,
-    futureMonthlyRate: null, // 方案退休窗口相关，D4/D5 处理
+    // BUG-02-0005（Q1=B）：共享区单一记账利率，三方案共用；缺省 1.5%，透传引擎滚动分支。
+    futureMonthlyRate: parseSharedRatePct(data.futureMonthlyRatePct).rate, // D4/D5 按方案合并
     baseYearOverride: +data.baseYearOptions[data.baseYearIndex],
     cPingOverride: data.cPingOverride === '' ? null : parseFloat(data.cPingOverride),
     customCYear: parseCustomCYear(data.customCYearText),
@@ -202,7 +215,7 @@ var SHARED_KEYS = [
   'gender', 'femaleType', 'birthYM', 'workStartYM',
   'hasDeemed', 'deemedStartYM', 'deemedEndYM',
   'entryMode', 'segments', 'yearRows',
-  'accountBalanceManual', 'manualBalanceYM',
+  'accountBalanceManual', 'manualBalanceYM', 'futureMonthlyRatePct',
   'doc31Eligible', 'doc31TransferYM', 'enterpriseInsuredYM', 'subsidyExcludedText',
   'cPingOverride', 'customCYearText', 'boundWarnings',
   'deemedStartPh', 'deemedEndPh', 'manualBalancePh', 'doc31TransferPh', 'enterpriseInsuredPh',
@@ -228,5 +241,6 @@ module.exports = {
   parseSubsidyExcludedRanges: parseSubsidyExcludedRanges,
   collectBoundWarnings: collectBoundWarnings,
   collectYearRowWarnings: collectYearRowWarnings,
+  parseSharedRatePct: parseSharedRatePct,
   buildSharedInput: buildSharedInput
 };

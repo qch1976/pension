@@ -115,6 +115,8 @@ Component({
     // ---- ④ 账户 / 31号文 ----
     onManualBalance: function (e) { this.setData({ accountBalanceManual: e.detail.value }); },
     onManualBalanceYM: function (e) { this.setData({ manualBalanceYM: e.detail.value }); },
+    // BUG-02-0005（Q1=B）：共享区单一记账年利率（三方案共用），缺省 1.5%
+    onFutureRate: function (e) { this.setData({ futureMonthlyRatePct: e.detail.value }); },
     setDoc31: function (e) { this.setData({ doc31Eligible: e.currentTarget.dataset.v === 'yes' }); },
     onDoc31Transfer: function (e) { this.setData({ doc31TransferYM: e.detail.value }); },
     onEnterpriseInsured: function (e) { this.setData({ enterpriseInsuredYM: e.detail.value }); },
@@ -153,14 +155,28 @@ Component({
       }
     },
 
-    // ---- 对外：读取共享上下文（性别/女性身份/出生），供方案卡确定退休区间 ----
+    // ---- 对外：读取共享上下文（性别/女性身份/出生/历史末月），供方案卡确定退休区间与缴费起始月缺省 ----
     getContext: function () {
       var d = this.data;
       return {
         gender: d.gender,
         femaleType: d.femaleType,
-        birthYM: d.birthYM
+        birthYM: d.birthYM,
+        historyEndYM: this.getHistoryEndYM()
       };
+    },
+
+    // ---- 对外：读取历史缴费记录最后缴费月（供方案卡缺省缴费起始月=末月+1） ----
+    getHistoryEndYM: function () {
+      var D2 = D;
+      var raw = this.data.entryMode === 'year'
+        ? V.expandYearRows(D2, this.data.yearRows)
+        : this.data.segments;
+      var last = '';
+      (raw || []).forEach(function (s) {
+        if (s && s.endYM && s.endYM > last) last = s.endYM;
+      });
+      return last;
     },
 
     // ---- 对外：读取已持久化的共享草稿（独立 key），供三方案一致引用 ----

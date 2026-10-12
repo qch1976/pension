@@ -11,6 +11,7 @@
 var Engine = require('./pensionEngine.js');
 var Asm = require('./planAssembler.js');
 var Rmod = require('./rContribution.js');
+var D = require('./dateUtil.js');
 
 function round2(n) { return Math.round((n + Number.EPSILON) * 100) / 100; }
 function round4(n) { return Math.round((n + Number.EPSILON) * 10000) / 10000; }
@@ -24,13 +25,20 @@ function cloneSharedInput(sharedInput) {
 // 构造方案 k 的引擎入参。
 // continue=true : 并入自动段（D4）；false : 仅保留 ≤2026-08 历史段（停保），并把 retireYM 设为方案值。
 function buildCaseInput(sharedInput, plan, isContinue) {
+  var startYM = Asm.resolveWindowStart(plan, sharedInput);
   var inp = cloneSharedInput(sharedInput);
   inp.retireYM = plan.retireYM;
   if (isContinue) {
-    var autoSegs = Asm.buildAutoSegments(plan, inp.customCYear);
+    var autoSegs = Asm.buildAutoSegments(plan, inp.customCYear, startYM);
     inp.segments = inp.segments.concat(autoSegs);
+    // BUG-02-0005：继续情形沿用共享区单一记账利率（cloneSharedInput 已透传），不重置。
+  } else {
+    // 停保：仅保留历史段（endYM 早于动态起始月），不追加自动段，未来不计息（静态基准）。
+    inp.segments = inp.segments.filter(function (s) {
+      return D.toIndex(s.endYM) < D.toIndex(startYM);
+    });
+    inp.futureMonthlyRate = null;
   }
-  // 停保：segments 保持共享历史段（其 endYM≤2026-08），不追加自动段。
   return inp;
 }
 
@@ -50,7 +58,7 @@ function computeROI(sharedInput, plan) {
 
   var pMonthly = contRes.pension.total;
   var baselineMonthly = baseRes.pension.total;
-  var rCont = Rmod.computeR(plan, sharedInput.customCYear).total;
+  var rCont = Rmod.computeR(plan, sharedInput.customCYear, Asm.resolveWindowStart(plan, sharedInput)).total;
 
   var out = {
     plan: plan,

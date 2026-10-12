@@ -15,8 +15,46 @@ var D = require('./dateUtil.js');
 var P = require('../constants/policyData.js');
 var Engine = require('./pensionEngine.js');
 
-// 比较窗口起点：2026-09（含当月）；与 spec PLN-006 / Q9 一致。
+// 比较窗口起点缺省回退：2026-09（含当月）。
+// BUG-02-0004（Q2=A）：正常起点改为动态＝实际缴费最后一月+1，方案卡可编辑；此常量仅在无历史段时回退。
 var WINDOW_START_YM = '2026-09';
+
+// 由共享历史段推导缺省缴费起始月 = 实际缴费记录最后缴费月 + 1 月。
+// 历史段 endYM≤cutoff；无有效历史段时回退 WINDOW_START_YM。
+function defaultWindowStart(sharedInput) {
+  var lastYM = '';
+  ((sharedInput && sharedInput.segments) || []).forEach(function (s) {
+    if (s && /^\d{4}-\d{2}$/.test(s.endYM || '') && s.endYM > lastYM) lastYM = s.endYM;
+  });
+  if (!lastYM) return WINDOW_START_YM;
+  return D.toYM(D.toIndex(lastYM) + 1);
+}
+
+// 解析某方案缴费起始月：优先 plan.windowStartYM（用户手改），否则由共享历史末月动态推导。
+function resolveWindowStart(plan, sharedInput) {
+  var v = plan && plan.windowStartYM;
+  if (/^\d{4}-\d{2}$/.test(v || '')) return v;
+  return defaultWindowStart(sharedInput);
+}
+
+// 校验缴费起始月：须介于历史末月与退休前一月之间（含端点）。返回错误文案或 null。
+function validateWindowStart(windowStartYM, sharedInput, plan, D) {
+  var start = resolveWindowStart(plan, sharedInput);
+  if (!/^\d{4}-\d{2}$/.test(start)) return '缴费起始时间格式应为 YYYY-MM';
+  var historyLast = '';
+  ((sharedInput && sharedInput.segments) || []).forEach(function (s) {
+    if (s && /^\d{4}-\d{2}$/.test(s.endYM || '') && s.endYM > historyLast) historyLast = s.endYM;
+  });
+  if (historyLast && D.toIndex(start) < D.toIndex(historyLast)) {
+    return '缴费起始时间 ' + start + ' 早于最后缴费月 ' + historyLast + '，不能比较';
+  }
+  if (plan && /^\d{4}-\d{2}$/.test(plan.retireYM || '')) {
+    if (D.toIndex(start) > D.toIndex(plan.retireYM) - 1) {
+      return '缴费起始时间 ' + start + ' 不得晚于退休前一月（退休 ' + plan.retireYM + '）';
+    }
+  }
+  return null;
+}
 
 // 取某年缴费指数分母 C（与引擎同源），customCYear 透传以保证 B/C=Z 恒等。
 function denominatorForYear(yearY, customCYear) {
@@ -24,9 +62,10 @@ function denominatorForYear(yearY, customCYear) {
   return info.c;
 }
 
-// 生成自动缴费段：遍历 [2026-09, 退休前一月]，逐月 B=Z×C，连续相同 B 合并为一段。
+// 生成自动缴费段：遍历 [缴费起始月, 退休前一月]，逐月 B=Z×C，连续相同 B 合并为一段。
+// 缴费起始月由 plan.windowStartYM 决定（BUG-02-0004，可编辑；缺省 2026-09）。
 // 返回引擎 segments 片段数组 [{ type, startYM, endYM, baseMonthly }]；区间为空时返回 []。
-function buildAutoSegments(plan, customCYear) {
+function buildAutoSegments(plan, customCYear, windowStartYM) {
   var z = parseFloat(plan.z);
   if (!(z >= 0.60 && z <= 3.00)) {
     throw new Error('方案 Z 值非法（须为 0.60~3.00 的数字）');
@@ -38,7 +77,8 @@ function buildAutoSegments(plan, customCYear) {
     throw new Error('方案退休年月缺失或格式非法（YYYY-MM）');
   }
 
-  var startIdx = D.toIndex(WINDOW_START_YM);
+  var startYM = (/^\d{4}-\d{2}$/.test(windowStartYM || '')) ? windowStartYM : WINDOW_START_YM;
+  var startIdx = D.toIndex(startYM);
   var endIdx = D.toIndex(plan.retireYM) - 1; // 缴到退休前一月
   if (endIdx < startIdx) return [];
 
@@ -92,8 +132,13 @@ function assemblePlanInput(sharedInput, plan) {
   if (!sharedInput) throw new Error('缺少共享数据区入参');
   var input = cloneSharedInput(sharedInput);
 
-  // 自动段与历史段拼接（历史段截至 2026-08，自动段 2026-09 起，无重叠）。
-  var autoSegs = buildAutoSegments(plan, sharedInput.customCYear);
+  // 缴费起始月（动态，方案卡可编辑；缺省＝历史末月+1）
+  var startYM = resolveWindowStart(plan, sharedInput);
+  var rangeErr = validateWindowStart(startYM, sharedInput, plan, D);
+  if (rangeErr) throw new Error(rangeErr);
+
+  // 自动段与历史段拼接（历史段截至共享账户基准月，自动段自方案 windowStartYM 起，首尾相接）。
+  var autoSegs = buildAutoSegments(plan, sharedInput.customCYear, startYM);
   input.segments = input.segments.concat(autoSegs);
 
   // 方案级退休年月覆盖共享（共享区本不含方案退休年月）。
@@ -109,6 +154,9 @@ function computePlan(sharedInput, plan) {
 
 module.exports = {
   WINDOW_START_YM: WINDOW_START_YM,
+  defaultWindowStart: defaultWindowStart,
+  resolveWindowStart: resolveWindowStart,
+  validateWindowStart: validateWindowStart,
   denominatorForYear: denominatorForYear,
   buildAutoSegments: buildAutoSegments,
   assemblePlanInput: assemblePlanInput,

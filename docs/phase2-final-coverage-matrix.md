@@ -50,5 +50,12 @@
 | REQ-02-STORE-002 | 见 testcase brief | developer | no | TST-02-UT-1022 | 分享取消，已落盘文件不受影响 | PASS | - |
 | REQ-02-OUT-003 | 见 testcase brief | developer | no | TST-02-UT-1023 | shareFileMessage 缺失安静降级 | PASS | - |
 | REQ-02-NFR-003 | 见 testcase brief | developer | no | TST-02-UT-1024 | saveFileToDisk 可用执行/缺失安静降级 | PASS | - |
+| REQ-02-CAL-000 | 缴费起始时间动态化+缺省 | developer | no | TST-02-UT-1025 | 缺省缴费起始月=实际缴费末月+1（动态，非写死） | PASS | BUG-02-0004 |
+| REQ-02-CAL-000 | 缴费起始时间可手动编辑 | developer | no | TST-02-UT-1026 | 手改起始月贯穿自动段首月/止于退休前一月 | PASS | BUG-02-0004 |
+| REQ-02-CAL-000, REQ-02-VAL-004 | 起始月越界校验 | developer | no | TST-02-UT-1027 | 早于历史末月/晚于退休前一月拦、留空合法 | PASS | BUG-02-0004 |
+| REQ-02-CAL-001, REQ-02-VAL-004 | 共享区记账利率解析透传 | developer | no | TST-02-UT-1028 | 1.5%/缺省/0/越界，buildSharedInput透传不写死null，SHARED_KEYS含字段 | PASS | BUG-02-0005 |
+| REQ-02-CAL-001 | 继续/停保两情形接通 | developer | no | TST-02-UT-1029 | continue含自动段透传利率；stop无自动段且零利率 | PASS | BUG-02-0005 |
+| REQ-02-CAL-001, REQ-02-NFR-001 | basic/compare 同输入±0.001一致 | developer | no | TST-02-UT-1030 | 利率0/1.5%×Z0.6/3.0，R储/J账/P月两路径差≤0.001（实测0） | PASS | BUG-02-0006/0007 |
+| REQ-02-CAL-001, REQ-02-NFR-001 | J账随Z拉开 | developer | no | TST-02-UT-1031 | compare J账 Z0.6→3.0显著拉开(>100)，不再静态相同 | PASS | BUG-02-0007 |
 
 > E7 六个 GUI 场景每个含 9 项 DOM/断言检查，共 54 项 GUI 断言全部 PASS（summary.json：6 pass / 0 fail）。

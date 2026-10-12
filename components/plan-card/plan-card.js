@@ -19,21 +19,35 @@ Component({
   },
 
   data: {
-    errors: []
+    errors: [],
+    startText: '' // 缴费起始月展示（手改值或动态缺省历史末月+1）
   },
 
   observers: {
     'plan, ctx': function () {
       // 父层数据变化（如删除重排/上下文补齐）时重算错误
       this.recheck();
+      this.refreshStartText();
     }
   },
 
   lifetimes: {
-    attached: function () { this.recheck(); }
+    attached: function () { this.recheck(); this.refreshStartText(); }
   },
 
   methods: {
+    // 缴费起始月展示：plan.windowStartYM 优先，否则缺省=历史末月+1（无则 2026-09）
+    refreshStartText: function () {
+      var plan = this.data.plan || {};
+      var ctx = this.data.ctx || {};
+      var text;
+      if (/^\d{4}-\d{2}$/.test(plan.windowStartYM || '')) {
+        text = plan.windowStartYM;
+      } else {
+        text = PM.defaultWindowStartYM(ctx, D);
+      }
+      if (text !== this.data.startText) this.setData({ startText: text });
+    },
     recheck: function () {
       var errs = PM.planErrors(this.data.plan, this.data.ctx, D);
       this.setData({ errors: errs });
@@ -43,6 +57,10 @@ Component({
     // 退休年月
     onRetire: function (e) {
       this.emitChange({ retireYM: e.detail.value, retireTouched: true });
+    },
+    // BUG-02-0004：缴费起始时间（可手动编辑；缺省=实际缴费最后月+1）
+    onWindowStart: function (e) {
+      this.emitChange({ windowStartYM: e.detail.value });
     },
     // Z（数字输入）
     onZ: function (e) {

@@ -28,15 +28,16 @@ function rateFor(segType) {
 }
 
 // 逐月计算 R续：基于 D4 自动段展开到每月，输出逐月明细与汇总。
+// windowStartYM：动态缴费起始月（方案卡可编辑），缺省回退 planAssembler 内置 2026-09。
 // 返回 {
 //   segType, rate, months(缴费月数),
 //   monthly: [{ ym, base, burden, denomSource }],
 //   total(中间不舍入的精确和), totalRounded(2位),
 //   monthlyBurden(月负担额=按全区间均值，展示用，2位)
 // }
-function computeR(plan, customCYear) {
+function computeR(plan, customCYear, windowStartYM) {
   var rate = rateFor(plan.segType);
-  var autoSegs = Asm.buildAutoSegments(plan, customCYear);
+  var autoSegs = Asm.buildAutoSegments(plan, customCYear, windowStartYM);
 
   var monthly = [];
   var total = 0;

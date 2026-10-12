@@ -5,6 +5,7 @@
 'use strict';
 
 var Schedule = require('./retireSchedule.js');
+var Asm = require('./planAssembler.js');
 
 var MAX_PLANS = 3;
 var MIN_PLANS_TO_COMPARE = 2;
@@ -42,12 +43,13 @@ function legalRange(ctx, D) {
   };
 }
 
-// 一张空白方案卡（retireYM 预填法定退休年月；Z/性质留空）
+// 一张空白方案卡（retireYM 预填法定退休年月；Z/性质留空；windowStartYM 留空=动态缺省历史末月+1）
 function emptyPlan(ctx) {
   return {
     retireYM: defaultRetireYM(ctx),
     z: '',
     segType: '',
+    windowStartYM: '', // BUG-02-0004：缴费起始月（可编辑）；空＝缺省=实际缴费最后月+1
     retireTouched: false // UI 态：用户是否手改过退休年月（避免上下文刷新覆盖）
   };
 }
@@ -107,6 +109,30 @@ function validateRetireYM(retireYM, ctx, D) {
   return null;
 }
 
+// BUG-02-0004（Q2=A）：缴费起始月缺省＝实际缴费最后月+1（ctx.historyEndYM 由共享区提供）。
+// 无历史末月时回退 planAssembler 的 2026-09。
+function defaultWindowStartYM(ctx, D) {
+  var h = ctx && ctx.historyEndYM;
+  if (/^\d{4}-\d{2}$/.test(h || '')) return D.toYM(D.toIndex(h) + 1);
+  return Asm.WINDOW_START_YM;
+}
+
+// 校验缴费起始月：可留空（动态缺省）；非空须介于历史末月与退休前一月之间。返回错误文案或 null。
+function validateWindowStartYM(windowStartYM, ctx, retireYM, D) {
+  if (windowStartYM === '' || windowStartYM == null) return null;
+  if (!/^\d{4}-\d{2}$/.test(windowStartYM)) return '缴费起始时间格式应为 YYYY-MM';
+  var h = ctx && ctx.historyEndYM;
+  if (/^\d{4}-\d{2}$/.test(h || '') && D.toIndex(windowStartYM) < D.toIndex(h)) {
+    return '缴费起始时间 ' + windowStartYM + ' 早于最后缴费月 ' + h + '，不能比较';
+  }
+  if (/^\d{4}-\d{2}$/.test(retireYM || '')) {
+    if (D.toIndex(windowStartYM) > D.toIndex(retireYM) - 1) {
+      return '缴费起始时间 ' + windowStartYM + ' 不得晚于退休前一月（退休 ' + retireYM + '）';
+    }
+  }
+  return null;
+}
+
 // 单卡完整校验：返回错误文案数组（[]=无错误）。空卡返回 []（其“不计入方案数”由调用方判断）。
 function planErrors(plan, ctx, D) {
   var errors = [];
@@ -114,6 +140,7 @@ function planErrors(plan, ctx, D) {
   if ((e = validateZ(plan.z))) errors.push(e);
   if ((e = validateSegType(plan.segType))) errors.push(e);
   if ((e = validateRetireYM(plan.retireYM, ctx, D))) errors.push(e);
+  if ((e = validateWindowStartYM(plan.windowStartYM, ctx, plan.retireYM, D))) errors.push(e);
   return errors;
 }
 
@@ -195,6 +222,8 @@ module.exports = {
   Z_MAX: Z_MAX,
   hasContext: hasContext,
   defaultRetireYM: defaultRetireYM,
+  defaultWindowStartYM: defaultWindowStartYM,
+  validateWindowStartYM: validateWindowStartYM,
   legalRange: legalRange,
   emptyPlan: emptyPlan,
   initialPlans: initialPlans,

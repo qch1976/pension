@@ -171,6 +171,20 @@ Phase-0/1 已实现手工录入与本地计算。Phase-2 在**不改变计算引
 - 文件输入：`chooseMessageFile`(tempPath) → `readFile`(utf8) → `parseCaseFile` → `validate`（失败→行级错误列表，终止）→ copy 到 `pension/inputs/` → 回填共享/表单 → 复用既有引擎 → 结果页。
 - 文件输出：结果页 → `buildXxxReport` → `writeFile` 到 `pension/outputs/` → `shareFileMessage` 导出会话。
 
+### 10.1 D1 修正（BUG-02-0004~0007，项目主 Q1=B/Q2=A/Q3=±0.001 裁定）
+
+**a) 方案卡「缴费起始时间」动态化且可编辑（BUG-02-0004）**
+- 方案卡在「退休年月」旁新增「缴费起始时间」month picker，可手动编辑。
+- 缺省值＝实际缴费记录最后缴费月 + 1 月（My-Case 缴至 2026-08 → 缺省 2026-09）；无历史段时回退 2026-09。
+- 校验：起始月须介于「历史末月」与「退休前一月」之间（含端点），越界红字阻断。
+- 该动态 `windowStartYM` 统一贯穿 `planAssembler`（删除写死 2026-09，新增 `defaultWindowStart/resolveWindowStart/validateWindowStart`）、`paybackModel.retireOffset`（接受动态 origin）、`rContribution`（透传起点）、`roiModel.buildCaseInput`（同值）；继续/停保两情形一致。
+
+**b) 共享区单一记账利率透传滚动分支（BUG-02-0005~0007，Q1=B）**
+- 三方案**共用一个**记账利率，输入框位于**共享区**（与账户累计储存额同区），**不**放方案卡；文件输入取 common 段「个人账户利率」作缺省（My-Case=1.5%），手工录入缺省 1.5%（留空取缺省、填 0=不计息，允许 0~20%）。
+- 删除 `inputValidator.buildSharedInput` 中写死的 `futureMonthlyRate:null`，按 parseFloat(%)/100 透传共享利率到每个方案，使 compare 账户进入引擎逐月滚动分支（年利率/12 月复利，自余额次月滚至退休前一月），修复原本 compare 走静态分支不计息、与 basic 不一致的根因。
+- 停保基准：无未来自动缴费段且 `futureMonthlyRate=null`（静态基准）。
+- 一致性判据（Q3=A，±0.001）：同一案例/利率/缴费起始月下 basic 与 compare 走同一引擎路径，R储/J账户/P月差 ≤0.001；compare 方案 J账随 Z(0.6→3.0) 显著拉开。见 TST-02-UT-1030/1031 台账。
+
 ---
 
 ## 11. REQ 索引与覆盖矩阵
@@ -215,8 +229,10 @@ Phase-0/1 已实现手工录入与本地计算。Phase-2 在**不改变计算引
 | REQ-02-NFR-003 | API 兼容与降级 | 工程约束 |
 | REQ-02-NFR-004 | 可单测/可复刻/GUI 回归 | 工程约束 |
 | REQ-02-NFR-005 | 不引重型库、控包体积 | 工程约束 |
+| REQ-02-CAL-000 | 方案卡缴费起始时间可编辑，缺省=历史末月+1，越界校验，动态起点贯穿（planAssembler/payback/rContribution/roi） | D1 BUG-02-0004 |
+| REQ-02-CAL-001 | 共享区单一记账利率（三方案共用，文件 common 利率作缺省 1.5%）透传引擎滚动分支，basic/compare 同输入 ±0.001 一致，J账随 Z 拉开 | D1 BUG-02-0005~0007 |
 
-共 **36** 条 REQ（SCOPE5 + FMT2 + STORE5 + IN6 + VAL7 + OUT5 + NFR6 = 36）。
+共 **38** 条 REQ（SCOPE5 + FMT2 + STORE5 + IN6 + VAL7 + OUT5 + NFR6 + CAL2 = 38；D1 BUG-02-0004~0007 新增 CAL-000/001，原 36 条基线不变）。
 
 ### 11.1 Architect Initial Matrix（初始矩阵）
 
@@ -260,8 +276,10 @@ Phase-0/1 已实现手工录入与本地计算。Phase-2 在**不改变计算引
 | REQ-02-NFR-003 | API 兼容与降级 | developer |
 | REQ-02-NFR-004 | 可单测/可复刻/GUI 回归 | both |
 | REQ-02-NFR-005 | 不引重型库、控包体积 | developer |
+| REQ-02-CAL-000 | 缴费起始时间可编辑+缺省历史末月+1+越界校验+动态起点贯穿 | developer |
+| REQ-02-CAL-001 | 共享区单一记账利率透传滚动分支+双路径±0.001一致 | developer |
 
-（共 36 行 REQ；owner 汇总：both=19，developer=8，tester=9。该分布仅为基线，最终 testcase 行由开发/测试按实产出增列。）
+（共 38 行 REQ；D1 BUG-02-0004~0007 新增 REQ-02-CAL-000/001 两行，原 36 行基线保留不变。owner 在原分布上新增 both×2。该分布仅为基线，最终 testcase 行由开发/测试按实产出增列。）
 
 ---
 

@@ -13,6 +13,14 @@
     </picker>
   </view>
 
+  <!-- BUG-02-0004：缴费起始时间（可手动编辑；缺省=实际缴费最后月+1） -->
+  <view class="row">
+    <text class="label">缴费起始时间</text>
+    <picker mode="date" fields="month" value="{{plan.windowStartYM || startText}}" bindchange="onWindowStart">
+      <text class="value">{{plan.windowStartYM || startText}} ›</text>
+    </picker>
+  </view>
+
   <!-- ② Z 值 -->
   <view class="row">
     <text class="label">Z 值</text>

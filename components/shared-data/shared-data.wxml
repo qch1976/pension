@@ -155,6 +155,14 @@
     </picker>
   </view>
 
+  <!-- BUG-02-0005（Q1=B）：三方案共用一个记账利率，放共享区（与账户储存额同区）；文件 common 利率作缺省，手工缺省 1.5% -->
+  <view class="subhead">未来段记账利率（三方案共用，用于账户月复利）</view>
+  <view class="row">
+    <text class="label">记账年利率(%)</text>
+    <input type="digit" placeholder="缺省 1.5（范围 0~20，留空取缺省）" value="{{futureMonthlyRatePct}}" bindinput="onFutureRate" />
+  </view>
+  <view class="muted">自余额所在次月起至各方案退休前一月，个人账户余额按月复利（年利率/12）滚动；三方案共用同一利率假设以便横向比较。留空按缺省 1.5%（文件输入取 common 个人账户利率），填 0 表示不计息。记账利率为工程假设，结果标【预估】，实际以社保经办与官方公布利率为准。</view>
+
   <view class="subhead">人员身份与 R补（31号文·个人账户补贴额 Z补贴）<text class="tag tag-official">京劳社养发〔2007〕31号</text></view>
   <view class="row">
     <text class="label">是否属于31号文人员</text>

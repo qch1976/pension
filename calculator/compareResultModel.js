@@ -12,23 +12,27 @@ var PB = require('./paybackModel.js');
 var ROIm = require('./roiModel.js');
 var Refs = require('../constants/policyRefs.js');
 
-var ORIGIN = PB.ORIGIN_YM; // 2026-09
+var ORIGIN = PB.ORIGIN_YM; // 2026-09（仅回退缺省；BUG-02-0004 后由共享历史末月动态推导）
 var FIRST_FUTURE_YM = '2027-01';
 
 var SEG_LABEL = { enterprise: '企业职工', flexible: '灵活就业' };
 
 function clamp(n, lo, hi) { return Math.max(lo, Math.min(hi, n)); }
 
-// R续 -> payback series
-function toSeries(id, plan, pMonthly, rTotal) {
-  var r = Rmod.computeR(plan, {});
+// R续 -> payback series。
+// originYM：回本现金流的共同时间原点（=共享历史末月+1）；各方案 R续 按自身 windowStartYM 计算，
+// 月负担按相对共同原点的偏移入桶（晚于原点的方案前段自然为 0，cashflows 已按缺 0 处理）。
+function toSeries(id, plan, pMonthly, rTotal, customCYear, originYM, sharedInput) {
+  var origin = originYM || ORIGIN;
+  var r = Rmod.computeR(plan, customCYear, Asm.resolveWindowStart(plan, sharedInput));
   var burdens = {};
   r.monthly.forEach(function (mm) {
-    burdens[D.toIndex(mm.ym) - D.toIndex(ORIGIN)] = mm.burden;
+    burdens[D.toIndex(mm.ym) - D.toIndex(origin)] = mm.burden;
   });
   return {
     id: id,
-    T: PB.retireOffset(plan.retireYM),
+    originYM: origin,
+    T: PB.retireOffset(plan.retireYM, origin),
     burdens: burdens,
     pMonthly: pMonthly,
     rTotal: rTotal
@@ -52,6 +56,7 @@ function paybackText(res) {
 // 下钻：候选 k 相对基准 b 的三段现金流
 function drillCashflows(bSeries, kSeries) {
   var d = PB.cashflows(bSeries, kSeries);
+  var origin = bSeries.originYM || ORIGIN;
   var rows = [];
   var sum1 = 0, sum2 = 0;
   for (var m = 0; m <= kSeries.T; m++) {
@@ -59,7 +64,7 @@ function drillCashflows(bSeries, kSeries) {
     if (m <= bSeries.T) { stage = 1; sum1 += d[m]; }
     else { stage = 2; sum2 += d[m]; }
     rows.push({
-      ym: D.toYM(D.toIndex(ORIGIN) + m),
+      ym: D.toYM(D.toIndex(origin) + m),
       d: Rmod.round2(d[m]),
       stage: stage
     });
@@ -75,6 +80,8 @@ function drillCashflows(bSeries, kSeries) {
 // 主入口：由共享引擎入参 + 方案数组 + 用户年利率，构建整页视图。
 function buildView(sharedInput, plans, userAnnualRate) {
   var rate = typeof userAnnualRate === 'number' ? userAnnualRate : 0;
+  // BUG-02-0004：共同时间原点＝共享历史末月+1（无历史段回退 2026-09）。
+  var originYM = Asm.defaultWindowStart(sharedInput);
 
   // 1) ROI（内含继续/停保两情形引擎结果、eligible、R续）
   var roiAll = ROIm.computeAll(sharedInput, plans);
@@ -82,14 +89,14 @@ function buildView(sharedInput, plans, userAnnualRate) {
 
   // 2) 组装 series 并跑回本双列
   var series = items.map(function (it) {
-    return toSeries(it.id, it.plan, it.pMonthly, it.rContinued);
+    return toSeries(it.id, it.plan, it.pMonthly, it.rContinued, sharedInput.customCYear, originYM, sharedInput);
   });
   var dbl = PB.computeDouble(series, rate);
 
   // 3) 逐方案列
   var columns = items.map(function (it, i) {
     var s = series[i];
-    var rinfo = Rmod.computeR(it.plan, sharedInput.customCYear);
+    var rinfo = Rmod.computeR(it.plan, sharedInput.customCYear, Asm.resolveWindowStart(it.plan, sharedInput));
     var contRes = it.continueResult;
 
     var pb0 = dbl.at0.byId[it.id];
@@ -159,7 +166,9 @@ function buildView(sharedInput, plans, userAnnualRate) {
     var cf = s.id === baselineSeries.id ? null : drillCashflows(baselineSeries, s);
     return {
       id: it.id,
-      history: it.continueInput.segments.filter(function (g) { return g.endYM <= '2026-08'; })
+      history: it.continueInput.segments.filter(function (g) {
+          return D.toIndex(g.endYM) < D.toIndex(originYM);
+        })
         .map(function (g) {
           return {
             type: g.type,

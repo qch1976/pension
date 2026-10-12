@@ -20,9 +20,11 @@ var ORIGIN_YM = '2026-09';
 
 function round2(n) { return Math.round((n + Number.EPSILON) * 100) / 100; }
 
-// 退休前一月相对 2026-09 的偏移 T（若退休=2026-09 => T=-1，无缴费月）
-function retireOffset(retireYM) {
-  return D.toIndex(retireYM) - D.toIndex(ORIGIN_YM) - 1;
+// 退休前一月相对起点的偏移 T（若起点=退休月 => T=-1，无缴费月）。
+// BUG-02-0004：originYM 可传动态缴费起始月；缺省回退 ORIGIN_YM=2026-09。
+function retireOffset(retireYM, originYM) {
+  var origin = /^\d{4}-\d{2}$/.test(originYM || '') ? originYM : ORIGIN_YM;
+  return D.toIndex(retireYM) - D.toIndex(origin) - 1;
 }
 
 // 由方案序列求 m 月个人负担（无则0）。burdens 为以偏移 m 为键的对象。
