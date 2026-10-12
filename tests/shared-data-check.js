@@ -43,7 +43,8 @@ function baseData() {
   ok(input.segments[0].baseMonthly === 10000, '月基数解析为数字');
   ok(input.segments[0].endYM === '2026-08', '段结束2026-08');
   ok(input.retireYM === null, 'retireYM 为方案级留null');
-  ok(input.futureMonthlyRate === null, 'futureMonthlyRate 方案级留null');
+  // BUG-02-0005（Q1=B）：futureMonthlyRate 改为共享区单一记账利率，缺省1.5%，不再写死null
+  ok(Math.abs(input.futureMonthlyRate - 0.015) < 1e-12, '共享记账利率缺省1.5%→0.015（不再写死null）');
   ok(input.doc31Eligible === false, '默认非31号文');
   // 确定性：同数据两次构造结果一致（供三方案一致引用）
   var a = JSON.stringify(V.buildSharedInput(P, D, baseData()));
@@ -112,7 +113,8 @@ function baseData() {
   ok(picked.calculating === undefined, '草稿不含运行态 calculating');
   ok(picked.errorMsg === undefined, '草稿不含 errorMsg');
   ok(picked.retireYM === undefined, '草稿不含方案级 retireYM');
-  ok(picked.futureMonthlyRatePct === undefined, '草稿不含未来利率（方案窗口）');
+  // BUG-02-0005（Q1=B）：记账利率改为共享字段，应随草稿持久保留（不再剔除）
+  ok(picked.futureMonthlyRatePct === '1.5', '草稿保留共享记账利率 1.5');
   ok(picked.segments.length === 1 && picked.gender === 'male', '草稿保留共享字段');
   // key 常量与 Phase-0 隔离（组件使用 pension_compare_input_v1；Phase-0 pension_input_v1）
   ok(V.CUTOFF === '2026-08', '共享截止常量');
