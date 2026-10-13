@@ -144,3 +144,28 @@ The specification of phase2 and the dedicated test coverage matrix are not in .\
 
 **Fix Solution（修复，D1）**：随 0005/0004 一并修复。同输入台账（TST-02-UT-1030/1031）证明：basic 与 compare 在利率 0/1.5%、Z=0.6/3.0 下 R储/J账户/P月 两路径差均为 0（±0.001）；且 compare 方案 J账随 Z(0.6→3.0) 显著拉开（利率0档 J账 1815.17→2978.31；1.5%档 1994.83→3218.86），不再是静态分支下的近似相同值。不以 GUI 旧值 6651.57/4936.16 为目标，最终绝对数以修复后台账由项目主判定。
 
+## BUG-02-0008
+
+> 本台账惯例只收 customer 明确提出项。**本条非 customer 提出**，系 tester（worker4 / Senior Wechat Tester YDL）独立 GUI 取证发现，经**项目主 2026-10-13 批准特批写入**（内部台账第 32 项，沿用 BUG-02 内部编号，不占 customer previous Bug 号）。**本轮不修复**，待 BUG-02-0004~0007 全部 PASS 后单独排期。
+
+"方案比较"页在入口页**不填任何个人信息、直接用"文件输入"导入完整案例文件**时，两张用户从未触碰的默认方案卡，其"退休年月"停留在演示默认出生年（1965-10）推导出的陈旧值 **2026-01**，不随导入后真实出生年月（My-Case birthYM=1973-07，法定退休应为 **2035-09**）刷新，且该错误值已 persist 到本地 draft（pension_plans_v1）；导入后两张卡即处于非法（退休月早于历史末月）状态，用户须手动逐卡重选才能继续。
+
+**复现前置**：entry 页不填写任何个人信息（birthYM 等保持演示默认 1965-10），直接进入"方案比较"→"文件输入"→导入 tests/fixtures-case/My-Case.md（完整文件，非仅 common 段）。属 E4 公共信息预填路径，与"先在 entry 填真实出生年再进 compare"的既有用法不同。
+
+**独立证据（tester 独立采样，非引用 developer；fresh cli auto 口 40234，单连接 reLaunch entry→清双 draft→goCompare→导入完整 My-Case.md）**：
+- Windows 证据文件 `autotest/output/t47/dec.txt`、`dec-run.log`（DEC_EXIT=0），脚本 `C:\t44\t47-dec.js`；本地报告 `output/p-mu45ws9mfajyky-worker4/t47-premise-and-bug-findings.md`。
+- 导入前回读：pageCtx/sharedCtx `birthYM="1965-10"`；两张默认卡 `retireYM="2026-01"`、`retireTouched=false`，已 persist draft。
+- 导入后回读：pageCtx `birthYM="1973-07"`、`historyEndYM="2026-08"`（公共信息正确回填）；但两张卡 `retireYM` 仍为 "2026-01"、`retireTouched=false`，draft 内同为 2026-01。
+- 独立纯 node 跑 `planModel.defaultRetireYM(ctx)`（`retireSchedule.statutoryRetireYM`）：male/1973-07 法定退休月=**2035-09**；而 2026-01 恰是 male/**1965-10**（`inputPageModel.buildInitialData` 演示默认出生年）的法定退休月。
+
+**影响**：2026-01 早于实际历史末月 historyEndYM=**2026-08**（也早于缴费起始缺省 2026-09），planModel 退休年月校验必判"退休月过早/早于最后缴费月"，两张默认卡导入即非法、阻断"开始比较"；错误值已 persist，重进页面仍残留，用户必须手动逐卡重选，违背"文件导入公共信息即可快速建案"。注：本缺陷**不影响**缴费起始月缺省——windowStartYM 为空时 startText=defaultWindowStartYM=historyEnd+1=2026-09，导入后 ctx 正确、起始月缺省正确。
+
+**Root Cause（根因假设，基于源码 + dec 现象，待开发复核）**：① `inputPageModel.buildInitialData(true)` 给 shared-data 演示默认 male/birthYM=**1965-10**；② compare 首帧 plan-list attached 用该演示 ctx 调 `initialPlans → defaultRetireYM(1965-10)=2026-01`，写入每张卡并 persist；③ 文件导入 `shared-data.applyPrefill` 把 birthYM 改为 1973-07 并触发 ctx observer，但 plan-list observer 对退休月的重算条件是"`!retireTouched && !retireYM` 才补默认"，此刻 retireYM 已非空（2026-01）→条件不成立、**不重算**，陈旧值保留；④ compare 文件导入路径本身也不重建/校正 planList 的卡。即"attached 阶段用演示 ctx 预填退休月"与"observer 仅在退休月为空时才补默认"两处逻辑冲突，系统默认值与用户已选值之间缺少 `retireTouched` 之外的"是否系统默认值"区分。
+
+**Fix Solution（修复方向，三条择一/组合，本轮不实施）**：方向一——plan-list 的 ctx observer 去掉 `!retireYM` 限制，对所有 `retireTouched===false`（用户未手选）的卡一律以新 ctx 法定退休月重算，仅用户触碰过（true）才保留手选值；方向二——compare 文件导入 applyPrefill 成功后用真实 ctx 重新 `initialPlans()`/批量刷新所有未触碰卡的 retireYM，或在拿到真实公共信息前不预建卡（初始 retireYM 置空）；方向三——initialPlans 对缺省卡 retireYM 一律置空，交由 observer 在 ctx 为真实输入后统一填法定值，从源头避免演示出生年（1965-10→2026-01）被固化。
+
+**回归点**：① 清 draft→entry 不填信息→直接 compare→文件导入 My-Case：两张卡 retireYM 应=**2035-09**（非 2026-01），无"退休过早/早于最后缴费月"红错，draft 内同为 2035-09；② 同路径导入 MyWife-Case（女性 1981-07）：默认退休月按性别/femaleType 正确计算，不残留 2026-01；③ 用户手动改过退休月（retireTouched=true）后再导入/改公共信息，手选值**不得**被覆盖；④ entry 正常填真实出生年再进 compare 的既有用法，以及 compare 三卡新增/删除/结果计算，不得回归。
+
+**登记与状态**：tester worker4 独立 GUI 取证发现（证据 dec.txt / 口 40234）；项目主 2026-10-13 批准特批登记；状态＝本轮**不修**，待 BUG-02-0004~0007 全 PASS 后单独排期。
+
+
