@@ -8,6 +8,7 @@ var D = require('../../calculator/dateUtil.js');
 var P = require('../../constants/policyData.js');
 var caseImport = require('../../services/caseImport.js');
 var fileStore = require('../../services/fileStore.js');
+var CRM = require('../../calculator/compareResultModel.js'); // BUG-02-0010：跳转前计算预检，拦截身份非法等错误
 
 function fmtErr(e) {
   var loc = e.line ? ('第' + e.line + '行') : (e.field ? ('字段 ' + e.field) : '');
@@ -77,6 +78,13 @@ Page({
     var distinct = dedup.distinct;
     if (distinct.length < PM.MIN_PLANS_TO_COMPARE) {
       wx.showToast({ title: '方案内容相同，比较至少需 2 个不同方案', icon: 'none', duration: 2600 });
+      return;
+    }
+
+    // BUG-02-0010：跳转前计算预检（0% 利率），段身份非法/组装异常在方案输入页即提示，不带病跳结果页。
+    var pre = CRM.buildViewSafe(built.input, distinct, 0);
+    if (!pre.ok) {
+      wx.showToast({ title: '比较计算失败：' + pre.error, icon: 'none', duration: 3000 });
       return;
     }
 

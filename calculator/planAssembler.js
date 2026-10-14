@@ -122,7 +122,8 @@ function cloneSharedInput(sharedInput) {
   var input = {};
   Object.keys(sharedInput).forEach(function (k) { input[k] = sharedInput[k]; });
   input.segments = (sharedInput.segments || []).map(function (s) {
-    return { type: s.type, startYM: s.startYM, endYM: s.endYM, baseMonthly: s.baseMonthly };
+    // BUG-02-0010：历史段身份缺失兜底 enterprise（与 buildSharedInput/buildInputLike 口径统一，双保险）。
+    return { type: s.type || 'enterprise', startYM: s.startYM, endYM: s.endYM, baseMonthly: s.baseMonthly };
   });
   return input;
 }

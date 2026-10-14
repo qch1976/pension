@@ -81,6 +81,27 @@ function isSeparatorRow(cells) {
   return cells.join('').replace(/[-:\s|]/g, '') === '' && /-/.test(cells.join(''));
 }
 
+// BUG-02-0010：中文缴费身份 -> 引擎段身份枚举（全仓库唯一映射，planBlocks「往后缴费性质」与
+// 缴费表「缴费身份」列共用，禁止另写第二套）。
+//   单位 / 企业职工 -> enterprise；灵活 / 灵活就业 / 失业灵活就业 -> flexible。
+// 入参可为枚举本身（透传）。返回 'enterprise' | 'flexible'；无法识别返回 null（调用方报错）。
+var IDENTITY_SYNONYMS = [
+  { type: 'enterprise', words: ['企业职工', '企业', '单位职工', '单位'] },
+  { type: 'flexible', words: ['失业灵活就业', '灵活就业', '灵活'] }
+];
+function mapIdentityToType(raw) {
+  var s = String(raw == null ? '' : raw).replace(/\s/g, '');
+  if (s === '') return null;
+  if (s === 'enterprise' || s === 'flexible') return s;
+  for (var i = 0; i < IDENTITY_SYNONYMS.length; i++) {
+    var grp = IDENTITY_SYNONYMS[i];
+    for (var j = 0; j < grp.words.length; j++) {
+      if (s.indexOf(grp.words[j]) >= 0) return grp.type;
+    }
+  }
+  return null;
+}
+
 // 解析一组“块内”文本行。startLineNo=该块首行在原文中的行号（1基）。
 function parseBlock(lines, startLineNo, ctx) {
   var tableHeaderSeen = false;
@@ -140,18 +161,45 @@ function parseBlock(lines, startLineNo, ctx) {
         // 表前出现的管道行：不能当作表头（不含“年份”），按列数/数据校验
       }
       if (isSeparatorRow(cells)) continue;
-      if (cells.length !== 3) {
-        ctx.errors.push({ line: lineNo, reason: '缴费表行列数应为 3，实际 ' + cells.length });
+      // BUG-02-0010：缴费表兼容两种列结构——
+      //   旧 3 列：年份 | 养老缴纳基数(年) | 年内缴纳月数（startMonth 缺省 1、身份缺省 enterprise）
+      //   新 5 列：年份 | 养老缴纳基数(年) | 年内起始月份(1~12) | 年内缴纳月数 | 缴费身份
+      var colCount = cells.length;
+      if (colCount !== 3 && colCount !== 5) {
+        ctx.errors.push({ line: lineNo, reason: '缴费表行列数应为 3 或 5，实际 ' + colCount });
         continue;
       }
       var year = toNumber(cells[0]);
       var baseV = toNumber(cells[1]);
-      var months = toNumber(cells[2]);
+      var startMonthVal = 1;
+      var months;
+      var identityRaw = '';
+      var identityType = 'enterprise';
+      if (colCount === 5) {
+        startMonthVal = toNumber(cells[2]);
+        months = toNumber(cells[3]);
+        identityRaw = cells[4];
+        if (!isFinite(startMonthVal) || startMonthVal < 1 || startMonthVal > 12 ||
+            Math.floor(startMonthVal) !== startMonthVal) {
+          ctx.errors.push({ line: lineNo, reason: '第' + cells[0] + '年 年内起始月份须为 1~12 的整数：' + cells[2] });
+          continue;
+        }
+        var mappedType = mapIdentityToType(identityRaw);
+        if (!mappedType) {
+          ctx.errors.push({ line: lineNo, reason: '第' + cells[0] + '年 缴费身份无法识别（须为 单位/企业职工 或 灵活/灵活就业/失业灵活就业）：' + identityRaw });
+          continue;
+        }
+        identityType = mappedType;
+      } else {
+        months = toNumber(cells[2]);
+      }
       if (!isFinite(year) || !isFinite(baseV) || !isFinite(months)) {
         ctx.errors.push({ line: lineNo, reason: '缴费表数值列非数字：' + cells.join(' | ') });
         continue;
       }
-      ctx.records.push({ year: year, base: baseV, months: months });
+      ctx.records.push({ year: year, base: baseV, startMonth: startMonthVal, months: months, type: identityType });
+      if (!ctx.recordLines) ctx.recordLines = [];
+      ctx.recordLines.push(lineNo);
       continue;
     }
 
@@ -215,6 +263,7 @@ function parseCaseFile(text, mode) {
     mode: m,
     fields: {},
     records: [],
+    recordLines: [],
     planBlocks: [],
     ignoredDiffFields: [],
     errors: [],
@@ -241,13 +290,13 @@ function parseCaseFile(text, mode) {
         reason: '一份文件只能包含一份数据（检测到 ' + nonEmpty.length + ' 个数据块）'
       });
       // 仍解析首个块，便于界面部分回填（Q3）
-      var ctx0 = { fields: base.fields, records: base.records, errors: base.errors, notices: base.notices };
+      var ctx0 = { fields: base.fields, records: base.records, recordLines: base.recordLines, errors: base.errors, notices: base.notices };
       parseBlock(nonEmpty[0].lines, nonEmpty[0].startLine, ctx0);
       base.ok = false;
       return base;
     }
     var only = nonEmpty[0] || { lines: [], startLine: 1 };
-    var ctxb = { fields: base.fields, records: base.records, errors: base.errors, notices: base.notices };
+    var ctxb = { fields: base.fields, records: base.records, recordLines: base.recordLines, errors: base.errors, notices: base.notices };
     parseBlock(only.lines, only.startLine, ctxb);
     base.ok = base.errors.length === 0;
     return base;
@@ -266,7 +315,7 @@ function parseCaseFile(text, mode) {
     return base;
   }
 
-  var ctx = { fields: base.fields, records: base.records, errors: base.errors, notices: base.notices };
+  var ctx = { fields: base.fields, records: base.records, recordLines: base.recordLines, errors: base.errors, notices: base.notices };
   parseBlock(common.lines, common.startLine, ctx);
 
   // 处理方案差异块
@@ -293,6 +342,8 @@ function parseCaseFile(text, mode) {
 
 module.exports = {
   parseCaseFile: parseCaseFile,
+  // BUG-02-0010：缴费身份中文 -> 引擎枚举的唯一映射（planBlocks/缴费表共用）
+  mapIdentityToType: mapIdentityToType,
   // 暴露供单测
   _resolveFieldKey: resolveFieldKey,
   _splitBlocks: splitBlocks,

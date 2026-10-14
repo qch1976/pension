@@ -215,8 +215,19 @@ function buildView(sharedInput, plans, userAnnualRate) {
   };
 }
 
+// BUG-02-0010：结果页容错边界。buildView 仍为纯函数（坏输入直接抛错，供单测/前置校验复用）；
+// buildViewSafe 捕获引擎/组装异常，返回 { ok:false, error } 供页面展示可读文案，避免整页白屏。
+function buildViewSafe(sharedInput, plans, userAnnualRate) {
+  try {
+    return { ok: true, view: buildView(sharedInput, plans, userAnnualRate) };
+  } catch (e) {
+    return { ok: false, error: (e && e.message) ? e.message : String(e) };
+  }
+}
+
 module.exports = {
   buildView: buildView,
+  buildViewSafe: buildViewSafe,
   planIsEstimated: planIsEstimated,
   toSeries: toSeries,
   drillCashflows: drillCashflows,

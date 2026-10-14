@@ -166,7 +166,8 @@ function buildSharedInput(P, D, data, cutoff) {
   });
 
   var segs = rawSegs.map(function (s) {
-    return { type: s.type, startYM: s.startYM, endYM: s.endYM, baseMonthly: parseFloat(s.baseMonthly) };
+    // BUG-02-0010：文件旧 3 列/历史段身份缺失时兜底 enterprise（与 caseValidator.buildInputLike:91 口径统一，双保险）。
+    return { type: s.type || 'enterprise', startYM: s.startYM, endYM: s.endYM, baseMonthly: parseFloat(s.baseMonthly) };
   }).filter(function (s) { return s.startYM && s.endYM && !isNaN(s.baseMonthly); });
 
   var input = {

@@ -32,9 +32,20 @@ Page({
     this.rebuild(0);
   },
 
-  // 以给定年利率重建视图
+  // 以给定年利率重建视图（BUG-02-0010：引擎/组装异常不白屏，落 ready=false + 可读错误）
   rebuild: function (annualRate) {
-    var view = CRM.buildView(this.sharedInput, this.plans, annualRate);
+    var res = CRM.buildViewSafe(this.sharedInput, this.plans, annualRate);
+    if (!res.ok) {
+      this.setData({
+        ready: false,
+        loadError: '比较计算失败：' + res.error + '，请返回方案输入页核对',
+        view: null,
+        drill: null,
+        drillId: ''
+      });
+      return;
+    }
+    var view = res.view;
     var tt = {};
     (view.columns || []).forEach(function (c) { tt[c.id] = '分项'; });
     this.setData({

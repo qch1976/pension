@@ -9,6 +9,9 @@
 //   手工补齐后再次调用本模块（仍走 buildInput），不绕过。
 'use strict';
 
+// BUG-02-0010：复用 caseFile 的唯一中文身份 -> 枚举映射，缴费表身份列与 planBlocks「往后缴费性质」同一口径。
+var CF = require('./caseFile.js');
+
 // ---------- 基础工具 ----------
 function isYM(s) { return /^\d{4}-(0[1-9]|1[0-2])$/.test(String(s || '')); }
 function isDate(s) {
@@ -34,7 +37,7 @@ function expandYearRows(rows) {
       var mo = idx % 12 + 1;
       return yr + '-' + pad2(mo);
     };
-    segs.push({ startYM: toYM(startIdx), endYM: toYM(startIdx + k - 1), baseMonthly: baseMonthly });
+    segs.push({ type: r.type, startYM: toYM(startIdx), endYM: toYM(startIdx + k - 1), baseMonthly: baseMonthly });
   });
   return segs;
 }
@@ -49,7 +52,10 @@ function mapParsedToPageData(parsed, options) {
   options = options || {};
   var f = parsed.fields || {};
   var yearRows = (parsed.records || []).map(function (r) {
-    return { year: String(r.year), startMonth: '1', annualBase: String(r.base), months: String(r.months) };
+    // BUG-02-0010：透传文件 5 列的起始月/身份；旧 3 列文件缺省 startMonth=1、type=enterprise。
+    var sm = (r.startMonth != null ? r.startMonth : 1);
+    var tp = r.type || 'enterprise';
+    return { year: String(r.year), startMonth: String(sm), type: tp, annualBase: String(r.base), months: String(r.months) };
   });
 
   var hasDeemed = !!(f.deemedStartYM || f.deemedEndYM);
@@ -191,8 +197,8 @@ function fieldChecks(parsed, mode) {
   if (mode === 'basic' && f.zValue != null && (f.zValue < 0.6 || f.zValue > 3)) {
     mark('zValue', 0, '每月缴费 Z 值须在 0.60~3.00：' + f.zValue);
   }
-  if (f.contributionNature && !/企业职工|失业灵活就业|灵活就业|失业/.test(f.contributionNature)) {
-    mark('contributionNature', 0, '缴费性质须为「企业职工」或「失业灵活就业」：' + f.contributionNature);
+  if (f.contributionNature && !CF.mapIdentityToType(f.contributionNature)) {
+    mark('contributionNature', 0, '缴费性质须为「企业职工/单位」或「灵活就业（含失业灵活就业）」：' + f.contributionNature);
   }
 
   // ---- 缴费表：月数 1~12、基数>0、年份不重复（VAL-004）----
