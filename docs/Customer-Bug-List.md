@@ -169,3 +169,32 @@ The specification of phase2 and the dedicated test coverage matrix are not in .\
 **登记与状态**：tester worker4 独立 GUI 取证发现（证据 dec.txt / 口 40234）；项目主 2026-10-13 批准特批登记；状态＝本轮**不修**，待 BUG-02-0004~0007 全 PASS 后单独排期。
 
 
+## BUG-02-0009
+
+> 本台账惯例只收 customer 明确提出项。**本条非 customer 提出**，系 tester（worker4 / Senior Wechat Tester YDL）独立 GUI 取证发现，经**项目主 2026-10-14 批准登记**（下一可用内部号 BUG-02-0009，0008 已占；沿用 BUG-02 内部编号，不占 customer previous Bug 号）。**本轮不修复**，待 BUG-02-0004~0007 收口后单独排期。
+
+"方案比较"页文件导入后，方案卡**缴费起始时间（缴费起始月）的下界越界校验存在 off-by-one**：当用户把缴费起始月选成**恰等于实际缴费历史最后一个月**（My-Case 历史末月 historyEndYM=**2026-08**，起始月取 2026-08）时，`isValidPlan` 仍返回 **true**、起始月无任何红色错误提示，本应按"起始月须为最后缴费月+1（2026-09）起"被拦截的等值边界被错误放行（严格早于的 2026-07 才能被拦）。
+
+**现象**：起始月=2026-08（=历史末月）时 isValidPlan=true、planErrors 中无缴费起始月红错；assemblePlanInput 仍正常出方案。对照：2026-07（早于历史末月）被正确拦截（"缴费起始时间 2026-07 早于最后缴费月 2026-08，不能比较"），2026-09（历史末月+1，即动态缺省值）合法，上界 2033-08（=退休当月）被正确拦截（"不得晚于退休前一月（退休 2033-08）"）、2033-07（=退休前一月）合法，留空 resolve 成缺省 2026-09 合法。
+
+**复现前置**：entry 不填信息→"方案比较"→"文件输入"→真实文件链路导入 tests/fixtures-case/My-Case.md（写真实 USER_DATA_PATH 文件→mock chooseMessageFile→onChooseCaseFile 真实解析；ctx: gender=male, birthYM=1973-07, historyEndYM=2026-08）。导入后在小程序运行时 `require('calculator/planModel.js' / 'planAssembler.js')` 只读回读 isValidPlan/planErrors/assemblePlanInput，临时 plan 仅作纯函数入参，不回写页面、不点原生月滚轮、不调 onCardChange。上界口径取 retireYM=2033-08（退休前一月=2033-07）。
+
+**独立证据（tester 独立采样，非引用 developer；常驻 automator 口 40215，用例间只 connect/disconnect，零 RDP）**：
+- 权威基线 **aefeb43** 复现：summary `gt4021-20261014-123208.summary.json`、trace `gt4021-20261014-123208.trace.txt`、截图 `gt4021-20261014-123208.png`（TS=20261014-123208；14c4820 首轮 TS=20261014-120513 同结论）。
+- 缺陷报告与小报告：`output/p-mu45ws9mfajyky-worker4/bug02-0004-0007-gui-regression/task53/BUG-02-0009-GT4021-lower-boundary-offbyone-20261014.md`、`T2A-report-GT4019-4021-20261014.md`。
+- 两路一致：除小程序运行时回读外，另在本地独立克隆用 GUI 导出的真实 sharedInput（`gt-my-20261014-115327.sharedinput.json`）重算 assemblePlanInput 复核。
+- Manager（worker1）已独立读 123208 summary 复核，retire=2033-08 与 2033-07 两场景 2026-08 均 valid=true 被错放，FAIL 成立。
+
+**影响**：起始月=2026-08 被放行后，assemblePlanInput 生成的自动 flexible 段首月=**2026-08**（区间 2026-08→2033-07），与历史段末段（…→**2026-08**）在 **2026-08 当月形成闭区间重叠**：该月既按历史 baseMonthly(35945.25) 又按自动段 B=Z×C(7269.6) 重复计入（同月双计）。直接污染账户滚动（J账/个人账户累计）、R续 及最终 P月，使其偏大；起始月=2026-09 时自动段首月=2026-09，两段不重叠，结果正常。
+
+**Root Cause（已定位源码，非猜测）**：下界校验用了严格小于而非"小于等于"。
+- `calculator/planAssembler.js` 的 `validateWindowStart`（约 :48）：`if (historyLast && D.toIndex(start) < D.toIndex(historyLast)) return '缴费起始时间 ... 早于最后缴费月 ...';`
+- `calculator/planModel.js` 的 planErrors（约 :125）：`if (... D.toIndex(windowStartYM) < D.toIndex(h)) ...` 同源。
+- 当 start==historyLast（2026-08==2026-08）时 `<` 为 false → 漏拦截；而同函数上界 `toIndex(start) > toIndex(retireYM)-1`（含端点，=退休前一月合法）才是正确写法，下界应对称要求 start ≥ historyLast+1。函数注释自述"须介于历史末月与退休前一月之间（含端点）"，与客户原始诉求缺省="最后一个缴费月 **+1月**"共同表明 2026-08 不合法。
+- UT 缺口：tests/bug02-0004-0007-check.js 的 TST-02-UT-1027 未覆盖"起始月恰好=历史末月"等值边界，故 developer UT 全绿但漏过此 off-by-one。
+
+**Fix Solution（本轮不实施，交开发）**：① planAssembler.js `validateWindowStart` 下界改为含端点：`D.toIndex(start) <= D.toIndex(historyLast)` 即拦截（等价 start 须 ≥ historyLast+1），错误文案与产品确认（建议"不得早于最后缴费月的次月"）；② planModel.js planErrors 同源行同步 `<`→`<=`；③ 同步订正函数注释"含端点"表述（下界实为历史末月+1 起，端点 2026-08 不合法），避免注释与实现背离；④ TST-02-UT-1027 增补等值边界：start=historyLast 必须拦截、start=historyLast+1 合法，并断言 assemblePlanInput 在合法起点下自动段首月=historyLast+1、历史段与自动段月份零交集。
+
+**回归点**：① 修复后重跑 GUI GT-4021（回归脚本 `autotest` 侧 t47 / worker4 `scripts/gt4021-regression.js`，expect 显式含 2026-07 reject）：2026-08 应转 isValidPlan=false 且有起始月红错；2026-07、2033-08 仍拦截；2026-09、2033-07、留空 仍合法；② 三断言：=历史末月拒 / =末月+1合法 / 任何合法起点历史段与自动段零重叠（自动段首月>历史末月）；③ 回归 GT-4019/4020 动态缺省不受影响（缺省仍=历史末月+1：My 2026-09、wife 2026-01）；④ 原生月滚轮手工滚到历史末月当月也应红错拦截（红点/滚轮点选归 MT-9002 人工确认）。
+
+**登记与状态**：tester worker4 独立 GUI 取证发现（常驻口 40215，基线 aefeb43，TS=20261014-123208）；Manager worker1 独立复核 FAIL 成立；项目主 2026-10-14 批准登记为 BUG-02-0009；矩阵 TST-02-GT-4021 行按实落 FAIL 并关联本条；状态＝本轮**不修**，待 BUG-02-0004~0007 收口后单独排期。
