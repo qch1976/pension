@@ -198,3 +198,42 @@ The specification of phase2 and the dedicated test coverage matrix are not in .\
 **回归点**：① 修复后重跑 GUI GT-4021（回归脚本 `autotest` 侧 t47 / worker4 `scripts/gt4021-regression.js`，expect 显式含 2026-07 reject）：2026-08 应转 isValidPlan=false 且有起始月红错；2026-07、2033-08 仍拦截；2026-09、2033-07、留空 仍合法；② 三断言：=历史末月拒 / =末月+1合法 / 任何合法起点历史段与自动段零重叠（自动段首月>历史末月）；③ 回归 GT-4019/4020 动态缺省不受影响（缺省仍=历史末月+1：My 2026-09、wife 2026-01）；④ 原生月滚轮手工滚到历史末月当月也应红错拦截（红点/滚轮点选归 MT-9002 人工确认）。
 
 **登记与状态**：tester worker4 独立 GUI 取证发现（常驻口 40215，基线 aefeb43，TS=20261014-123208）；Manager worker1 独立复核 FAIL 成立；项目主 2026-10-14 批准登记为 BUG-02-0009；矩阵 TST-02-GT-4021 行按实落 FAIL 并关联本条；状态＝本轮**不修**，待 BUG-02-0004~0007 收口后单独排期。
+
+
+## BUG-02-0010
+
+> 本台账惯例只收 customer 明确提出项。**本条非 customer 提出**，系 tester（worker4 / Senior Wechat Tester YDL）在 task-54（BUG-02-0005 独立 GUI 验收 GT-4029）真实文件链路回归时独立 GUI 取证发现，经**项目主 2026-10-14 16:10 批准**登记（下一可用内部号 BUG-02-0010，0009 已占）并**裁定方案 A 本轮立即修复**；开发 worker3 于 task-58 修复，提交 **0bc2775**，tester worker4 同轮真实链路复测通过。状态＝**本轮已修复**。
+
+"方案比较"页经"文件输入(.md/.txt)"导入含缴费记录表的共用案例（如 tests/fixtures-case/My-Case.md）后，点"开始比较"虽成功跳转到比较结果页，但结果页**整页无法构建任何方案数据**：`ready=false`、比较列 0、`loadError` 为空，屏幕仅剩标题"比较结果"和"返回方案输入页"按钮（无数据、无错误文案的白屏兜底）。手工"分段(bound)"通道不受影响。
+
+**复现前置（修复前基线 ffcd5d5）**：entry 不填信息→"方案比较"→"文件输入"→真实文件链路导入 tests/fixtures-case/My-Case.md（历史 27 缴费段，余额锚点 672920/2026-08，利率 1.5%）；用 plan-list 真实方法 applyPlans 补两张合法且不同方案卡（退休/Z/缴费性质齐全），点击页面真实"开始比较"。常驻 automator 口 40215，用例间只 connect/disconnect，零 RDP。
+
+**独立证据（tester 独立采样，非引用 developer）**：
+- 端到端白屏：`output/.../task54/screenshots/probe-e2e-20261014-142052.png`、`logs/probe-e2e-20261014-142052.trace.txt`、`json/probe-e2e-20261014-142052.summary.json`（跳转后 ready=false、view 空、0 列）。
+- 三引擎路径一致报错：`json/probe-bv-20261014-141752.summary.json`——运行时生产 `compareResultModel.buildView`、`roiModel.computeROI`、`planAssembler.assemblePlanInput + Engine.calculate` 均抛 `输入校验失败：缴费段1身份类型非法；…；缴费段27身份类型非法`；`buildValidatedInput()` 的历史 27 段 `histTypeSet=[null]`、seg0=`{startYM:'2000-01',endYM:'2000-02',baseMonthly:3071}`（旧 3 列夹具起始月按缺省 1）。
+- 两路一致：另在本地克隆用 parseCaseFile→validate→buildSharedInput→assemblePlanInput→calculate 复算同样抛"缴费段身份类型非法"；手工 bound 通道（段默认 type='enterprise'）本地实测可正常计算（P月=9429.31）。
+- 覆盖缺口说明（Manager worker1 独立复核解开 GT-4010 表面冲突）：task-52 GT-4010 当年 harness `t41-p2-accept.js:285` 对手工段手工盖章 enterprise，未对真实文件 yearRows 无 type 主链路做端到端覆盖，故当时 PASS，非数值误判。
+- 隔离佐证（非生产路径）：对共享入参内存副本补历史段 type='enterprise'（不回写页面）后 continue/stop 9/9 PASS（`json/gt4029v2-20261014-145854.summary.json`），证明 BUG-02-0005/0007 利率透传与 continue/stop 逻辑本身正确，仅被本缺陷挡在引擎入口。
+
+**Root Cause（已定位源码，非猜测）**：
+- 文件导入与手工"年度模式"走 year 通道：`services/caseValidator.js mapParsedToPageData` 生成 yearRows 只有 `{year,startMonth,annualBase,months}`（旧夹具/旧解析无身份列），`inputPageModel.emptyYearRow()` 亦无 type。
+- `calculator/inputValidator.js buildSharedInput`（约 :169）段映射直接 `type: s.type`，对 year 通道 `s.type===undefined` 不做默认兜底；而 basic 通道 `buildInputLike`（约 :91）是 `type: s.type || 'enterprise'`、手工 bound 段默认 enterprise。两通道口径不一致，历史段 type=null 通过共享区校验（共享校验不查 type）却被引擎 `pensionEngine` 入参校验（type 须 ∈{enterprise,flexible}）整段拒绝。
+- `pages/compare/compare.js startCompare` 只按 isValidPlan 过滤方案卡、不预检历史段 type，照常 navigateTo；`pages/compare-result/compare-result.js onLoad→rebuild→buildView` 无 try/catch，buildView 抛错后 ready 恒 false，wxml 兜底块显示空 loadError，形成"无数据无提示"白屏。
+- 该 type 透传映射随 D2 共享数据组件引入（commit 8e76fa1）起潜伏；只要文件/年度行不带身份就必现。
+
+**Fix Solution（开发 worker3 task-58，提交 0bc2775，已落地）**：
+1. `services/caseFile.js`：缴费表由旧 3 列扩为 **5 列＝年份|养老缴纳基数(年)|年内起始月份(1~12)|年内缴纳月数|缴费身份**；新增全仓库唯一 `mapIdentityToType`（单位/企业职工→enterprise，灵活/灵活就业/失业灵活就业→flexible，无法识别逐行报错）；5 列读 startMonth（1~12 整数校验）+身份，**旧 3 列向后兼容**（startMonth 缺省 1、身份缺省 enterprise）；records 增加 startMonth/type 及行号。
+2. `services/caseValidator.js`：复用同一身份映射；mapParsedToPageData 透传 startMonth/type（不再硬编码 '1'/缺身份）。
+3. `calculator/inputValidator.js buildSharedInput` 与 `calculator/planAssembler.js cloneSharedInput` 段映射补 `type: s.type || 'enterprise'`，与 buildInputLike 口径统一（双保险）。
+4. 结果页容错：`compareResultModel` 新增 `buildViewSafe`（纯 buildView 仍抛错供预检/单测，safe 捕获返回可读 error）；compare-result `rebuild` 改走 safe，异常置 ready=false+可读 loadError 不白屏；compare `startCompare` 跳转前 buildViewSafe 预检，段身份非法在输入页 toast 拦截不跳转。
+5. 逐字节对齐项目主权威新夹具（tests/fixtures-case 与 docs/mycases 各 2 份，LF）：My-Case 首段 2000 由旧缺省起始月 1 **纠正为 11**（2000-11~2000-12，与建账 2000-11 对齐）；MyWife 2003=09 起 4 月、2005=01 起 7 月、2006=04 起 9 月。新增 tests/bug02-0010-check.js（62 断言，入 run-unit-tests.bat）。
+
+**复测（tester worker4，基线 0bc2775，常驻口 40215，独立取值，非引用 developer 数字）**：
+- **GT-4029 真实链路 12/12 PASS**（`json/gt4029reg-20261014-180229.summary.json`）：文件导入→两张合法不同卡→真实开始比较，结果页 ready=true、2 列、loadError 空、P月 13290.66(z0.6)/13726.27(z1.0)（与 tester 本地独立重算一致）；27 历史段全 enterprise、seg0=2000-11~2000-12；continue 利率 0.015 透传至退休前月、自动段 B=Z×C、账户滚动计息，stop 无自动段、利率归零、静态锚定余额零计息。
+- **GT-4031（5 列起始月+身份解析）12/12 PASS**（`json/gt4031-20261014-182115.summary.json`）：My 27 段 seg0=2000-11~12 enterprise(baseMonthly 3071)、全 enterprise；MyWife 设女性/女工人后 23 段，seg0=2003-09~12、2005=01~07、2006=04~12 全 enterprise，两卡（产品法定退休月 2034-11，z0.6/z3）真实结果页 ready、P月 8465.41/11179.12（与独立重算一致）；临时 5 列含「灵活」行→flexible(2010-03~04)；旧 3 列→startMonth 缺省 1、type 缺省 enterprise（向后兼容）；非法身份「外包」、起始月 13 均逐行 fileErrors 拦截。
+- **GT-4026 回归 7/7 PASS**（`json/gt4026-20261014-180358.summary.json`）：共享利率缺省/留空回退 1.5%、录"0"=0 可算、录"25"越界红错阻断、利率只在共享区 plan-card 无利率字段，修复后无回归。
+- GUI 零回归：三轮常驻口只 connect/disconnect、零 RDP；业务轮 WeappLog 计数 utility-exit/force-close/opened 无新增（8/9/9，9/9 为批准启动器 T47Launcher40215 拉起 automator 附加项目的通道固有增量，非业务脚本），40215 全程 Listen。
+
+**回归点（已覆盖/后续保留）**：① 真实 5 列文件（含灵活身份）文件导入→结果页渲染；② 旧 3 列文件仍可导入不白屏；③ 非法身份/非法起始月输入页可读拦截；④ 手工 bound/年度两通道结果一致；⑤ GT-4026 利率链路、GT-4029 continue/stop 长期回归。
+
+**登记与状态**：tester worker4 独立 GUI 取证发现（ffcd5d5，TS=20261014-142052/141752）；Manager worker1 独立复现坐实并厘清 GT-4010 覆盖缺口；项目主 2026-10-14 16:10 批准登记 BUG-02-0010 并裁定本轮修复；开发 worker3 task-58 提交 0bc2775；tester worker4 同轮 GT-4026/4029/4031 全部 PASS；矩阵 TST-02-GT-4026/4029 回填 PASS、新增 TST-02-GT-4031 行关联本条；状态＝**本轮已修复**。
