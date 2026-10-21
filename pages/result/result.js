@@ -1,7 +1,7 @@
 // pages/result/result.js
 // 结果页：spec 第8章——总额+三分项+全部中间变量+公式溯源+逐月明细（按年折叠，含当年利息/年末余额/利率来源）
 // 第二轮修复（wxml-round2）：微信 wcc 不允许 {{}} 表达式内出现非 ASCII 标识符/字面量，
-// 引擎 pensionEngine.js 的中文输出键保持不变（兼容 tests/oracle 与全部既有断言），
+// 引擎 pensionEngine.js 的中文输出键保持不变（兼容 developer_test/common/oracle.js 与全部既有断言），
 // 本页在 onLoad 中为模板构造纯 ASCII 键视图模型 vm / vmYearly / ui，WXML 只绑定 ASCII 键。
 // 批次3（#12a/#12b/#13）：
 //  - R储 说明改写为 buildRStoreVm（明确本金起算月=锚定月次月；数字与引擎汇总一致）；

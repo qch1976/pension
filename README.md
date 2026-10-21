@@ -23,15 +23,18 @@
 ├── pages/
 │   ├── index/                          输入页（基本信息/视同/月度+年度两种缴费录入/利息/C平与缺口数据）
 │   └── result/                         结果页（总额三分项/中间变量/政策弹窗/按年记账/逐月明细/CSV导出/分享）
+├── developer_test/
+│   ├── common/                         公共库与全量 runner（oracle.js / run-tests.js / regression-check.js / round1-fixes.js / account-subsidy-check.js）
+│   ├── utils/                          与具体 testcase 无关、可独立 node 直跑的单元断言（engine-assert / interaction-assert / output-assert / yearbase-test / assert-bug25-26 / plan-compare-table）
+│   ├── TST-02-UT-xxxx/                 以 testcase ID 为 folder 名的 UT 脚本（各含 logs/）
+│   └── TST-02-CT-xxxx/                 CT（wxml/视图模型静态）脚本（各含 logs/）
+├── autotest/                           tester 的 GUI/冒烟/compile-gate（system_test 范畴，B-3 迁移）
 ├── scripts/
 │   ├── verify.js                       开发期手工验算脚本（node scripts/verify.js）
 │   └── wxml-check.js                   WXML Mustache/标签配对静态检查（防 BUG-001 复发）
-├── tests/
-│   ├── run-tests.js                    全量自测 135 条（node tests/run-tests.js）
-│   ├── account-subsidy-check.js        R补=Z补贴 专项 46 条（AC-RC-01~11，node tests/account-subsidy-check.js）
-│   ├── oracle.js                       测试独立参照实现
-│   └── round1-fixes.js                 首轮缺陷修复点专项自测 33 条（node tests/round1-fixes.js）
 └── docs/
+    ├── My-Case.md                      customer 测试用例夹具（唯一源）
+    ├── MyWife-Case.md                  customer 测试用例夹具（唯一源）
     ├── specifications/
     │   ├── specification.md              标准需求规格说明书（Phase-0 基线）
     │   ├── specification-phase1.md       Phase-1 需求规格
@@ -83,11 +86,12 @@
 ## 自测运行
 
 ```bash
-node tests/run-tests.js              # 全量 135 条（135/135 通过）
-node tests/account-subsidy-check.js  # R补=Z补贴 专项 46 条（AC-RC-01~11，46/46 通过）
-node tests/round1-fixes.js           # 首轮缺陷修复专项 33 条（33/33 通过）
-node tests/regression-check.js       # 独立回归 50 条（50/50 通过）
-node tests/viewmodel-audit.js        # 结果页视图模型绑定审计（含31号人员 S6 场景）
+node developer_test/common/run-tests.js              # 全量 135 条（131 通过 / 4 历史失败 TC-C-114/207/214、TC-X-007b）
+node developer_test/common/account-subsidy-check.js  # R补=Z补贴 专项 46 条（46/46 通过）
+node developer_test/common/round1-fixes.js           # 首轮缺陷修复专项 33 条（33/33 通过）
+node developer_test/common/regression-check.js       # 独立回归 50 条（45 通过 / 5 历史失败 R-BUG-009/009b、R-S2 系列）
+node developer_test/TST-02-CT-1015/viewmodel-audit.js   # 结果页视图模型绑定审计
+node developer_test/TST-02-UT-1032/bug02-0010-check.js  # BUG-02-0010 5列解析 62 断言
 node scripts/verify.js               # S1-S4 手工验算场景
 node scripts/wxml-check.js           # WXML 配对/非ASCII表达式静态检查
 ```
