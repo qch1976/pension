@@ -548,7 +548,7 @@ TC-C-301～310 AUTO 全通过（含人员类型=新人、G同/G实/J过渡=0、�
 
 ## 16. 客户 Bug → case 双向索引表
 
-> 客户 Bug 编号严格沿用 `docs/Customer-Bug-List.md`（含 Bug 0、Bug 12.1），每个客户 bug 均可在此查到对应 case；【新】= V2.0 新增 case，【标】= V2.0 补客户 bug ID 标注的既有 case。
+> 客户 Bug 编号严格沿用 `docs/bugs/Customer-Bug-List.md`（含 Bug 0、Bug 12.1），每个客户 bug 均可在此查到对应 case；【新】= V2.0 新增 case，【标】= V2.0 补客户 bug ID 标注的既有 case。
 
 | 客户 Bug | 对应 case 编号 |
 |---|---|

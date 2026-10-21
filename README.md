@@ -28,7 +28,13 @@
 │   ├── utils/                          与具体 testcase 无关、可独立 node 直跑的单元断言（engine-assert / interaction-assert / output-assert / yearbase-test / assert-bug25-26 / plan-compare-table）
 │   ├── TST-02-UT-xxxx/                 以 testcase ID 为 folder 名的 UT 脚本（各含 logs/）
 │   └── TST-02-CT-xxxx/                 CT（wxml/视图模型静态）脚本（各含 logs/）
-├── autotest/                           tester 的 GUI/冒烟/compile-gate（system_test 范畴，B-3 迁移）
+├── system_test/                        tester 的 ST/GT 脚本（B-3 迁移）
+│   ├── common/                         公共件与门禁（run-unit-tests.bat / compile-gate/）
+│   ├── utils/                          与具体 testcase 无关、可独立执行的脚本（probe.js）
+│   ├── customer_testcases/             tester 为 customer testcase 写的脚本
+│   ├── output/                         ST/GT 运行证据输出（截图/json/log）
+│   └── TST-02-GT-4000/                 GUI 自动化回归（原 autotest/gui/ 整个 + smoke*.js + regression-rc.js，各含 logs/）
+├── autotest/output/                    （历史遗留）早期引擎断言输出，未迁移
 ├── scripts/
 │   ├── verify.js                       开发期手工验算脚本（node scripts/verify.js）
 │   └── wxml-check.js                   WXML Mustache/标签配对静态检查（防 BUG-001 复发）
