@@ -6,9 +6,9 @@
 | 测试轮次 | 阶段3 · 第 1 轮系统测试（Round 1） |
 | 测试日期 | 2026-09-18 |
 | 测试人 | Senior Wechat Software Tester YDL |
-| 需求基线 | `docs/specification.md` V1.0（2026-05-21） |
+| 需求基线 | `docs/specifications/specification.md` V1.0（2026-05-21） |
 | 被测版本 | 阶段2交付版本（政策参数版本 2026.05.21；服务器文件时间 2026-09-18 09:04；模板 AppID wx9c012db494b84dae） |
-| 用例基线 | `docs/test-cases.md` V1.0 |
+| 用例基线 | `docs/testcase_design/test-cases.md` V1.0 |
 | 自动化夹具 | `tests/oracle.js`（114 行独立参照实现）、`tests/run-tests.js`（134 项断言，约 650 行），均为新增文件，未修改任何源码 |
 | 结论 | **不具备进入回归阶段条件（NO-GO）**：存在 1 个 Blocker（结果页 WXML 编译失败，主流程不可用）与 13 个 Major，修复后须重跑本夹具并补做微信开发者工具人工验证 |
 

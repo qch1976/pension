@@ -3,7 +3,7 @@
 - 报告日期：2026-09-19
 - 编制人：Senior Wechat Software Architect YDL（架构/规格节点 wf-22925e79520b-node_architect_spec）
 - 项目：pension 微信小程序（Windows 开发机 39.106.208.34，`C:\Users\Administrator\Desktop\Wechat projects\pension`）
-- 配套规格：`docs/specification.md` V1.2（本次同步更新，重点为 section 2.2 与新增 2.2.1）
+- 配套规格：`docs/specifications/specification.md` V1.2（本次同步更新，重点为 section 2.2 与新增 2.2.1）
 - 结论一句话：**两份官方原文中都没有「R储」「R补」字母符号**；R储 对应 21 号文的「个人账户累计储存额」；**R补 对应 31 号文第二条(三)的「个人账户补贴额」（官方符号 Z补贴）**，仅适用于机关事业转企业/调入/军转三类特定人员，普通企业职工为 0。
 
 ---

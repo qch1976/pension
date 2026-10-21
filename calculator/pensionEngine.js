@@ -1,6 +1,6 @@
 // calculator/pensionEngine.js
 // 北京市企业职工基本养老金测算引擎（纯 JS，与小程序运行时解耦，可直接在 node 下 require 自测）
-// 公式严格依据 docs/specification.md V1.1 第4章；条款引用以 Pxx 标注（见 constants/policyRefs.js）
+// 公式严格依据 docs/specifications/specification.md V1.1 第4章；条款引用以 Pxx 标注（见 constants/policyRefs.js）
 // 政策标注（spec 第12章）：P-01 京政府令183号 / P-02 京劳社养发〔2007〕21号 / P-04 国发〔2005〕38号 / P-12 灵活就业20%（8%入账）
 // 所有年限/指数计算精确到月（spec 4.7）；中间计算不舍入，仅展示层保留指定位数。
 // 阶段4缺陷修复：BUG-003~011/013/014/015、GAP-01（对照表层在 calculator/retireSchedule.js）。

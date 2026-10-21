@@ -250,7 +250,7 @@ zYear = round4(sumMonthZ / windowMonths)   // 第 312 行附近
 - `vmAnnual` 映射（约其中逐行 map）：透传 `zCapped`、必要时 `zRaw`；确认页面所有 Z实/指数展示统一为**月层封顶后**口径，避免出现“封顶前/后”两个数。
 - 主汇总展示文案与 §3.5 脚注数值一致。
 
-> 注：以上为本轮定稿的改动规格。按工作流约束，本轮不实际修改业务代码、不合并到服务器 folder；落地合并（specification/testcase → 开发服务器对应 folder）由后续开发节点执行，合并时同步更新 `docs/specification.md` 中 Z实/封顶口径与 183 号令第十二条引用。
+> 注：以上为本轮定稿的改动规格。按工作流约束，本轮不实际修改业务代码、不合并到服务器 folder；落地合并（specification/testcase → 开发服务器对应 folder）由后续开发节点执行，合并时同步更新 `docs/specifications/specification.md` 中 Z实/封顶口径与 183 号令第十二条引用。
 
 ---
 

@@ -4,7 +4,7 @@
 - 本轮范围：**仅调研 + 定稿，不改业务代码、不跑 GUI。**
 - 项目根（Windows）：`C:\Users\Administrator\Desktop\Wechat projects\pension`
 - 上一轮设计：`pension-ui-change-design.md`（Bug5~13，服务器已实施，spec 已合 V1.3）
-- 复核方式：经 `win-ssh.sh` 拉取 `docs/specification.md`、`docs/policy-verification-rchu-rbu-2007-21-31.md`、`calculator/pensionEngine.js`、`calculator/inputPageModel.js`、`pages/index/index.{js,wxml,wxss}`、`pages/result/result.{js,wxml,wxss}`、`app.wxss`、`constants/policyData.js`、`autotest/output-assert.js`，并在 Linux node v22.22 下用 My-Case 两案**实跑当前引擎**、再用定稿新口径脚本**独立复算勾稽**取证。本文数值均来自实跑，未编造文号/数字。
+- 复核方式：经 `win-ssh.sh` 拉取 `docs/specifications/specification.md`、`docs/policy-verification-rchu-rbu-2007-21-31.md`、`calculator/pensionEngine.js`、`calculator/inputPageModel.js`、`pages/index/index.{js,wxml,wxss}`、`pages/result/result.{js,wxml,wxss}`、`app.wxss`、`constants/policyData.js`、`autotest/output-assert.js`，并在 Linux node v22.22 下用 My-Case 两案**实跑当前引擎**、再用定稿新口径脚本**独立复算勾稽**取证。本文数值均来自实跑，未编造文号/数字。
 
 ---
 
@@ -199,7 +199,7 @@ Z年(n) =
 | `calculator/inputPageModel.js` | `userEntryPart`：`entryMode:'month'` → **`'year'`**（一处；withDefaults 与 reset 共用）；其余字段不动 |
 | `constants/policyData.js` | `version` 递增（如 2026.09.22-bug1416）；无参数变化 |
 | `autotest/output-assert.js` | ① 2000 断言：`zYear 0.4458→2.6747`；删除"月均=0.4458"行。② 2033 断言：`0.3/1.5→0.6/3.0`；删除月均行。③ 2026/2027~2032 的 zYear 断言数值不变；其"月均"绑定改为删除。④ 勾稽段：`Σ(zMonthAvg*12)/K` → **`Σ(zYear*windowMonths)/K`**，容差维持 0.0002。⑤ 1996~1999 `zYear=0`、1992~1995 `zYear=null` 断言保留 |
-| `docs/specification.md`（实施时升 **V1.4**，本轮不代改） | ① 修订记录加 V1.4 行：Bug14 年指数边界年按月数折算、Bug15 缺省年度模式、Bug16 遮罩跨页延续。② §4.5："年度录入模式……分母仍计12个月"段补"应缴窗口边界年（参保首年/退休年）分母按应缴月数；窗口内断缴月仍计分母"；年度公式说明同步。③ FR-10b/交互段：遮罩改为"持续至结果页首帧内容可见"。④ FR-05 相关行补"缺省年度模式" |
+| `docs/specifications/specification.md`（实施时升 **V1.4**，本轮不代改） | ① 修订记录加 V1.4 行：Bug14 年指数边界年按月数折算、Bug15 缺省年度模式、Bug16 遮罩跨页延续。② §4.5："年度录入模式……分母仍计12个月"段补"应缴窗口边界年（参保首年/退休年）分母按应缴月数；窗口内断缴月仍计分母"；年度公式说明同步。③ FR-10b/交互段：遮罩改为"持续至结果页首帧内容可见"。④ FR-05 相关行补"缺省年度模式" |
 
 > 说明：任务要求本轮只定稿、不改业务代码；`specification.md` 的 V1.4 合并与 `output-assert.js` 断言更新由后续开发/测试节点按上表执行。本文档（设计备忘录）按用户 BTW 要求合并到开发服务器 `docs\pension-ui-change-design-bug14-16.md`。
 

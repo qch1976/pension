@@ -1,7 +1,7 @@
 // tests/run-tests.js
 // 阶段3首轮系统测试 —— 计算引擎自动化测试夹具（不修改服务器源码，仅新增 tests/ 目录）
 // 运行：node tests/run-tests.js [--json]
-// 用例编号与 docs/test-cases.md 对应：TC-F 功能/字段 | TC-C 计算正确性 | TC-I 中间变量
+// 用例编号与 docs/testcase_design/test-cases.md 对应：TC-F 功能/字段 | TC-C 计算正确性 | TC-I 中间变量
 //                              TC-U 界面(自动部分) | TC-X 异常/兼容 | TC-P 政策可追溯
 // 判定：AUTO=自动断言；WALK=代码级走查（需微信开发者工具人工验证的在 test-cases.md 标注）
 var path = require('path');

@@ -7,7 +7,7 @@
 | 生效日期 | **2026-09-30**（项目主批准 Q1~Q9 全部裁定） |
 | 编制人 | Senior Wechat Software Architect YDL（p-mu45ws9mfajyky-worker2） |
 | 最高准绳 | 更新后 INPUT-COMMON.md「Phase-1：方案比较」（2026-09-30 版）；本规范不与其冲突 |
-| 基线依赖 | Phase-0 spec V1.9（开发服务器 docs/specification.md）；Phase-0 产品（github commit `0cf73d6`） |
+| 基线依赖 | Phase-0 spec V1.9（开发服务器 docs/specifications/specification.md）；Phase-0 产品（github commit `0cf73d6`） |
 | 追溯方式 | 每条需求分配唯一 ID，命名规则 **REQ-01-<模块>-<3位序号>**（phase=01；模块：SCOPE/NAV/OPT/SHR/PLN/LEG/DUP/CAL/RES/NFR；序号在模块内按顺序编排 000~999，如 REQ-01-CAL-002）；覆盖矩阵见第 11 章；testcase/bug 后续按 ID 映射 |
 | 状态 | 正式规范。本任务仅产出文档，**不写任何产品代码**；开发按第 12 章任务拆解排产 |
 
@@ -310,7 +310,7 @@ ROI_k = (P月_k − P月基准_k) / R续_k        （无量纲，保留 4 位，
 ## 13. 文档同步说明
 
 1. 本正式规范产出在项目 output：`output/p-mu45ws9mfajyky-worker2/specification-phase1.md`。
-2. **建议（须经安排后执行，本任务不自行同步）**：批准后由开发将本文件同步到开发服务器 `docs/specification-phase1.md`，并按 Git 流程提交到 github.com/qch1976/pension，与 Phase-0 spec 并列；同步时不改动 Phase-0 spec V1.9。
+2. **建议（须经安排后执行，本任务不自行同步）**：批准后由开发将本文件同步到开发服务器 `docs/specifications/specification-phase1.md`，并按 Git 流程提交到 github.com/qch1976/pension，与 Phase-0 spec 并列；同步时不改动 Phase-0 spec V1.9。
 3. Phase-0/Phase-1 术语以本规范 §2 为准；后续 Phase-1 testcase 设计须引用 REQ-01 ID。
 
 **纪律声明**：本任务仅产出正式需求规范，未写任何产品代码、未改动正式需求旧文件；全部裁定逐条落实，关键公式经数值验证。

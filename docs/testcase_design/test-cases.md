@@ -6,7 +6,7 @@
 | 编制日期 | 2026-09-24 |
 | 编制人 | Senior Wechat Software Tester YDL |
 | 被测对象 | 北京市企业职工基本养老金测算微信小程序（原生小程序，阶段2交付版本 2026.05.21） |
-| 需求基线 | `docs/specification.md` V1.9（2026-09-24，含 Bug 0~26 标注） |
+| 需求基线 | `docs/specifications/specification.md` V1.9（2026-09-24，含 Bug 0~26 标注） |
 | 被测代码 | 服务器 `C:\Users\Administrator\Desktop\Wechat projects\pension`；核心模块 `calculator/pensionEngine.js`（UMD 纯 JS）、`calculator/dateUtil.js`、`constants/policyData.js`、`constants/policyRefs.js`、`pages/index/*`、`pages/result/*` |
 | 自动化夹具 | `tests/oracle.js`（独立参照实现）、`tests/run-tests.js`（132 项断言批量回放），不修改服务器源码 |
 | 容差约定 | 金额 ±0.01 元（NFR-03）；指数 ±1e-4；年限 ±1e-4 年（约 2.6 小时，月粒度场景取 1/12 整数倍时差为 0） |

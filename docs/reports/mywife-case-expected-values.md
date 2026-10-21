@@ -4,7 +4,7 @@
 - 角色：pension 架构师
 - 本轮范围：**只核查 + 预计算，不改代码、不跑 GUI。**
 - 权威输入：`/root/.openclaw/workspace/qch1976-claw-tos2/pension/MyWife-Case.md`
-- 规格基线：`docs/specification.md` **V1.6（Bug19~21 修订）**，经 `win-ssh.sh`（PowerShell -EncodedCommand）只读拉取
+- 规格基线：`docs/specifications/specification.md` **V1.6（Bug19~21 修订）**，经 `win-ssh.sh`（PowerShell -EncodedCommand）只读拉取
 - 取证源码：Windows `C:\Users\Administrator\Desktop\Wechat projects\pension`，只读拉取 7 个文件（引擎/输入模型/补贴/日期/对照表/policyData/index 页），与本地 target 副本逐行比对（仅版本号与注释措辞差异，逻辑一致）
 - 计算方法：① node 直跑服务器现版引擎；② **完全独立的月网格重建脚本**（不 require 引擎）；③ R储 用封闭年金终值公式第三方核算。三路数值严格闭合。
 

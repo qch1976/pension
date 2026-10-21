@@ -1,5 +1,5 @@
 // tests/oracle.js
-// 独立参照实现（independent oracle）：严格按 docs/specification.md 第4章公式重新实现，
+// 独立参照实现（independent oracle）：严格按 docs/specifications/specification.md 第4章公式重新实现，
 // 不复制 pensionEngine.js 的代码路径（月入账不逐月 round2），
 // 用于与被测引擎交叉验证。官方数值共享 constants/policyData.js（数据本身来自官方文件）。
 // 2026-09-21 批次1 同步（pension-ui-change-design §6.4）：

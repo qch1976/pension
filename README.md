@@ -32,10 +32,16 @@
 │   ├── oracle.js                       测试独立参照实现
 │   └── round1-fixes.js                 首轮缺陷修复点专项自测 33 条（node tests/round1-fixes.js）
 └── docs/
-    ├── specification.md                标准需求规格说明书 V1.1
-    ├── test-cases.md                   标准测试用例
-    ├── test-report-round1.md           首轮系统测试报告
-    └── policy-clarification.md         政策核实记录（P-05 延退对照表/附件4锚点核实过程）
+    ├── specifications/
+    │   ├── specification.md              标准需求规格说明书（Phase-0 基线）
+    │   ├── specification-phase1.md       Phase-1 需求规格
+    │   └── specification-phase2.md       Phase-2 需求规格
+    ├── testcase_design/
+    │   └── test-cases.md                 标准测试用例
+    ├── design/                           软件设计文档（pension-ui-change-design*.md）
+    ├── policy/                           政策核实文档（policy-*.md）
+    ├── test_reports/                     各 phase 测试报告
+    └── bugs/                             bug 工单表
 ```
 
 ## 已实现清单

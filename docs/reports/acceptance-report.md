@@ -6,7 +6,7 @@
 | 验收日期 | 2026-09-18 |
 | 验收人 | Senior Wechat Software Tester YDL（测试方独立回归，未直接采用开发自测结论） |
 | 被测版本 | 阶段4 缺陷修复版（`constants/policyData.js` 数据版本 2026.09.18；服务器项目文件落盘 2026-09-18） |
-| 需求基线 | `docs/specification.md` V1.1；`docs/test-cases.md` V1.0；`docs/test-report-round1.md`；`docs/policy-clarification.md` |
+| 需求基线 | `docs/specifications/specification.md` V1.1；`docs/testcase_design/test-cases.md` V1.0；`docs/test-report-round1.md`；`docs/policy-clarification.md` |
 | 关联文档 | 首轮报告 `docs/test-report-round1.md`（1 Blocker + 13 Major + 8 Minor）、修复报告 `docs/fix-report-round1.md` |
 | 验收结论 | **有条件通过（Conditional Pass）**——22/22 首轮缺陷全部闭环、计算引擎三层断言全绿；通过条件为完成遗留的微信开发者工具/真机人工验证（上一轮零覆盖项）与上线前政策数据复核（详见第 7 章） |
 

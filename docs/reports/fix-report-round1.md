@@ -3,7 +3,7 @@
 - 执行人：Senior Wechat Software Developer YDL
 - 日期：2026-09-18
 - 基线：服务器 `C:\Users\Administrator\Desktop\Wechat projects\pension`（修复前经 SSH 拉取逐字节比对，未采用测试夹具中的派生副本）
-- 输入：`docs/test-report-round1.md`（1 Blocker + 13 Major + 8 Minor，共 22 项）、`docs/test-cases.md`、`docs/specification.md` V1.1
+- 输入：`docs/test-report-round1.md`（1 Blocker + 13 Major + 8 Minor，共 22 项）、`docs/testcase_design/test-cases.md`、`docs/specifications/specification.md` V1.1
 - 自测：全量夹具 134/134 通过；修复点专项自测 33/33 通过；`scripts/verify.js` 全过；新增 WXML 静态检查通过。
 
 ## 0. 本轮自测结果摘要

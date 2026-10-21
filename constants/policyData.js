@@ -1,6 +1,6 @@
 // constants/policyData.js
 // 北京市企业职工基本养老保险 —— 官方政策参数集中配置
-// 依据：docs/specification.md V1.1（政策依据清单 P-01 ~ P-12，附录 12.2~12.4）
+// 依据：docs/specifications/specification.md V1.1（政策依据清单 P-01 ~ P-12，附录 12.2~12.4）
 // 维护规则：官方每年发布新计发基数/记账利率后，仅需更新本文件并同步 version。
 // 标注 [官方] = 有官方文件/官网支撑；[工程假设] = spec 允许的工程假设；[待确认] = 见 spec 第11章。
 
