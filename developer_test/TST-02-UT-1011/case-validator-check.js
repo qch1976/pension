@@ -9,8 +9,8 @@ var CV = require(path.join(__dirname, '..', '..', 'services', 'caseValidator.js'
 var pass = 0, fail = 0;
 function ok(c, n) { if (c) pass++; else { fail++; console.log('  FAIL: ' + n); } }
 
-var MY = fs.readFileSync(path.join(__dirname, '..', '..', 'docs', 'My-Case.md'), 'utf8');
-var WIFE = fs.readFileSync(path.join(__dirname, '..', '..', 'docs', 'MyWife-Case.md'), 'utf8');
+var MY = fs.readFileSync(path.join(__dirname, '..', '..', 'docs', 'customer_usecases', 'My-Case.md'), 'utf8');
+var WIFE = fs.readFileSync(path.join(__dirname, '..', '..', 'docs', 'customer_usecases', 'MyWife-Case.md'), 'utf8');
 
 // 构造 parsed（复用 E2 解析器，保证与真实链一致）
 var myParsed = CF.parseCaseFile(MY, 'compare');

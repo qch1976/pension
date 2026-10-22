@@ -22,8 +22,8 @@ var pass = 0, fail = 0;
 function ok(c, n) { if (c) pass++; else { fail++; console.log('  FAIL: ' + n); } }
 function eq(a, b, n) { if (a === b) pass++; else { fail++; console.log('  FAIL: ' + n + ' (got ' + JSON.stringify(a) + ', want ' + JSON.stringify(b) + ')'); } }
 
-var MY = fs.readFileSync(path.join(__dirname, '..', '..', 'docs', 'My-Case.md'), 'utf8');
-var WIFE = fs.readFileSync(path.join(__dirname, '..', '..', 'docs', 'MyWife-Case.md'), 'utf8');
+var MY = fs.readFileSync(path.join(__dirname, '..', '..', 'docs', 'customer_usecases', 'My-Case.md'), 'utf8');
+var WIFE = fs.readFileSync(path.join(__dirname, '..', '..', 'docs', 'customer_usecases', 'MyWife-Case.md'), 'utf8');
 
 // ============ 1) 权威新夹具：5 列解析 + 起始月/身份透传 ============
 var myParsed = CF.parseCaseFile(MY, 'compare');

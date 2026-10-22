@@ -8,8 +8,8 @@ var CF = require(path.join(__dirname, '..', '..', 'services', 'caseFile.js'));
 var pass = 0, fail = 0;
 function ok(c, n) { if (c) pass++; else { fail++; console.log('  FAIL: ' + n); } }
 
-var MY = fs.readFileSync(path.join(__dirname, '..', '..', 'docs', 'My-Case.md'), 'utf8');
-var WIFE = fs.readFileSync(path.join(__dirname, '..', '..', 'docs', 'MyWife-Case.md'), 'utf8');
+var MY = fs.readFileSync(path.join(__dirname, '..', '..', 'docs', 'customer_usecases', 'My-Case.md'), 'utf8');
+var WIFE = fs.readFileSync(path.join(__dirname, '..', '..', 'docs', 'customer_usecases', 'MyWife-Case.md'), 'utf8');
 
 // ===================== My：compare（common + MY1/2/3）=====================
 var r = CF.parseCaseFile(MY, 'compare');
