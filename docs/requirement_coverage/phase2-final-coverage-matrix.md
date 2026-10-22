@@ -45,11 +45,11 @@
 | REQ-02-VAL-002, REQ-02-VAL-004, REQ-02-VAL-005 | 见 testcase brief | developer | no | TST-02-UT-1014 | 语法行号透传 | developer_test/TST-02-UT-1014/casevalidator-lineno-check.js | PASS | - |
 | REQ-02-SCOPE-000, REQ-02-FMT-001, REQ-02-OUT-004 | 见 testcase brief | developer | no | TST-02-UT-1015 | 基本报告头部/纯本地生成，不触网 （矩阵标 UT-1015/1016，实归 CT folder，编号待 Manager/architect 对齐） | developer_test/TST-02-CT-1015/viewmodel-audit.js | PASS | - |
 | REQ-02-SCOPE-001, REQ-02-OUT-000, REQ-02-NFR-001 | 见 testcase brief | developer | no | TST-02-UT-1016 | 报告数值直接取自 Engine 结果，未另算 （矩阵标 UT-1015/1016，实归 CT folder，编号待 Manager/architect 对齐） | developer_test/TST-02-CT-1016/viewmodel-mapping-check.js | PASS | - |
-| REQ-02-SCOPE-003, REQ-02-OUT-001 | 见 testcase brief | developer | no | TST-02-UT-1018 | 比较报告 common+方案块逐值一致 | developer_test/TST-02-UT-1018/report-export-check.js | PASS | - |
-| REQ-02-STORE-002, REQ-02-OUT-003 | 见 testcase brief | developer | no | TST-02-UT-1021 | 分享成功文件已先落盘 | developer_test/TST-02-UT-1021/report-share-check.js | PASS | - |
-| REQ-02-STORE-002 | 见 testcase brief | developer | no | TST-02-UT-1022 | 分享取消，已落盘文件不受影响 | developer_test/TST-02-UT-1021/report-share-check.js | PASS | - |
-| REQ-02-OUT-003 | 见 testcase brief | developer | no | TST-02-UT-1023 | shareFileMessage 缺失安静降级 | developer_test/TST-02-UT-1021/report-share-check.js | PASS | - |
-| REQ-02-NFR-003 | 见 testcase brief | developer | no | TST-02-UT-1024 | saveFileToDisk 可用执行/缺失安静降级 | developer_test/TST-02-UT-1021/report-share-check.js | PASS | - |
+| REQ-02-SCOPE-003, REQ-02-OUT-001 | 见 testcase brief | developer | no | TST-02-UT-1018 | 比较报告 common+方案块逐值一致 | developer_test/TST-02-UT-1018/report-export-all-check.js | PASS | - |
+| REQ-02-STORE-002, REQ-02-OUT-003 | 见 testcase brief | developer | no | TST-02-UT-1021 | 分享成功文件已先落盘 | developer_test/TST-02-UT-1021/report-share-savefile-success-check.js | PASS | - |
+| REQ-02-STORE-002 | 见 testcase brief | developer | no | TST-02-UT-1022 | 分享取消，已落盘文件不受影响 | developer_test/TST-02-UT-1022/report-share-cancel-check.js | PASS | - |
+| REQ-02-OUT-003 | 见 testcase brief | developer | no | TST-02-UT-1023 | shareFileMessage 缺失安静降级 | developer_test/TST-02-UT-1023/report-share-unavailable-check.js | PASS | - |
+| REQ-02-NFR-003 | 见 testcase brief | developer | no | TST-02-UT-1024 | saveFileToDisk 可用执行/缺失安静降级 | developer_test/TST-02-UT-1024/report-share-disk-check.js | PASS | - |
 | REQ-02-CAL-000 | 缴费起始时间动态化+缺省 | developer | no | TST-02-UT-1025 | 缺省缴费起始月=实际缴费末月+1（动态，非写死） | developer_test/TST-02-UT-1025/window-start-default-check.js | PASS | BUG-02-0004 |
 | REQ-02-CAL-000 | 缴费起始时间可手动编辑 | developer | no | TST-02-UT-1026 | 手改起始月贯穿自动段首月/止于退休前一月 | developer_test/TST-02-UT-1026/window-start-manual-check.js | PASS | BUG-02-0004 |
 | REQ-02-CAL-000, REQ-02-VAL-004 | 起始月越界校验 | developer | no | TST-02-UT-1027 | 早于历史末月/晚于退休前一月拦、留空合法 | developer_test/TST-02-UT-1027/window-start-boundary-check.js | PASS | BUG-02-0004 |
