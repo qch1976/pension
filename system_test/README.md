@@ -17,6 +17,6 @@
 
 ## 备注（功能性，随 GUI redo 处理）
 
-- 夹具引用已由 `tests/fixtures-case/`（B-2 已删副本）改为 `./docs/` 根：`gui/t47-c-planstart.js`、`gui/e7-fileio-regression.js`。
+- 夹具引用已由 `tests/fixtures-case/`（B-2 已删副本）改为 `./docs/` 根：`gui/e7-fileio-regression.js`（`t47-c-planstart.js` 于 C-7 归位 `TST-02-GT-4019/`）。
 - 早期脚本多以 `autotest/output/`（现 `system_test/output/`）落证据；运行前确保 `system_test/output/` 存在。
 - `probe.js` / 编排脚本内含 `C:\Users\Administrator\...` 开发服务器绝对路径，属历史现场脚本，非可移植用例。
