@@ -9,25 +9,25 @@
 | REQ-02-NFR-004 | 见 testcase brief | tester | yes | TST-02-GT-4013 | wife1 历史手工流程 GUI 零回归（fresh 独立用例，作为 NFR-004 测试侧唯一行）；脚本未入库（GUI redo dev box 侧产物），待归位 |  | PASS | - |
 | REQ-02-FMT-001 | 见 testcase brief | tester | no | TST-02-GT-4014 | wife4 导出 .txt 报告并落沙箱；脚本未入库（GUI redo dev box 侧产物），待归位 |  | PASS | - |
 | REQ-02-STORE-002 | 见 testcase brief | tester | no | TST-02-GT-4015 | wife6 导出/分享后沙箱文件仍在（6/6，每场景9检查共54项）；脚本未入库（GUI redo dev box 侧产物），待归位 |  | PASS | - |
-| REQ-02-SCOPE-003 | 见 testcase brief | tester | no | TST-02-ST-4000 | compare common+3方案块解析、字段/年度记录独立核对；无独立 ST 脚本，验证逻辑散落/手工，待 GUI redo 沉淀 |  | PASS | - |
-| REQ-02-FMT-000, REQ-02-VAL-001 | 见 testcase brief | tester | no | TST-02-ST-4001 | 空串/纯空白按空文件处理；无独立 ST 脚本，验证逻辑散落/手工，待 GUI redo 沉淀 |  | PASS | - |
-| REQ-02-VAL-003, REQ-02-VAL-006 | 见 testcase brief | tester | no | TST-02-ST-4002 | 缺生日/交到年月/退休均列出具体缺失字段名；无独立 ST 脚本，验证逻辑散落/手工，待 GUI redo 沉淀 |  | PASS | - |
-| REQ-02-VAL-004 | 见 testcase brief | tester | no | TST-02-ST-4003 | 出生格式/负账户/利率越界/月数13/年份重复逐条；无独立 ST 脚本，验证逻辑散落/手工，待 GUI redo 沉淀 |  | PASS | - |
-| REQ-02-VAL-005 | 见 testcase brief | tester | no | TST-02-ST-4004 | 视同起止颠倒、工作早于出生被拦；无独立 ST 脚本，验证逻辑散落/手工，待 GUI redo 沉淀 |  | PASS | - |
-| REQ-02-IN-004, REQ-02-VAL-000 | 见 testcase brief | tester | no | TST-02-ST-4005 | Q3 正确字段回填、错误补齐后仍走同一校验 buildInput；无独立 ST 脚本，验证逻辑散落/手工，待 GUI redo 沉淀 |  | PASS | - |
-| REQ-02-OUT-000, REQ-02-OUT-002, REQ-02-OUT-004 | 见 testcase brief | tester | no | TST-02-ST-4006 | 基本报告 P总/三分项与 Engine 逐值一致、勾稽平、两位小数；无独立 ST 脚本，验证逻辑散落/手工，待 GUI redo 沉淀 |  | PASS | - |
-| REQ-02-OUT-001 | 见 testcase brief | tester | no | TST-02-ST-4007 | 比较报告逐方案逐值、【预估】、基准、两档回本；无独立 ST 脚本，验证逻辑散落/手工，待 GUI redo 沉淀 |  | PASS | - |
-| REQ-02-STORE-004 | 见 testcase brief | tester | no | TST-02-ST-4008 | inputs/outputs 固定路径、与 pension storage key 互不污染；无独立 ST 脚本，验证逻辑散落/手工，待 GUI redo 沉淀 |  | PASS | - |
-| REQ-02-NFR-003 | 见 testcase brief | tester | no | TST-02-ST-4009 | 分享取消/缺失/存盘失败均安静降级、报告仍落盘；无独立 ST 脚本，验证逻辑散落/手工，待 GUI redo 沉淀 |  | PASS | - |
-| REQ-02-IN-001 | 见 testcase brief | tester | no | TST-02-ST-4010 | 选择取消/空 tempFiles 安静返回、读错归不可读；无独立 ST 脚本，验证逻辑散落/手工，待 GUI redo 沉淀 |  | PASS | - |
-| REQ-02-SCOPE-000, REQ-02-NFR-000 | 见 testcase brief | tester | no | TST-02-ST-4100 | 静态扫描 services/calculator/pages 无 wx.request/socket 等网络API；无独立 ST 脚本，验证逻辑散落/手工，待 GUI redo 沉淀 |  | PASS | - |
-| REQ-02-SCOPE-001, REQ-02-IN-002, REQ-02-NFR-001 | 见 testcase brief | tester | yes | TST-02-ST-4101 | 文件通道 vs 手工通道经同一引擎 P月差≤0.01，引擎未被替换；无独立 ST 脚本，验证逻辑散落/手工，待 GUI redo 沉淀 |  | PASS | - |
-| REQ-02-NFR-002 | 见 testcase brief | tester | no | TST-02-ST-4102 | 34行解析+校验<500ms、提供 summary 反馈；无独立 ST 脚本，验证逻辑散落/手工，待 GUI redo 沉淀 |  | PASS | - |
-| REQ-02-SCOPE-002 | 见 testcase brief | tester | no | TST-02-ST-4103 | 默认手工、setInputMode 按 dataset.v 切换、两选项均绑定；无独立 ST 脚本，验证逻辑散落/手工，待 GUI redo 沉淀 |  | PASS | - |
-| REQ-02-SCOPE-004, REQ-02-IN-005 | 见 testcase brief | tester | no | TST-02-ST-4200 | basic 多数据块判「一份文件只能包含一份数据」、compare 多块合法不误报；无独立 ST 脚本，验证逻辑散落/手工，待 GUI redo 沉淀 |  | PASS | - |
-| REQ-02-VAL-002 | 见 testcase brief | tester | no | TST-02-ST-4201 | 第2/3/4/5行各类语法错误逐条定位行号；无独立 ST 脚本，验证逻辑散落/手工，待 GUI redo 沉淀 |  | PASS | - |
-| REQ-02-FMT-001 | 见 testcase brief | tester | no | TST-02-ST-4202 | 输出纯文本字符串、标注 .txt/UTF-8、不含 PDF；无独立 ST 脚本，验证逻辑散落/手工，待 GUI redo 沉淀 |  | PASS | - |
-| REQ-02-IN-003 | 见 testcase brief | tester | no | TST-02-ST-4203 | 误填差异项不阻断共用导入、提示以界面为准；无独立 ST 脚本，验证逻辑散落/手工，待 GUI redo 沉淀 |  | PASS | - |
+| REQ-02-SCOPE-003 | 见 testcase brief | tester | no | TST-02-ST-4000 | compare common+3方案块解析、字段/年度记录独立核对；无独立 ST 脚本，验证逻辑散落/手工，待 GUI redo 沉淀 | system_test/TST-02-ST-4000/st4000-compare-blocks.js | PASS | - |
+| REQ-02-FMT-000, REQ-02-VAL-001 | 见 testcase brief | tester | no | TST-02-ST-4001 | 空串/纯空白按空文件处理；无独立 ST 脚本，验证逻辑散落/手工，待 GUI redo 沉淀 | system_test/TST-02-ST-4001/st4001-empty-file.js | PASS | - |
+| REQ-02-VAL-003, REQ-02-VAL-006 | 见 testcase brief | tester | no | TST-02-ST-4002 | 缺生日/交到年月/退休均列出具体缺失字段名；无独立 ST 脚本，验证逻辑散落/手工，待 GUI redo 沉淀 | system_test/TST-02-ST-4002/st4002-missing-fields.js | PASS | - |
+| REQ-02-VAL-004 | 见 testcase brief | tester | no | TST-02-ST-4003 | 出生格式/负账户/利率越界/月数13/年份重复逐条；无独立 ST 脚本，验证逻辑散落/手工，待 GUI redo 沉淀 | system_test/TST-02-ST-4003/st4003-field-validation.js | PASS | - |
+| REQ-02-VAL-005 | 见 testcase brief | tester | no | TST-02-ST-4004 | 视同起止颠倒、工作早于出生被拦；无独立 ST 脚本，验证逻辑散落/手工，待 GUI redo 沉淀 | system_test/TST-02-ST-4004/st4004-deemed-workstart.js | PASS | - |
+| REQ-02-IN-004, REQ-02-VAL-000 | 见 testcase brief | tester | no | TST-02-ST-4005 | Q3 正确字段回填、错误补齐后仍走同一校验 buildInput；无独立 ST 脚本，验证逻辑散落/手工，待 GUI redo 沉淀 | system_test/TST-02-ST-4005/st4005-buildinput-same.js | PASS | - |
+| REQ-02-OUT-000, REQ-02-OUT-002, REQ-02-OUT-004 | 见 testcase brief | tester | no | TST-02-ST-4006 | 基本报告 P总/三分项与 Engine 逐值一致、勾稽平、两位小数；无独立 ST 脚本，验证逻辑散落/手工，待 GUI redo 沉淀 | system_test/TST-02-ST-4006/st4006-basic-report.js | PASS | - |
+| REQ-02-OUT-001 | 见 testcase brief | tester | no | TST-02-ST-4007 | 比较报告逐方案逐值、【预估】、基准、两档回本；无独立 ST 脚本，验证逻辑散落/手工，待 GUI redo 沉淀 | system_test/TST-02-ST-4007/st4007-compare-report.js | PASS | - |
+| REQ-02-STORE-004 | 见 testcase brief | tester | no | TST-02-ST-4008 | inputs/outputs 固定路径、与 pension storage key 互不污染；无独立 ST 脚本，验证逻辑散落/手工，待 GUI redo 沉淀 | system_test/TST-02-ST-4008/st4008-store-paths.js | PASS | - |
+| REQ-02-NFR-003 | 见 testcase brief | tester | no | TST-02-ST-4009 | 分享取消/缺失/存盘失败均安静降级、报告仍落盘；无独立 ST 脚本，验证逻辑散落/手工，待 GUI redo 沉淀 | system_test/TST-02-ST-4009/st4009-share-degrade.js | PASS | - |
+| REQ-02-IN-001 | 见 testcase brief | tester | no | TST-02-ST-4010 | 选择取消/空 tempFiles 安静返回、读错归不可读；无独立 ST 脚本，验证逻辑散落/手工，待 GUI redo 沉淀 | system_test/TST-02-ST-4010/st4010-import-cancel.js | PASS | - |
+| REQ-02-SCOPE-000, REQ-02-NFR-000 | 见 testcase brief | tester | no | TST-02-ST-4100 | 静态扫描 services/calculator/pages 无 wx.request/socket 等网络API；无独立 ST 脚本，验证逻辑散落/手工，待 GUI redo 沉淀 | system_test/TST-02-ST-4100/st4100-no-network.js | PASS | - |
+| REQ-02-SCOPE-001, REQ-02-IN-002, REQ-02-NFR-001 | 见 testcase brief | tester | yes | TST-02-ST-4101 | 文件通道 vs 手工通道经同一引擎 P月差≤0.01，引擎未被替换；无独立 ST 脚本，验证逻辑散落/手工，待 GUI redo 沉淀 | system_test/TST-02-ST-4101/st4101-same-engine.js | PASS | - |
+| REQ-02-NFR-002 | 见 testcase brief | tester | no | TST-02-ST-4102 | 34行解析+校验<500ms、提供 summary 反馈；无独立 ST 脚本，验证逻辑散落/手工，待 GUI redo 沉淀 | system_test/TST-02-ST-4102/st4102-parse-perf.js | PASS | - |
+| REQ-02-SCOPE-002 | 见 testcase brief | tester | no | TST-02-ST-4103 | 默认手工、setInputMode 按 dataset.v 切换、两选项均绑定；无独立 ST 脚本，验证逻辑散落/手工，待 GUI redo 沉淀 | system_test/TST-02-ST-4103/st4103-inputmode-toggle.js | PASS | - |
+| REQ-02-SCOPE-004, REQ-02-IN-005 | 见 testcase brief | tester | no | TST-02-ST-4200 | basic 多数据块判「一份文件只能包含一份数据」、compare 多块合法不误报；无独立 ST 脚本，验证逻辑散落/手工，待 GUI redo 沉淀 | system_test/TST-02-ST-4200/st4200-multi-blocks.js | PASS | - |
+| REQ-02-VAL-002 | 见 testcase brief | tester | no | TST-02-ST-4201 | 第2/3/4/5行各类语法错误逐条定位行号；无独立 ST 脚本，验证逻辑散落/手工，待 GUI redo 沉淀 | system_test/TST-02-ST-4201/st4201-syntax-lineno.js | PASS | - |
+| REQ-02-FMT-001 | 见 testcase brief | tester | no | TST-02-ST-4202 | 输出纯文本字符串、标注 .txt/UTF-8、不含 PDF；无独立 ST 脚本，验证逻辑散落/手工，待 GUI redo 沉淀 | system_test/TST-02-ST-4202/st4202-txt-utf8.js | PASS | - |
+| REQ-02-IN-003 | 见 testcase brief | tester | no | TST-02-ST-4203 | 误填差异项不阻断共用导入、提示以界面为准；无独立 ST 脚本，验证逻辑散落/手工，待 GUI redo 沉淀 | system_test/TST-02-ST-4203/st4203-diff-not-block.js | PASS | - |
 | REQ-02-STORE-000 | 见 testcase brief | developer | no | TST-02-UT-1000 | 内存 fsm 验证 mkdir/根取 USER_DATA_PATH | developer_test/TST-02-UT-1000/file-store-ensuredirs-check.js | PASS | - |
 | REQ-02-STORE-001 | 见 testcase brief | developer | no | TST-02-UT-1001 | copyFile/writeFile 持久化、read+write 兜底 | developer_test/TST-02-UT-1001/file-store-saveinput-check.js | PASS | - |
 | REQ-02-NFR-004 | 见 testcase brief | developer | no | TST-02-UT-1002 | 存储封装不影响既有 storage | developer_test/TST-02-UT-1002/file-store-writeoutput-check.js | PASS | - |
