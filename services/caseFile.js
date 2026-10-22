@@ -1,7 +1,7 @@
 // services/caseFile.js
 // E2（REQ-02-FMT-000 / IN-005 / VAL-001/002）：Case 文件解析器（纯逻辑，不依赖 wx API）。
 //
-// 文件结构（与 docs/My-Case.md、docs/MyWife-Case.md 同构，唯一源归 ./docs/ 根）：
+// 文件结构（与 docs/customer_usecases/My-Case.md、docs/customer_usecases/MyWife-Case.md 同构，唯一源归 ./docs/customer_usecases/）：
 //   ``` My case: common ```          块标记（标签可含 common 表示共用块）
 //   # 字段名: 值                      头部字段
 //   # 缴费记录                        表格分区标题

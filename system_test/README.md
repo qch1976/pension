@@ -8,7 +8,7 @@
 
 - `common/` 公共件与门禁：`run-unit-tests.bat`（node UT 套件入口，清单指向 developer_test/）、`compile-gate/`（编译门禁 + bug1921 preview 编排）。
 - `utils/` 与具体 testcase 无关、可独立执行的脚本：`probe.js`（含 Windows 绝对路径硬编码）。
-- `customer_testcases/` tester 为 customer testcase（docs/My-Case.md / MyWife-Case.md）写的脚本。
+- `customer_testcases/` tester 为 customer testcase（docs/customer_usecases/My-Case.md / MyWife-Case.md）写的脚本。
 - `output/` ST/GT 运行证据（截图 / summary.json / trace / log）。
 - `TST-02-GT-4000/` GUI 自动化回归：
   - `gui/`（原 `autotest/gui/` 整个：automator 驱动、编排 ps1/vbs/bat、各 bug 用例 run-*/bug*-case/verify-*、diag-*、shot-*、lib-gui.js、cases.js、mycases.js、t23/t47/phase1/e7 回归等）。
