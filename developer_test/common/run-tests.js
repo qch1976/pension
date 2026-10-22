@@ -201,9 +201,13 @@ throws('TC-F-013', '固定利率>24%阻断(spec7.2)', 'P1', 'AUTO',
   near('TC-C-112', 'S1 G实=12049×1×5.75×1%=692.82', 'P0', 'AUTO', r.intermediates.G实, 692.82, 0.01);
   near('TC-C-113', 'S1 J过渡=G同+G实=1566.37', 'P0', 'AUTO', r.pension.J过渡, 1566.37, 0.02);
   // R储 手算：Σ B×8%，独立在测试内累加（不看引擎结果）
+  // 口径对齐引擎 E-03：只计至退休前一月（retireIdx-1）。参数表新增 2026 分母年度后，
+  // S1 夹具会压入全年 2026 段（2026-01~12，晚于 2025-10 退休），不应计入——否则会虚增 12049×8%×12=11631.36。
+  var retireIdx114 = D.toIndex(input.retireYM);
   var manualPrincipal = 0;
   input.segments.forEach(function (s) {
-    manualPrincipal += (D.toIndex(s.endYM) - D.toIndex(s.startYM) + 1) * s.baseMonthly * 0.08;
+    var a = D.toIndex(s.startYM), b = Math.min(D.toIndex(s.endYM), retireIdx114 - 1);
+    if (b >= a) manualPrincipal += (b - a + 1) * s.baseMonthly * 0.08;
   });
   near('TC-C-114', 'S1 R储=ΣB×8%手算值（不计息）', 'P0', 'AUTO', r.intermediates.R储, manualPrincipal, 0.5,
     '严格不舍入期望=' + manualPrincipal.toFixed(2) + '；逐月round2差异见TC-I-301');
@@ -540,7 +544,7 @@ throws('TC-X-001', '计发基数年度无内置数据时报错', 'P1', 'AUTO',
   ok('TC-X-007', '2026退休给出计发基数年度不一致警告', 'P2', 'AUTO',
     r.meta.warnings.some(function (w) { return /不一致/.test(w); }), 'C平默认沿用12049', '警告存在');
   var m = r.monthlyDetails.find(function (d) { return d.ym === '2026-01'; });
-  ok('TC-X-007b', '2026+分母标记assumed（月明细）', 'P2', 'AUTO', m.denomSource === 'assumed', m.denomSource, 'assumed');
+  ok('TC-X-007b', '2026 分母官方口径（月明细）', 'P2', 'AUTO', m.denomSource === 'official', m.denomSource, 'official（参数表已含 2026 官方分母；原 assumed 期望系 2026 未发布时陈旧口径）');
 })();
 
 // TC-X-008 不足最低年限（E-09）

@@ -17,7 +17,7 @@ Engine.calculate = function (input) {
   }
   return __engineCalculate(input);
 };
-var Oracle = require(path.join(ROOT, 'tests', 'oracle.js')).oracle;
+var Oracle = require(path.join(__dirname, 'oracle.js')).oracle;
 var Schedule = require(path.join(ROOT, 'calculator', 'retireSchedule.js'));
 var REFS = require(path.join(ROOT, 'constants', 'policyRefs.js'));
 var D = require(path.join(ROOT, 'calculator', 'dateUtil.js'));

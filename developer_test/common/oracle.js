@@ -138,7 +138,7 @@ function oracle(input) {
     if (m && m.base > 0) {
       paidMonths++; paidIdxs.push(i);
       var c = denom(D.yearOf(i), input.customCYear);
-      if (c != null) sumZ += m.base / c;
+      if (c != null) { var z = m.base / c; sumZ += (z > 3 ? 3 : z); } // 与引擎 Bug18 定稿对齐：月指数封顶 min(3, B/C)（183号令第十二条/国办发〔2019〕13号 300% 上限）
     }
   }
   // #5 视同月数：起止区间∩有效窗口；旧契约（deemedMonths/workStart估算）兼容
