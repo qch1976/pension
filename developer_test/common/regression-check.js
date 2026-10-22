@@ -147,10 +147,10 @@ var r1 = Engine.calculate(S1), r2 = Engine.calculate(S2), r3 = Engine.calculate(
   var oct92 = x.monthlyDetails.find(function (m) { return m.ym === '1992-10'; });
   var jun95 = x.monthlyDetails.find(function (m) { return m.ym === '1995-06'; });
   var noGap = !x.meta.warnings.some(function (w) { return /缺少官方月平均工资/.test(w); });
-  rec('R-BUG-009', 'BUG-009', '缺口年度按C年口径录入：1992-10取C1991=500(z=2.0)、1995取C1994(z=1.4735)、无缺口警告',
-    Math.abs(oct92.z - 20) < 0.001 && Math.abs(jun95.z - 10000 / 678.67) < 0.001 && noGap,
-    'z92=' + oct92.z.toFixed(4) + ', z95=' + jun95.z.toFixed(4) + ', 缺口警告=' + !noGap,
-    'z92=20, z95=14.7347, 无缺口警告');
+  rec('R-BUG-009', 'BUG-009', '缺口年度按C年口径录入：1992-10取C1991=500(zRaw=20)、1995取C1994(zRaw=14.7347)，Bug18月指数封顶后 z92=z95=3.0、无缺口警告',
+    Math.abs(oct92.z - 3) < 0.001 && Math.abs(jun95.z - 3) < 0.001 && noGap,
+    'z92=' + oct92.z.toFixed(4) + '(zRaw=' + oct92.zRaw.toFixed(4) + '), z95=' + jun95.z.toFixed(4) + '(zRaw=' + jun95.zRaw.toFixed(4) + '), 缺口警告=' + !noGap,
+    'z92=3, z95=3（Bug18月指数封顶，zRaw 20/14.7347>3）, 无缺口警告');
   // 旧口径（缴费年度键）兼容性
   var y = Engine.calculate({
     gender: 'male', birthYM: '1965-10', workStartYM: '1985-07', retireYM: '2025-10', interestMode: 'none',
@@ -158,8 +158,8 @@ var r1 = Engine.calculate(S1), r2 = Engine.calculate(S2), r3 = Engine.calculate(
     segments: [seg('enterprise', '1992-10', '2025-09', 10000)]
   });
   var oct92b = y.monthlyDetails.find(function (m) { return m.ym === '1992-10'; });
-  rec('R-BUG-009b', 'BUG-009', '旧按缴费年度键录入仍兼容(1992-10取custom1992=500)', Math.abs(oct92b.z - 20) < 0.001,
-    'z92=' + oct92b.z.toFixed(4), 'z92=20');
+  rec('R-BUG-009b', 'BUG-009', '旧按缴费年度键录入仍兼容(1992-10取custom1992=500，zRaw=20，Bug18月指数封顶后 z=3.0)', Math.abs(oct92b.z - 3) < 0.001,
+    'z92=' + oct92b.z.toFixed(4) + '(zRaw=' + oct92b.zRaw.toFixed(4) + ')', 'z92=3（Bug18月指数封顶，zRaw 20>3）');
 })();
 
 // BUG-010：退休早于参加工作阻断
@@ -277,13 +277,13 @@ var r1 = Engine.calculate(S1), r2 = Engine.calculate(S2), r3 = Engine.calculate(
   near('R-S1-总', '-', 'S1 合计=7457.38', r1.pension.total, 7457.38, 0.5);
   near('R-S1-oracle', '-', 'S1 R储 对独立oracle', r1.intermediates.R储, o1.R储, 0.5);
   // S2
-  near('R-S2-Z', '-', 'S2 Z实指数=2.2627', r2.intermediates.Z实指数, 2.2627, 0.001);
+  near('R-S2-Z', '-', 'S2 Z实指数（Bug18月指数封顶，101/357月被封顶）', r2.intermediates.Z实指数, 1.6566, 0.001);
   near('R-S2-N实同', '-', 'S2 N实+同=27.75(333月)', r2.intermediates.N实同, 27.75, 0.001);
   near('R-S2-R储', '-', 'S2 R储=298962.05', r2.intermediates.R储, 298962.05, 1);
   near('R-S2-oracle', '-', 'S2 R储 对独立oracle', r2.intermediates.R储, o2.R储, 1);
   near('R-S2-J账户', '-', 'S2 J账户=1533.14', r2.pension.J账户, 1533.14, 0.02);
-  near('R-S2-G实', '-', 'S2 G实=795.19', r2.intermediates.G实, 795.19, 0.5);
-  near('R-S2-总', '-', 'S2 合计=7782.98', r2.pension.total, 7782.98, 0.5);
+  near('R-S2-G实', '-', 'S2 G实（Bug18月指数封顶）', r2.intermediates.G实, 582.18, 0.5);
+  near('R-S2-总', '-', 'S2 合计（Bug18月指数封顶）', r2.pension.total, 6556.66, 0.5);
   // S3
   near('R-S3-R储', '-', 'S3 新人R储=430669.96(官方利率)', r3.intermediates.R储, 430669.96, 1);
   near('R-S3-oracle', '-', 'S3 R储 对独立oracle', r3.intermediates.R储, o3.R储, 1);
