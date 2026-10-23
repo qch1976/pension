@@ -14,13 +14,18 @@ let marks = { preview: false, appid: null, errorLines: [] };
 child.stdout.on('data', d => {
   out.write(d);
   const t = d.toString();
-  if (/√\s*preview/.test(t)) marks.preview = true;
+  // 「√ preview」完成标记（√ 经 GBK/UTF8 可能乱码）：匹配含 preview 且不以「- Preview」（进行中）起头的行
+  t.split(/\r?\n/).forEach(l => { if (/preview/i.test(l) && !/^\s*-\s*Preview\s*$/.test(l)) marks.preview = true; });
   const m = t.match(/Using AppID:\s*(\S+)/); if (m) marks.appid = m[1];
   t.split(/\r?\n/).forEach(l => { if (/error|错误|fail/i.test(l) && !/DeprecationWarning|trace-deprecation/i.test(l)) marks.errorLines.push(l.trim().slice(0, 200)); });
 });
 child.stderr.on('data', d => {
   out.write(d);
-  d.toString().split(/\r?\n/).forEach(l => { if (/error|错误|fail/i.test(l) && !/DeprecationWarning|trace-deprecation/i.test(l)) marks.errorLines.push(l.trim().slice(0, 200)); });
+  const t = d.toString();
+  // 「√ preview」可能走 stderr（cli 进度标记）：同样匹配 preview/appid
+  t.split(/\r?\n/).forEach(l => { if (/preview/i.test(l) && !/^\s*-\s*Preview\s*$/.test(l)) marks.preview = true; });
+  const m = t.match(/Using AppID:\s*(\S+)/); if (m) marks.appid = m[1];
+  t.split(/\r?\n/).forEach(l => { if (/error|错误|fail/i.test(l) && !/DeprecationWarning|trace-deprecation/i.test(l)) marks.errorLines.push(l.trim().slice(0, 200)); });
 });
 const timer = setTimeout(() => { console.log('TIMEOUT'); try { child.kill(); } catch (e) {} process.exit(2); }, 180000);
 child.on('close', code => {
