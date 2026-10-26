@@ -1,10 +1,7 @@
 @echo off
-rem PensionCli40215 ��פ automator ������������λ system_test/utils/��
-rem �ɼƻ����� PensionCli40215 ����ҵ��ű�ֻ connect ws://127.0.0.1:40215
-cd /d "C:\Users\Administrator\Desktop\Wechat projects\pension"
-set CLI="C:\Program Files (x86)\Tencent\΢��web�����߹���\cli.bat"
-set PROJECT="C:\Users\Administrator\Desktop\Wechat projects\pension"
-set LOG="C:\Users\Administrator\Desktop\Wechat projects\pension\system_test\utils\logs\cli40215.log"
-echo CLI_BEGIN %DATE% %TIME% >> %LOG%
-%CLI% auto --project %PROJECT% --auto-port 40215 >> %LOG% 2>&1
-echo CLI_END %ERRORLEVEL% >> %LOG%
+REM cli40215.bat (task-72/73) - thin wrapper, all logic in cli40215-keeper.ps1 -> cli40215-keeper.js
+REM 常驻口 40215 独立 keeper 入口（system_test/utils/）。NOTE: PensionGuiRun 计划任务 Action 已恢复
+REM 为 PLAYBOOK 原始设计（wscript gui-hidden.vbs 投递 GUI 测试脚本）；本 bat 是独立的 40215 拉起入口，
+REM 由 IDE 手动启动加载 pension（60964 LISTEN）后手动/自动调用（keeper.js 内含 60964 预检，IDE 未就绪不强跑）。
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0cli40215-keeper.ps1"
+exit /b %ERRORLEVEL%
