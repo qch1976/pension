@@ -33,18 +33,13 @@ Component({
   },
 
   observers: {
-    // 共享上下文补齐/变化：对未手改过退休年月的卡补默认法定退休年月
+    // 共享上下文补齐/变化：未手改退休年月（retireTouched=false）的卡一律随最新 ctx 的法定退休月重算
     ctx: function (ctx) {
       if (!PM.hasContext(ctx)) return;
-      var changed = false;
-      var plans = this.data.plans.map(function (p) {
-        if (!p.retireTouched && !p.retireYM) {
-          changed = true;
-          return Object.assign({}, p, { retireYM: PM.defaultRetireYM(ctx) });
-        }
-        return p;
-      });
-      if (changed) this.applyPlans(plans);
+      // BUG-02-0008：去掉“&& !p.retireYM”，避免演示 ctx 下已填入并 persist 的系统默认值（如 2026-01）
+      // 在真实 ctx 到来时因非空而无法纠正；纯函数内已做“值不同才 changed”，幂等不多余 persist。
+      var r = PM.syncUnspecifiedRetire(this.data.plans, ctx);
+      if (r.changed) this.applyPlans(r.plans);
     }
   },
 

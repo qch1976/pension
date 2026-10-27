@@ -59,6 +59,23 @@ function initialPlans(ctx) {
   return [emptyPlan(ctx), emptyPlan(ctx)];
 }
 
+// BUG-02-0008：对未手改退休年月（retireTouched=false）的卡，以最新 ctx 的法定退休月重算。
+// 用户手选过（retireTouched=true）的卡原样保留；ctx 不足（want=''）或新法定值与现值相同则不改。
+// 返回 { plans: 新数组, changed: 是否有卡被刷新 }，供 plan-list observer 在 changed 时 applyPlans/persist。
+function syncUnspecifiedRetire(plans, ctx) {
+  var changed = false;
+  var next = (plans || []).map(function (p) {
+    if (p.retireTouched) return p;
+    var want = defaultRetireYM(ctx); // hasContext=false 时返回 ''
+    if (want && want !== p.retireYM) {
+      changed = true;
+      return Object.assign({}, p, { retireYM: want });
+    }
+    return p;
+  });
+  return { plans: next, changed: changed };
+}
+
 // 空卡判定：3 项录入全部为空（PLN-004：不计入方案数）。
 // 注：retireYM 在上下文充足时会预填法定值，故仅当 retireYM 也为空才算全空。
 function isEmptyPlan(plan) {
@@ -228,6 +245,7 @@ module.exports = {
   legalRange: legalRange,
   emptyPlan: emptyPlan,
   initialPlans: initialPlans,
+  syncUnspecifiedRetire: syncUnspecifiedRetire,
   isEmptyPlan: isEmptyPlan,
   isPartialPlan: isPartialPlan,
   isValidPlan: isValidPlan,
