@@ -1,0 +1,689 @@
+{
+  "at": "2026-10-27T22:36:55.776Z",
+  "testcase": "TST-02-GT-4032",
+  "task": "task-78",
+  "baseline": "6e8ea72",
+  "port": 40215,
+  "scenarios": {
+    "A": {
+      "route": "pages/compare/compare",
+      "ctx": {
+        "gender": "male",
+        "femaleType": "worker",
+        "birthYM": "1973-07",
+        "historyEndYM": "2026-08"
+      },
+      "plans": [
+        {
+          "retireYM": "2035-09",
+          "retireTouched": false,
+          "z": "",
+          "segType": "",
+          "windowStartYM": ""
+        },
+        {
+          "retireYM": "2035-09",
+          "retireTouched": false,
+          "z": "",
+          "segType": "",
+          "windowStartYM": ""
+        }
+      ],
+      "storagePlans": [
+        {
+          "retireYM": "2035-09",
+          "retireTouched": false
+        },
+        {
+          "retireYM": "2035-09",
+          "retireTouched": false
+        }
+      ]
+    },
+    "A_filled": {
+      "route": "pages/compare/compare",
+      "ctx": {
+        "gender": "male",
+        "femaleType": "worker",
+        "birthYM": "1973-07",
+        "historyEndYM": "2026-08"
+      },
+      "plans": [
+        {
+          "retireYM": "2035-09",
+          "retireTouched": false,
+          "z": "1.0",
+          "segType": "flexible",
+          "windowStartYM": ""
+        },
+        {
+          "retireYM": "2035-09",
+          "retireTouched": false,
+          "z": "2.0",
+          "segType": "enterprise",
+          "windowStartYM": ""
+        }
+      ],
+      "storagePlans": [
+        {
+          "retireYM": "2035-09",
+          "retireTouched": false
+        },
+        {
+          "retireYM": "2035-09",
+          "retireTouched": false
+        }
+      ]
+    },
+    "B_male": {
+      "route": "pages/compare/compare",
+      "ctx": {
+        "gender": "male",
+        "femaleType": "worker",
+        "birthYM": "1981-07",
+        "historyEndYM": "2025-12"
+      },
+      "plans": [
+        {
+          "retireYM": "2044-07",
+          "retireTouched": false,
+          "z": "",
+          "segType": "",
+          "windowStartYM": ""
+        },
+        {
+          "retireYM": "2044-07",
+          "retireTouched": false,
+          "z": "",
+          "segType": "",
+          "windowStartYM": ""
+        }
+      ],
+      "storagePlans": [
+        {
+          "retireYM": "2044-07",
+          "retireTouched": false
+        },
+        {
+          "retireYM": "2044-07",
+          "retireTouched": false
+        }
+      ]
+    },
+    "B_female_worker": {
+      "route": "pages/compare/compare",
+      "ctx": {
+        "gender": "female",
+        "femaleType": "worker",
+        "birthYM": "1981-07",
+        "historyEndYM": "2025-12"
+      },
+      "plans": [
+        {
+          "retireYM": "2034-11",
+          "retireTouched": false,
+          "z": "",
+          "segType": "",
+          "windowStartYM": ""
+        },
+        {
+          "retireYM": "2034-11",
+          "retireTouched": false,
+          "z": "",
+          "segType": "",
+          "windowStartYM": ""
+        }
+      ],
+      "storagePlans": [
+        {
+          "retireYM": "2034-11",
+          "retireTouched": false
+        },
+        {
+          "retireYM": "2034-11",
+          "retireTouched": false
+        }
+      ]
+    },
+    "B_female_cadre": {
+      "route": "pages/compare/compare",
+      "ctx": {
+        "gender": "female",
+        "femaleType": "cadre",
+        "birthYM": "1981-07",
+        "historyEndYM": "2025-12"
+      },
+      "plans": [
+        {
+          "retireYM": "2039-06",
+          "retireTouched": false,
+          "z": "",
+          "segType": "",
+          "windowStartYM": ""
+        },
+        {
+          "retireYM": "2039-06",
+          "retireTouched": false,
+          "z": "",
+          "segType": "",
+          "windowStartYM": ""
+        }
+      ],
+      "storagePlans": [
+        {
+          "retireYM": "2039-06",
+          "retireTouched": false
+        },
+        {
+          "retireYM": "2039-06",
+          "retireTouched": false
+        }
+      ]
+    },
+    "C_dirty": {
+      "route": "pages/compare/compare",
+      "ctx": {
+        "gender": "male",
+        "femaleType": "worker",
+        "birthYM": "1965-10",
+        "historyEndYM": ""
+      },
+      "plans": [
+        {
+          "retireYM": "2026-01",
+          "retireTouched": false,
+          "z": "",
+          "segType": "",
+          "windowStartYM": ""
+        },
+        {
+          "retireYM": "2026-01",
+          "retireTouched": false,
+          "z": "",
+          "segType": "",
+          "windowStartYM": ""
+        }
+      ],
+      "storagePlans": [
+        {
+          "retireYM": "2026-01",
+          "retireTouched": false
+        },
+        {
+          "retireYM": "2026-01",
+          "retireTouched": false
+        }
+      ]
+    },
+    "C_healed": {
+      "route": "pages/compare/compare",
+      "ctx": {
+        "gender": "male",
+        "femaleType": "worker",
+        "birthYM": "1973-07",
+        "historyEndYM": "2026-08"
+      },
+      "plans": [
+        {
+          "retireYM": "2035-09",
+          "retireTouched": false,
+          "z": "",
+          "segType": "",
+          "windowStartYM": ""
+        },
+        {
+          "retireYM": "2035-09",
+          "retireTouched": false,
+          "z": "",
+          "segType": "",
+          "windowStartYM": ""
+        }
+      ],
+      "storagePlans": [
+        {
+          "retireYM": "2035-09",
+          "retireTouched": false
+        },
+        {
+          "retireYM": "2035-09",
+          "retireTouched": false
+        }
+      ]
+    },
+    "D_touched": {
+      "route": "pages/compare/compare",
+      "ctx": {
+        "gender": "male",
+        "femaleType": "worker",
+        "birthYM": "1973-07",
+        "historyEndYM": "2026-08"
+      },
+      "plans": [
+        {
+          "retireYM": "2035-03",
+          "retireTouched": true,
+          "z": "",
+          "segType": "",
+          "windowStartYM": ""
+        },
+        {
+          "retireYM": "2035-09",
+          "retireTouched": false,
+          "z": "",
+          "segType": "",
+          "windowStartYM": ""
+        }
+      ],
+      "storagePlans": [
+        {
+          "retireYM": "2035-03",
+          "retireTouched": true
+        },
+        {
+          "retireYM": "2035-09",
+          "retireTouched": false
+        }
+      ]
+    },
+    "D_birthChange": {
+      "route": "pages/compare/compare",
+      "ctx": {
+        "gender": "male",
+        "femaleType": "worker",
+        "birthYM": "1974-07",
+        "historyEndYM": "2026-08"
+      },
+      "plans": [
+        {
+          "retireYM": "2035-03",
+          "retireTouched": true,
+          "z": "",
+          "segType": "",
+          "windowStartYM": ""
+        },
+        {
+          "retireYM": "2036-12",
+          "retireTouched": false,
+          "z": "",
+          "segType": "",
+          "windowStartYM": ""
+        }
+      ],
+      "storagePlans": [
+        {
+          "retireYM": "2035-03",
+          "retireTouched": true
+        },
+        {
+          "retireYM": "2036-12",
+          "retireTouched": false
+        }
+      ]
+    },
+    "D_reimport": {
+      "route": "pages/compare/compare",
+      "ctx": {
+        "gender": "male",
+        "femaleType": "worker",
+        "birthYM": "1973-07",
+        "historyEndYM": "2026-08"
+      },
+      "plans": [
+        {
+          "retireYM": "2035-03",
+          "retireTouched": true,
+          "z": "",
+          "segType": "",
+          "windowStartYM": ""
+        },
+        {
+          "retireYM": "2035-09",
+          "retireTouched": false,
+          "z": "",
+          "segType": "",
+          "windowStartYM": ""
+        }
+      ],
+      "storagePlans": [
+        {
+          "retireYM": "2035-03",
+          "retireTouched": true
+        },
+        {
+          "retireYM": "2035-09",
+          "retireTouched": false
+        }
+      ]
+    },
+    "E_manual": {
+      "route": "pages/compare/compare",
+      "ctx": {
+        "gender": "male",
+        "femaleType": "worker",
+        "birthYM": "1973-07",
+        "historyEndYM": ""
+      },
+      "plans": [
+        {
+          "retireYM": "2035-09",
+          "retireTouched": false,
+          "z": "",
+          "segType": "",
+          "windowStartYM": ""
+        },
+        {
+          "retireYM": "2035-09",
+          "retireTouched": false,
+          "z": "",
+          "segType": "",
+          "windowStartYM": ""
+        }
+      ],
+      "storagePlans": [
+        {
+          "retireYM": "2035-09",
+          "retireTouched": false
+        },
+        {
+          "retireYM": "2035-09",
+          "retireTouched": false
+        }
+      ]
+    },
+    "E_threeCards": {
+      "route": "pages/compare/compare",
+      "ctx": {
+        "gender": "male",
+        "femaleType": "worker",
+        "birthYM": "1973-07",
+        "historyEndYM": ""
+      },
+      "plans": [
+        {
+          "retireYM": "2035-09",
+          "retireTouched": false,
+          "z": "",
+          "segType": "",
+          "windowStartYM": ""
+        },
+        {
+          "retireYM": "2035-09",
+          "retireTouched": false,
+          "z": "",
+          "segType": "",
+          "windowStartYM": ""
+        },
+        {
+          "retireYM": "2035-09",
+          "retireTouched": false,
+          "z": "",
+          "segType": "",
+          "windowStartYM": ""
+        }
+      ],
+      "storagePlans": [
+        {
+          "retireYM": "2035-09",
+          "retireTouched": false
+        },
+        {
+          "retireYM": "2035-09",
+          "retireTouched": false
+        },
+        {
+          "retireYM": "2035-09",
+          "retireTouched": false
+        }
+      ]
+    },
+    "E_result": {
+      "landed": true,
+      "columns": [
+        {
+          "P": 15045.76,
+          "R": 261705.6,
+          "JA": 7056.95
+        },
+        {
+          "P": 16577.37,
+          "R": 209364.48,
+          "JA": 7952.97
+        }
+      ]
+    }
+  },
+  "finishedAt": "2026-10-27T22:39:06.370Z",
+  "checks": [
+    {
+      "id": "A1",
+      "title": "真实文件导入 My-Case 成功",
+      "pass": true,
+      "actual": "My-Case.md",
+      "expected": "fileName~My-Case.md"
+    },
+    {
+      "id": "A2",
+      "title": "ctx.birthYM=1973-07",
+      "pass": true,
+      "actual": "1973-07",
+      "expected": "1973-07"
+    },
+    {
+      "id": "A3",
+      "title": "ctx.historyEndYM=2026-08",
+      "pass": true,
+      "actual": "2026-08",
+      "expected": "2026-08"
+    },
+    {
+      "id": "A4",
+      "title": "独立 derive male/1973-07=2035-09",
+      "pass": true,
+      "actual": "2035-09",
+      "expected": "2035-09"
+    },
+    {
+      "id": "A5",
+      "title": "卡1 retireYM=2035-09（非2026-01）",
+      "pass": true,
+      "actual": "2035-09",
+      "expected": "2035-09"
+    },
+    {
+      "id": "A6",
+      "title": "卡2 retireYM=2035-09（非2026-01）",
+      "pass": true,
+      "actual": "2035-09",
+      "expected": "2035-09"
+    },
+    {
+      "id": "A7",
+      "title": "两卡 retireTouched=false（系统重算非手选）",
+      "pass": true,
+      "actual": "[false,false]",
+      "expected": "false,false"
+    },
+    {
+      "id": "A8",
+      "title": "storage pension_plans_v1 两卡=2035-09",
+      "pass": true,
+      "actual": "[\"2035-09\",\"2035-09\"]",
+      "expected": "2035-09,2035-09"
+    },
+    {
+      "id": "A9",
+      "title": "两卡无“退休过早/早于最后缴费月”红错",
+      "pass": true,
+      "actual": "[]",
+      "expected": "[]"
+    },
+    {
+      "id": "A10",
+      "title": "两卡补全 z/segType（GUI 真实落库）",
+      "pass": true,
+      "actual": "1.0/flexible ; 2.0/enterprise",
+      "expected": "1.0/flexible ; 2.0/enterprise"
+    },
+    {
+      "id": "A11",
+      "title": "两卡 isValidPlan 均 true",
+      "pass": true,
+      "actual": "true,true",
+      "expected": "true,true"
+    },
+    {
+      "id": "A12",
+      "title": "可正常开始比较 → 进入 compare-result 结果页",
+      "pass": true,
+      "actual": "landed=true cols=2",
+      "expected": "landed, cols>=2"
+    },
+    {
+      "id": "B1",
+      "title": "真实文件导入 MyWife-Case 成功",
+      "pass": true,
+      "actual": "MyWife-Case.md",
+      "expected": "fileName~MyWife-Case.md"
+    },
+    {
+      "id": "B2",
+      "title": "导入默认 male/1981-07 retireYM=2044-07（不残留2026-01）",
+      "pass": true,
+      "actual": "2044-07,2044-07",
+      "expected": "2044-07"
+    },
+    {
+      "id": "B3",
+      "title": "独立 derive female/worker/1981-07=2034-11",
+      "pass": true,
+      "actual": "2034-11",
+      "expected": "2034-11"
+    },
+    {
+      "id": "B4",
+      "title": "female/worker 两卡 retireYM=2034-11 不残留2026-01",
+      "pass": true,
+      "actual": "2034-11,2034-11",
+      "expected": "2034-11"
+    },
+    {
+      "id": "B5",
+      "title": "female worker 两卡无退休红错",
+      "pass": true,
+      "actual": "see node planErrors",
+      "expected": "[]"
+    },
+    {
+      "id": "B6",
+      "title": "female/cadre 两卡 retireYM=2039-06",
+      "pass": true,
+      "actual": "2039-06,2039-06",
+      "expected": "2039-06"
+    },
+    {
+      "id": "C1",
+      "title": "脏 draft 进入 compare 两卡=2026-01（缺陷态存在）",
+      "pass": true,
+      "actual": "2026-01,2026-01",
+      "expected": "2026-01"
+    },
+    {
+      "id": "C2",
+      "title": "导入后两卡自愈=2035-09",
+      "pass": true,
+      "actual": "2035-09/false,2035-09/false",
+      "expected": "2035-09/false"
+    },
+    {
+      "id": "C3",
+      "title": "自愈结果落 storage 两卡=2035-09",
+      "pass": true,
+      "actual": "[\"2035-09\",\"2035-09\"]",
+      "expected": "2035-09"
+    },
+    {
+      "id": "D1",
+      "title": "卡1 手选 retireYM=2035-03 且 retireTouched=true",
+      "pass": true,
+      "actual": "2035-03/true",
+      "expected": "2035-03/true"
+    },
+    {
+      "id": "D1b",
+      "title": "手选合法值无退休红错",
+      "pass": true,
+      "actual": "[]",
+      "expected": "[]"
+    },
+    {
+      "id": "D2",
+      "title": "改出生年后 手选卡仍=2035-03",
+      "pass": true,
+      "actual": "2035-03",
+      "expected": "2035-03"
+    },
+    {
+      "id": "D3",
+      "title": "改出生年后 未触碰卡2=2036-12",
+      "pass": true,
+      "actual": "2036-12",
+      "expected": "2036-12"
+    },
+    {
+      "id": "D4",
+      "title": "再导入后 手选卡仍=2035-03",
+      "pass": true,
+      "actual": "2035-03",
+      "expected": "2035-03"
+    },
+    {
+      "id": "D5",
+      "title": "再导入后 未触碰卡2=2035-09",
+      "pass": true,
+      "actual": "2035-09",
+      "expected": "2035-09"
+    },
+    {
+      "id": "E1",
+      "title": "手工既有路径 两卡 retireYM=2035-09（演示2026-01被纠正）",
+      "pass": true,
+      "actual": "2035-09,2035-09",
+      "expected": "2035-09"
+    },
+    {
+      "id": "E2",
+      "title": "新增第3卡 count=3",
+      "pass": true,
+      "actual": 3,
+      "expected": "3"
+    },
+    {
+      "id": "E3",
+      "title": "第3卡 emptyPlan 带正确法定 retireYM=2035-09",
+      "pass": true,
+      "actual": "2035-09",
+      "expected": "2035-09"
+    },
+    {
+      "id": "E4",
+      "title": "删除第3卡后 count=2",
+      "pass": true,
+      "actual": 2,
+      "expected": "2"
+    },
+    {
+      "id": "E4b",
+      "title": "补全历史：再导入 My-Case common 成功",
+      "pass": true,
+      "actual": "My-Case.md",
+      "expected": "My-Case.md"
+    },
+    {
+      "id": "E5",
+      "title": "手工建卡+补全历史 开始比较→结果页 两列 P月 有限正值（计算不回归）",
+      "pass": true,
+      "actual": "landed=true P=15045.76,16577.37",
+      "expected": "finite positive"
+    }
+  ]
+}
