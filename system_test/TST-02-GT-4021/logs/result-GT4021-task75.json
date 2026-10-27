@@ -1,0 +1,162 @@
+{
+  "at": "2026-10-27T18:04:53.971Z",
+  "testcase": "TST-02-GT-4021",
+  "task": "task-75",
+  "fixture": "My-Case.md",
+  "port": 40215,
+  "baseline": "e530e95",
+  "cases": [
+    {
+      "startYM": "2026-08",
+      "retireYM": "2035-09",
+      "desc": "=历史末月应拦(等值)",
+      "expectLegal": false,
+      "actual": {
+        "startErrs": [
+          "缴费起始时间 2026-08 不得早于最后缴费月 2026-08 的次月"
+        ],
+        "isValidPlan": false
+      }
+    },
+    {
+      "startYM": "2026-07",
+      "retireYM": "2035-09",
+      "desc": "严格早于历史末月应拦",
+      "expectLegal": false,
+      "actual": {
+        "startErrs": [
+          "缴费起始时间 2026-07 不得早于最后缴费月 2026-08 的次月"
+        ],
+        "isValidPlan": false
+      }
+    },
+    {
+      "startYM": "2033-08",
+      "retireYM": "2033-08",
+      "desc": "晚于退休前月(2033-07)应拦",
+      "expectLegal": false,
+      "actual": {
+        "startErrs": [
+          "缴费起始时间 2033-08 不得晚于退休前一月（退休 2033-08）"
+        ],
+        "isValidPlan": false
+      }
+    },
+    {
+      "startYM": "2026-09",
+      "retireYM": "2035-09",
+      "desc": "历史末月+1合法",
+      "expectLegal": true,
+      "actual": {
+        "startErrs": [],
+        "isValidPlan": false
+      }
+    },
+    {
+      "startYM": "2033-07",
+      "retireYM": "2033-08",
+      "desc": "退休前月合法",
+      "expectLegal": true,
+      "actual": {
+        "startErrs": [],
+        "isValidPlan": false
+      }
+    },
+    {
+      "startYM": "",
+      "retireYM": "2035-09",
+      "desc": "留空缺省合法",
+      "expectLegal": true,
+      "actual": {
+        "startErrs": [],
+        "isValidPlan": false
+      }
+    }
+  ],
+  "assemble": {
+    "autoFirstMonth": "2026-09",
+    "overlapMonths": [],
+    "totalSegs": 28,
+    "autoSegs": 1,
+    "assembleAtHistEnd": "缴费起始时间 2026-08 不得早于最后缴费月 2026-08 的次月"
+  },
+  "ctx": {
+    "gender": "male",
+    "femaleType": "worker",
+    "birthYM": "1973-07",
+    "historyEndYM": "2026-08"
+  },
+  "realSharedSummary": {
+    "segCount": 27,
+    "futureMonthlyRate": 0.015,
+    "retireYM": null
+  },
+  "checks": [
+    {
+      "title": "真实文件导入成功",
+      "pass": true,
+      "extra": "My-Case.md"
+    },
+    {
+      "title": "historyEndYM=2026-08（真实导入后 ctx）",
+      "pass": true,
+      "extra": "2026-08"
+    },
+    {
+      "title": "plan-card 数据层就绪 count=2",
+      "pass": true,
+      "extra": "ready=true"
+    },
+    {
+      "title": "产品真实 buildValidatedInput ok",
+      "pass": true,
+      "extra": ""
+    },
+    {
+      "title": "起始月[2026-08] =历史末月应拦(等值) 期望拦",
+      "pass": true,
+      "extra": "isValidPlan=false errs=[\"缴费起始时间 2026-08 不得早于最后缴费月 2026-08 的次月\"]"
+    },
+    {
+      "title": "起始月[2026-07] 严格早于历史末月应拦 期望拦",
+      "pass": true,
+      "extra": "isValidPlan=false errs=[\"缴费起始时间 2026-07 不得早于最后缴费月 2026-08 的次月\"]"
+    },
+    {
+      "title": "起始月[2033-08] 晚于退休前月(2033-07)应拦 期望拦",
+      "pass": true,
+      "extra": "isValidPlan=false errs=[\"缴费起始时间 2033-08 不得晚于退休前一月（退休 2033-08）\"]"
+    },
+    {
+      "title": "起始月[2026-09] 历史末月+1合法 期望合法",
+      "pass": true,
+      "extra": "isValidPlan=false errs=[]"
+    },
+    {
+      "title": "起始月[2033-07] 退休前月合法 期望合法",
+      "pass": true,
+      "extra": "isValidPlan=false errs=[]"
+    },
+    {
+      "title": "起始月[空] 留空缺省合法 期望合法",
+      "pass": true,
+      "extra": "isValidPlan=false errs=[]"
+    },
+    {
+      "title": "assemble 自动段首月=历史末月+1=2026-09（真实 sharedInput）",
+      "pass": true,
+      "extra": "2026-09"
+    },
+    {
+      "title": "assemble 历史段与自动段月份零交集",
+      "pass": true,
+      "extra": "overlap=[]"
+    },
+    {
+      "title": "assemble 起始月=历史末月当月抛错",
+      "pass": true,
+      "extra": "缴费起始时间 2026-08 不得早于最后缴费月 2026-08 的次月"
+    }
+  ],
+  "finishedAt": "2026-10-27T18:05:11.460Z"
+}
