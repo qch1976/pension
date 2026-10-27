@@ -166,7 +166,13 @@ The specification of phase2 and the dedicated test coverage matrix are not in .\
 
 **回归点**：① 清 draft→entry 不填信息→直接 compare→文件导入 My-Case：两张卡 retireYM 应=**2035-09**（非 2026-01），无"退休过早/早于最后缴费月"红错，draft 内同为 2035-09；② 同路径导入 MyWife-Case（女性 1981-07）：默认退休月按性别/femaleType 正确计算，不残留 2026-01；③ 用户手动改过退休月（retireTouched=true）后再导入/改公共信息，手选值**不得**被覆盖；④ entry 正常填真实出生年再进 compare 的既有用法，以及 compare 三卡新增/删除/结果计算，不得回归。
 
-**登记与状态**：tester worker4 独立 GUI 取证发现（证据 dec.txt / 口 40234）；项目主 2026-10-13 批准特批登记；状态＝本轮**不修**，待 BUG-02-0004~0007 全 PASS 后单独排期。
+**登记与状态**：tester worker4 独立 GUI 取证发现（证据 dec.txt / 口 40234）；项目主 2026-10-13 批准特批登记；状态原为本轮**不修**，待 BUG-02-0004~0007 全 PASS 后单独排期。
+
+**修复与独立验收（2026-10-28，项目主 2026-10-28 00:24 授权其休息后自主修复）**：① architect task-76 独立源码复核，将机制定位得比原根因假设更准——attached 时 ctx 尚为空、卡 retireYM 亦为空；真正写入演示陈旧值 2026-01 的是随后 onReady→syncCtx 在演示 ctx(1965-10) 下触发的 observer（原条件 `!retireTouched && !retireYM` 成立→填 2026-01 并 persist）；导入后 ctx=1973-07 再触发 observer，因 retireYM 已非空致条件不成立、陈旧值残留。三方向中选定【方向一】（最小回归面），设计见 output/p-mu45ws9mfajyky-worker2/bug02-0008-fix-design.md。② developer task-77 实现：planModel 新增纯函数 `syncUnspecifiedRetire(plans,ctx)`（retireTouched=true 保留手选；want 空或法定值与现值相同则不改、幂等），plan-list observer 去掉 `&& !p.retireYM`、仅按 `!p.retireTouched` 对所有未手改卡随最新 ctx 重算并 persist；新增 TST-02-UT-1037（28 断言），commit 6e8ea72 经 Manager 独立复核（diff + 独立复跑 UT1037=28/0；全量唯一异常 utils/assert-bug25-26.js 10 条输入页 UI 断言已在父提交验证为修复前历史过期断言、非回归）后经 Windows 推送。③ tester task-78 独立 GUI 验收（非引用上游回显，新建独立 testcase TST-02-GT-4032，常驻口 40215）：**33/33 PASS**——A My-Case(male1973-07) 导入后两卡=2035-09（非2026-01）/touched=false/storage 同/无红错/补全后可开始比较；B MyWife(1981-07) 导入默认 male=2044-07 不残留 2026-01，共享区正规交互切 female worker=2034-11、cadre=2039-06；C 脏 draft(2026-01/touched=false) 导入后自愈=2035-09 落 storage；D 手选 retireTouched=true(2035-03) 后改出生年/再导入均不覆盖；E 手工既有路径、三卡增删、手工建卡补全历史后比较两列 P月=15045.76/16577.37 有限正值零回归；独立复跑 UT-1037 28/28；矩阵新增 GT-4032 行 PASS（bug 列保留），commit d25d2ee 经 Windows 推送 origin/master。
+
+**性别前提说明（Manager 已独立核实）**：MyWife-Case.md 无性别字段，services/caseValidator.js L64 `gender: options.gender \|\| 'male'`，导入不传性别即默认 male，故“导入即女性档”在现有解析下不会自动发生；B 点按“导入不残留 2026-01(male 2044-07)＋共享区正规交互切 female 验女性法定值”覆盖，符合工单“按性别/femaleType 正确计算”。夹具/解析自动识别性别属需求改动，已另报项目主裁定。
+
+**当前状态＝verified（fixed + independently verified，2026-10-28）**；final closed 待项目主确认。
 
 
 ## BUG-02-0009
