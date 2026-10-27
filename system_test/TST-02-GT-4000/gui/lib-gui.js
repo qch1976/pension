@@ -1,7 +1,7 @@
 /*
- * pension GUI 回归公共库（wf-22925e79520b，2026-09-20）
- * 仅测试用途；全部产物落盘 system_test/output/gui/。
- * 不杀 IDE（RUNBOOK §11.4），cli auto 常驻由 start-cli.js 持有，用例只 connect/disconnect。
+ * pension GUI 回归公共库（wf-22925e79520b，2026-09-20；2026-10-27 更新）
+ * 仅测试用途；正式产物落盘 system_test/TST-02-GT-4000/logs/（project-documentation SKILL）。
+ * 不杀 IDE；cli auto 常驻口 40215 由 system_test/utils/cli40215-keeper.* 持有，用例只 connect/disconnect。
  */
 'use strict';
 const fs = require('fs');
@@ -13,8 +13,9 @@ const PROJECT = 'C:\\Users\\Administrator\\Desktop\\Wechat projects\\pension';
 const SDK_DIR = 'C:\\Users\\Administrator\\wechat-automation\\node_modules\\miniprogram-automator';
 const automator = require(SDK_DIR);
 const P = require(path.join(PROJECT, 'constants', 'policyData.js'));
-const OUT_DIR = path.join(PROJECT, 'autotest', 'output', 'gui');
-const PORT = parseInt(process.env.GUI_AUTO_PORT || '9561', 10);
+const OUT_DIR = path.join(PROJECT, 'system_test', 'TST-02-GT-4000', 'logs');
+// 默认连 40215 常驻口（keeper: system_test/utils/cli40215-keeper.*）；env 仅用于 Manager 批准的专用实例
+const PORT = parseInt(process.env.GUI_AUTO_PORT || '40215', 10);
 
 fs.mkdirSync(OUT_DIR, { recursive: true });
 const sleep = ms => new Promise(r => setTimeout(r, ms));

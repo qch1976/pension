@@ -1,6 +1,6 @@
 /*
  * cases.js <C1|C2|C3|C4|C5> —— pension R储/R补 GUI 业务断言集（每 case 独立 result-<case>.json）
- * 连接 start-cli.js 常驻的 automation 端口（9561），必须在 RDP session 2 内运行。
+ * 连接 40215 常驻 automator 口（system_test/utils/cli40215-keeper.* 保活），必须在 RDP session 2 内运行。
  */
 'use strict';
 const fs = require('fs');
