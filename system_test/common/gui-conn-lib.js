@@ -149,9 +149,135 @@ function addMonths(ym, delta) {
   return Math.floor(t / 12) + '-' + String((t % 12) + 1).padStart(2, '0');
 }
 
+/* ===== task-55 Z0.6 parity 公共：夹具输入 / compare结果页装载 / basic month 驱动 / 安全reLaunch =====
+ * 仍不内置任何 testcase 的 input/expect；夹具文件、plan、利率由各独立入口传入。 */
+const stlib = require(path.join(__dirname, 'st-case-lib.js'));
+const CV = stlib.caseValidator;
+const Asm = require(path.join(PROJECT, 'calculator', 'planAssembler.js'));
+
+// compare-result 页 onLoad 读取的 storage key（含省略号字符，作为 evaluate 参数传入，避免源码编码问题）
+const COMPARE_RESULT_KEY = 'pension_compare_payload_v1';
+
+// 由夹具构造 sharedInput(buildInputLike) + pageIndex(mapParsedToPageData)，覆写个人账户【月利率】
+function buildFixtureInput(fixtureFile, futureMonthlyRate) {
+  const fx = stlib.parseFixture(fixtureFile);
+  const pageIndex = CV.mapParsedToPageData(fx.parsed, {});
+  const sharedInput = CV.buildInputLike(pageIndex);
+  sharedInput.futureMonthlyRate = futureMonthlyRate;
+  return { sharedInput, pageIndex };
+}
+
+// 与 compare planAssembler 同源的完整段（历史段 + 未来 Z 段），供 basic month 模式喂入
+function fullMonthSegments(sharedInput, plan) {
+  return Asm.assemblePlanInput(sharedInput, plan).segments;
+}
+
+// Node 侧安全包裹一个 automator 动作（吞 "timeout waiting for automator response" 等全局超时）
+async function safeAttempt(fn) {
+  try { return { ok: true, v: await fn() }; }
+  catch (e) { return { ok: false, err: String((e && e.message) || e) }; }
+}
+
+// reLaunch 到 url，确认 currentPage().path 命中且 Node 侧 readyFn(data) 为真；导航超时则整轮重试
+async function reLaunchReady(mp, url, pathPart, readyFn, opts) {
+  opts = opts || {};
+  const retries = opts.retries || 3, perMs = opts.perMs || 20000;
+  let page = null, data = null, landed = '';
+  for (let gi = 0; gi < retries; gi++) {
+    await safeAttempt(() => mp.reLaunch(url));
+    const t0 = Date.now();
+    while (Date.now() - t0 < perMs) {
+      const cp = await safeAttempt(() => mp.currentPage());
+      if (cp.ok && cp.v) { page = cp.v; landed = page.path || ''; }
+      if (page && landed.indexOf(pathPart) >= 0) {
+        if (!readyFn) return { ok: true, page, path: landed, data: null };
+        const dr = await safeAttempt(() => page.data());
+        if (dr.ok && dr.v && readyFn(dr.v)) return { ok: true, page, path: landed, data: dr.v };
+      }
+      await sleep(700);
+    }
+  }
+  return { ok: false, page, path: landed, data };
+}
+
+// 不触发导航，只轮询当前页 path 命中 + readyFn(data)（用于产品自身 navigateTo 后的结果页）
+async function waitCurrentReady(mp, pathPart, readyFn, perMs) {
+  const t0 = Date.now(); let page = null, data = null, landed = '';
+  while (Date.now() - t0 < (perMs || 40000)) {
+    const cp = await safeAttempt(() => mp.currentPage());
+    if (cp.ok && cp.v) { page = cp.v; landed = page.path || ''; }
+    if (page && landed.indexOf(pathPart) >= 0) {
+      if (!readyFn) return { ok: true, page, path: landed, data: null };
+      const dr = await safeAttempt(() => page.data());
+      if (dr.ok && dr.v && readyFn(dr.v)) return { ok: true, page, path: landed, data: dr.v };
+    }
+    await sleep(700);
+  }
+  return { ok: false, page, path: landed, data };
+}
+
+async function injectStorage(mp, key, payload) {
+  const v = await ev(mp, function (k, p) { wx.setStorageSync(k, p); return true; }, key, payload);
+  return v === true;
+}
+
+// compare 结果页：先回中性页(防残留 compare-result 被误读为新值) -> 装载同构【输入】 -> reLaunch，由页面自渲染，只读取值
+async function openCompareResult(mp, sharedInput, plan) {
+  const neutral = await reLaunchReady(mp, '/pages/entry/entry', 'pages/entry/entry', null, { retries: 3, perMs: 15000 });
+  if (!neutral.ok) throw new Error('neutral entry not ready path=' + neutral.path);
+  let ok = false;
+  for (let i = 0; i < 5; i++) {
+    if (await injectStorage(mp, COMPARE_RESULT_KEY, { sharedInput, plans: [plan] })) { ok = true; break; }
+    await sleep(1200);
+  }
+  if (!ok) throw new Error('inject compare payload failed');
+  // 起点是 entry，path 能变为 compare-result 即证明注入后真实导航加载（不会读到残留旧页）
+  const r = await reLaunchReady(mp, '/pages/compare-result/compare-result', 'compare-result',
+    d => d.ready === true && d.view, { retries: 3, perMs: 20000 });
+  if (!r.ok) throw new Error('compare-result not ready path=' + r.path);
+  const c = r.data.view.columns[0];
+  return { R: Number(c.rContinued), JA: Number(c.jAccount), P: Number(c.pMonthly), page: r.page };
+}
+
+// basic：reLaunch index，month 模式喂与 compare 同源完整段，调页面真实 onCalculate（产品 buildInput+Engine），result 页只读取值
+async function runBasicMonth(mp, ref, plan, ratePct, retireYM) {
+  const segments = fullMonthSegments(ref.sharedInput, plan);
+  const pd = JSON.parse(JSON.stringify(ref.pageIndex));
+  pd.entryMode = 'month';
+  pd.segments = segments.map(s => ({ type: s.type, startYM: s.startYM, endYM: s.endYM, baseMonthly: String(s.baseMonthly) }));
+  pd.futureMonthlyRatePct = ratePct;
+  pd.retireYM = retireYM;
+  const ix = await reLaunchReady(mp, '/pages/index/index', 'pages/index/index', null, { retries: 3, perMs: 15000 });
+  if (!ix.ok) throw new Error('index not ready path=' + ix.path);
+  await safeAttempt(() => ix.page.setData(pd));
+  await sleep(300);
+  await safeAttempt(() => ix.page.callMethod('onCalculate'));
+  const rs = await waitCurrentReady(mp, 'pages/result/result', d => d.ready === true && d.r, 40000);
+  if (!rs.ok) throw new Error('basic result not ready path=' + rs.path);
+  return { R: Number(rs.data.r.intermediates.R储), JA: Number(rs.data.r.pension.J账户), P: Number(rs.data.r.pension.total), page: rs.page };
+}
+
+async function disconnectQuiet(mp) { try { if (mp) await mp.disconnect(); } catch (e) {} }
+
+// 只连接已由 keeper 拉起的常驻口（external：不 spawn cli、不杀端口）
+async function connectExisting(port) { const r = await launchAndConnect(port, true); return r.mp; }
+
+// case 级断言记录器（独立入口各自持有一个，公共的收集/统计逻辑）
+function makeRecorder() {
+  const list = [];
+  return {
+    ck: function (id, title, pass, actual, expected) { list.push({ id, title, pass: !!pass, actual, expected }); },
+    list: list,
+    totals: function () { return list.reduce(function (a, x) { x.pass ? a.pass++ : a.fail++; return a; }, { pass: 0, fail: 0 }); }
+  };
+}
+
 module.exports = {
   PROJECT, SDK, automator, sleep,
   discoverCli, portUp, waitPort, ev,
   launchAndConnect, waitLanded, resetToEntry, gotoCompare,
-  commonBlock, importFixture, compareCtx, waitCardsReady, addMonths
+  commonBlock, importFixture, compareCtx, waitCardsReady, addMonths,
+  COMPARE_RESULT_KEY, buildFixtureInput, fullMonthSegments, safeAttempt,
+  reLaunchReady, waitCurrentReady, injectStorage, openCompareResult, runBasicMonth,
+  disconnectQuiet, connectExisting, makeRecorder
 };

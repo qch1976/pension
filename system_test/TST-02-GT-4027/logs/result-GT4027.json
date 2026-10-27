@@ -1,0 +1,93 @@
+{
+  "case": "GT-4027",
+  "type": "GUI basic/compare parity",
+  "ok": true,
+  "startedAt": "2026-10-27T13:18:05.487Z",
+  "finishedAt": "2026-10-27T13:19:07.944Z",
+  "input": {
+    "fixture": "My-Case.md",
+    "plan": {
+      "retireYM": "2033-07",
+      "z": "0.6",
+      "segType": "flexible"
+    },
+    "rates": [
+      "0%",
+      "1.5%"
+    ]
+  },
+  "tolerance": 0.001,
+  "table": [
+    {
+      "rate": "0%",
+      "basic": {
+        "R储": 720608.58,
+        "J账": 5184.23,
+        "P月": 12750.5
+      },
+      "compare": {
+        "R续": 119221.44,
+        "J账": 5184.23,
+        "P月": 12750.5
+      },
+      "delta": {
+        "J账": 0,
+        "P月": 0
+      },
+      "Rnote": "口径不同：R储(累计储存额) vs R续(继续缴费)，非同一量不直接比；R续×40%(8%/20%)≈入账本金"
+    },
+    {
+      "rate": "1.5%",
+      "basic": {
+        "R储": 795690.76,
+        "J账": 5724.39,
+        "P月": 13290.66
+      },
+      "compare": {
+        "R续": 119221.44,
+        "J账": 5724.39,
+        "P月": 13290.66
+      },
+      "delta": {
+        "J账": 0,
+        "P月": 0
+      },
+      "Rnote": "口径不同：R储(累计储存额) vs R续(继续缴费)，非同一量不直接比；R续×40%(8%/20%)≈入账本金"
+    }
+  ],
+  "screenshot": "C:\\Users\\Administrator\\Desktop\\Wechat projects\\pension\\system_test\\TST-02-GT-4027\\logs\\GT4027-basic-result-0pct.png",
+  "totals": {
+    "pass": 4,
+    "fail": 0
+  },
+  "assertions": [
+    {
+      "id": "J账-0%",
+      "title": "basic/compare J账 |Δ|≤0.001",
+      "pass": true,
+      "actual": 0,
+      "expected": "<=0.001"
+    },
+    {
+      "id": "P月-0%",
+      "title": "basic/compare P月 |Δ|≤0.001",
+      "pass": true,
+      "actual": 0,
+      "expected": "<=0.001"
+    },
+    {
+      "id": "J账-1.5%",
+      "title": "basic/compare J账 |Δ|≤0.001",
+      "pass": true,
+      "actual": 0,
+      "expected": "<=0.001"
+    },
+    {
+      "id": "P月-1.5%",
+      "title": "basic/compare P月 |Δ|≤0.001",
+      "pass": true,
+      "actual": 0,
+      "expected": "<=0.001"
+    }
+  ]
+}
