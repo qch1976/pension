@@ -197,7 +197,11 @@ The specification of phase2 and the dedicated test coverage matrix are not in .\
 
 **回归点**：① 修复后重跑 GUI GT-4021（回归脚本 `autotest` 侧 t47 / worker4 `scripts/gt4021-regression.js`，expect 显式含 2026-07 reject）：2026-08 应转 isValidPlan=false 且有起始月红错；2026-07、2033-08 仍拦截；2026-09、2033-07、留空 仍合法；② 三断言：=历史末月拒 / =末月+1合法 / 任何合法起点历史段与自动段零重叠（自动段首月>历史末月）；③ 回归 GT-4019/4020 动态缺省不受影响（缺省仍=历史末月+1：My 2026-09、wife 2026-01）；④ 原生月滚轮手工滚到历史末月当月也应红错拦截（红点/滚轮点选归 MT-9002 人工确认）。
 
-**登记与状态**：tester worker4 独立 GUI 取证发现（常驻口 40215，基线 aefeb43，TS=20261014-123208）；Manager worker1 独立复核 FAIL 成立；项目主 2026-10-14 批准登记为 BUG-02-0009；矩阵 TST-02-GT-4021 行按实落 FAIL 并关联本条；状态＝本轮**不修**，待 BUG-02-0004~0007 收口后单独排期。
+**登记与状态**：tester worker4 独立 GUI 取证发现（常驻口 40215，基线 aefeb43，TS=20261014-123208）；Manager worker1 独立复核 FAIL 成立；项目主 2026-10-14 批准登记为 BUG-02-0009；矩阵 TST-02-GT-4021 行按实落 FAIL 并关联本条；状态原为本轮**不修**，待 BUG-02-0004~0007 收口后单独排期。
+
+**修复与独立验收（2026-10-28，项目主 2026-10-28 00:24 授权其休息后自主修复）**：① developer task-74 按 Fix Solution 修复两处下界 `<`→`<=`、文案改「不得早于最后缴费月的次月」、订正注释、补 TST-02-UT-1027 等值边界，本地 commit e530e95；Manager 独立复核 diff + 独立复跑 UT（1025 3/0、1026 3/0、1027 15/0）后经 Windows 推送（e530e95）。② tester task-75 独立 GUI 验收（非引用 developer 回显）：GT-4021 回归 13/13 PASS（2026-08 等值现正确拦截、2026-07/2033-08 仍拦、2026-09/2033-07/留空合法；真实 sharedInput 复核合法起点自动段首月=历史末月+1、历史/自动段月份零交集）、独立复跑 UT-1027 15/15、developer_test 全量 42 文件/537 断言零失败；矩阵 GT-4021 FAIL→PASS（bug 列保留）；结构按一 testcase 一入口整改（删旧入口 gt4021-planstart-boundary.js、保留单一 gt-4021-task75.js），commit 95a26cc 经 Windows 推送 origin/master。
+
+**当前状态＝verified（fixed + independently verified，2026-10-28）**；final closed 待项目主确认。
 
 
 ## BUG-02-0010
