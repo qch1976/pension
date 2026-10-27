@@ -37,7 +37,7 @@ function resolveWindowStart(plan, sharedInput) {
   return defaultWindowStart(sharedInput);
 }
 
-// 校验缴费起始月：须介于历史末月与退休前一月之间（含端点）。返回错误文案或 null。
+// 校验缴费起始月：下界＝历史末月+1（历史末月当月不合法），上界＝退休前一月（含端点）。返回错误文案或 null。
 function validateWindowStart(windowStartYM, sharedInput, plan, D) {
   var start = resolveWindowStart(plan, sharedInput);
   if (!/^\d{4}-\d{2}$/.test(start)) return '缴费起始时间格式应为 YYYY-MM';
@@ -45,8 +45,9 @@ function validateWindowStart(windowStartYM, sharedInput, plan, D) {
   ((sharedInput && sharedInput.segments) || []).forEach(function (s) {
     if (s && /^\d{4}-\d{2}$/.test(s.endYM || '') && s.endYM > historyLast) historyLast = s.endYM;
   });
-  if (historyLast && D.toIndex(start) < D.toIndex(historyLast)) {
-    return '缴费起始时间 ' + start + ' 早于最后缴费月 ' + historyLast + '，不能比较';
+  // BUG-02-0009：下界改为 <=，start==historyLast 即拦截（等价 start 须 >= historyLast+1），杜绝当月与历史段重叠双计。
+  if (historyLast && D.toIndex(start) <= D.toIndex(historyLast)) {
+    return '缴费起始时间 ' + start + ' 不得早于最后缴费月 ' + historyLast + ' 的次月';
   }
   if (plan && /^\d{4}-\d{2}$/.test(plan.retireYM || '')) {
     if (D.toIndex(start) > D.toIndex(plan.retireYM) - 1) {

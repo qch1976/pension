@@ -117,13 +117,14 @@ function defaultWindowStartYM(ctx, D) {
   return Asm.WINDOW_START_YM;
 }
 
-// 校验缴费起始月：可留空（动态缺省）；非空须介于历史末月与退休前一月之间。返回错误文案或 null。
+// 校验缴费起始月：可留空（动态缺省）；非空时下界＝历史末月+1（历史末月当月不合法），上界＝退休前一月（含端点）。返回错误文案或 null。
 function validateWindowStartYM(windowStartYM, ctx, retireYM, D) {
   if (windowStartYM === '' || windowStartYM == null) return null;
   if (!/^\d{4}-\d{2}$/.test(windowStartYM)) return '缴费起始时间格式应为 YYYY-MM';
   var h = ctx && ctx.historyEndYM;
-  if (/^\d{4}-\d{2}$/.test(h || '') && D.toIndex(windowStartYM) < D.toIndex(h)) {
-    return '缴费起始时间 ' + windowStartYM + ' 早于最后缴费月 ' + h + '，不能比较';
+  // BUG-02-0009：下界改为 <=，windowStartYM==h 即拦截（等价须 >= h+1），与 planAssembler.validateWindowStart 同源。
+  if (/^\d{4}-\d{2}$/.test(h || '') && D.toIndex(windowStartYM) <= D.toIndex(h)) {
+    return '缴费起始时间 ' + windowStartYM + ' 不得早于最后缴费月 ' + h + ' 的次月';
   }
   if (/^\d{4}-\d{2}$/.test(retireYM || '')) {
     if (D.toIndex(windowStartYM) > D.toIndex(retireYM) - 1) {
