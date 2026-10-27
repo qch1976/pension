@@ -132,7 +132,7 @@ async function runOne(sc, port) {
     // 2) 写合并夹具到沙箱
     step('prepare case file');
     const tmpRel = 'e7-' + sc.id + '.txt';
-    const merged = buildMergedCase(path.join(PROJECT, 'docs', sc.file), sc.block);
+    const merged = buildMergedCase(path.join(PROJECT, 'docs', 'customer_usecases', sc.file), sc.block);
     await withMp(port, mp => mp.evaluate((rel, txt) => new Promise((res, rej) => {
       wx.getFileSystemManager().writeFile({
         filePath: wx.env.USER_DATA_PATH + '/' + rel, data: txt, encoding: 'utf8',
@@ -236,32 +236,42 @@ async function runOne(sc, port) {
 
 (async () => {
   const cli = discoverCli();
+  const EXTERNAL = process.argv.includes('external');
+  // 入参：数字依次为 [port] [startIndex]，'external' 为标志（位置不限）
+  const nums = process.argv.slice(2).filter(a => /^\d+$/.test(a)).map(Number);
+  const livePort = nums[0] || START_PORT;
+  const START_INDEX_RUN = nums[1] || 0;
+  if (EXTERNAL) {
+    // external：不自起 cli auto，直连 T2-C keeper 保活的常驻 40215（只 connect/disconnect）
+    if (!(await waitPort(livePort, 20000))) throw new Error('external resident port ' + livePort + ' not up');
+    console.log('=== EXTERNAL resident automation port = ' + livePort + '; no spawn, per-op connect/disconnect ===');
+  } else {
   // ---- 注册唯一存活端口 ----
   // 纪律要求“每场景 fresh cli auto”，但实测本机仅一个 IDE：每次新 cli auto 只把 automation
   // 重注册到新端口、旧端口立即失效，跨场景反复注册会让进行中的 socket 超时（首轮0/6根因）。
   // 故折中：单一存活端口 + 【每个操作全新 connect】（等价于不复用陈旧 boot），顺序跑各场景。
-  const livePort = START_PORT;
   const ch = cp.spawn('"' + cli + '" auto --project "' + PROJECT + '" --auto-port ' + livePort,
     { shell: true, stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true });
   ch.stdout.on('data', () => {}); ch.stderr.on('data', () => {});
   await sleep(8000);
   if (!(await waitPort(livePort, 120000))) throw new Error('live port ' + livePort + ' not up');
   console.log('=== live automation port = ' + livePort + '; scenarios sequential, fresh connection per op ===');
+  }
 
   const results = [];
-  for (let i = START_INDEX; i < SCENARIOS.length; i++) {
+  for (let i = START_INDEX_RUN; i < SCENARIOS.length; i++) {
     console.log('=== E7 scenario ' + SCENARIOS[i].id + ' ===');
     const r = await runOne(SCENARIOS[i], livePort);
     results.push(r);
     console.log('  pass=' + r.pass + ' errors=' + JSON.stringify(r.errors));
   }
-  try { ch.kill(); } catch (e) {}
+  if (!EXTERNAL) { try { ch.kill(); } catch (e) {} }
 
   const summary = {
     suite: 'E7 file import/export automator regression', method: 'Q2 mock chooseMessageFile/shareFileMessage',
-    note: 'single IDE keeps only last cli auto port; scenarios reuse one live port with per-op fresh connection',
+    note: EXTERNAL ? 'external resident 40215, per-op connect/disconnect, no spawn/kill' : 'single IDE keeps only last cli auto port; scenarios reuse one live port with per-op fresh connection',
     startedAt: new Date().toISOString(), scenarios: results,
-    totals: { all: results.length, pass: results.filter(r => r.pass).length, fail: results.filter(r => !r.pass).length, startIndex: START_INDEX }
+    totals: { all: results.length, pass: results.filter(r => r.pass).length, fail: results.filter(r => !r.pass).length, startIndex: START_INDEX_RUN }
   };
   fs.writeFileSync(path.join(OUT, 'e7-regression-summary.json'), JSON.stringify(summary, null, 2));
   console.log('=== E7 TOTALS pass=' + summary.totals.pass + '/' + summary.totals.all + ' ===');

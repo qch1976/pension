@@ -1,0 +1,56 @@
+{
+  "case": "GT-4025",
+  "type": "GUI compare result readonly",
+  "ok": true,
+  "startedAt": "2026-10-27T16:04:26.350Z",
+  "finishedAt": "2026-10-27T16:04:55.293Z",
+  "input": {
+    "fixture": "My-Case.md",
+    "futureMonthlyRate": 0.015,
+    "plan": {
+      "retireYM": "2033-07",
+      "z": "3.0",
+      "segType": "flexible"
+    }
+  },
+  "expected": {
+    "R": 596107.2,
+    "JA": 7168.58,
+    "P": 15904.33
+  },
+  "tolerance": 0.001,
+  "actual": {
+    "R": 596107.2,
+    "JA": 7168.58,
+    "P": 15904.33,
+    "page": null
+  },
+  "screenshot": "C:\\Users\\Administrator\\Desktop\\Wechat projects\\pension\\system_test\\TST-02-GT-4025\\logs\\GT4025-compare-result.png",
+  "totals": {
+    "pass": 3,
+    "fail": 0
+  },
+  "assertions": [
+    {
+      "id": "R续",
+      "title": "compare R续",
+      "pass": true,
+      "actual": 596107.2,
+      "expected": 596107.2
+    },
+    {
+      "id": "J账",
+      "title": "compare J账",
+      "pass": true,
+      "actual": 7168.58,
+      "expected": 7168.58
+    },
+    {
+      "id": "P月",
+      "title": "compare P月",
+      "pass": true,
+      "actual": 15904.33,
+      "expected": 15904.33
+    }
+  ]
+}

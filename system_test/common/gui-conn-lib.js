@@ -221,13 +221,13 @@ async function injectStorage(mp, key, payload) {
   return v === true;
 }
 
-// compare 结果页：先回中性页(防残留 compare-result 被误读为新值) -> 装载同构【输入】 -> reLaunch，由页面自渲染，只读取值
-async function openCompareResult(mp, sharedInput, plan) {
+// compare 结果页（多方案）：先回中性页(防残留) -> 装载同构【输入】(plans 可为 1~3) -> reLaunch 页面自渲染，返回全部列 [{R,JA,P}]
+async function openCompareResultN(mp, sharedInput, plans) {
   const neutral = await reLaunchReady(mp, '/pages/entry/entry', 'pages/entry/entry', null, { retries: 3, perMs: 15000 });
   if (!neutral.ok) throw new Error('neutral entry not ready path=' + neutral.path);
   let ok = false;
   for (let i = 0; i < 5; i++) {
-    if (await injectStorage(mp, COMPARE_RESULT_KEY, { sharedInput, plans: [plan] })) { ok = true; break; }
+    if (await injectStorage(mp, COMPARE_RESULT_KEY, { sharedInput, plans })) { ok = true; break; }
     await sleep(1200);
   }
   if (!ok) throw new Error('inject compare payload failed');
@@ -235,8 +235,13 @@ async function openCompareResult(mp, sharedInput, plan) {
   const r = await reLaunchReady(mp, '/pages/compare-result/compare-result', 'compare-result',
     d => d.ready === true && d.view, { retries: 3, perMs: 20000 });
   if (!r.ok) throw new Error('compare-result not ready path=' + r.path);
-  const c = r.data.view.columns[0];
-  return { R: Number(c.rContinued), JA: Number(c.jAccount), P: Number(c.pMonthly), page: r.page };
+  return (r.data.view.columns || []).map(c => ({ R: Number(c.rContinued), JA: Number(c.jAccount), P: Number(c.pMonthly) }));
+}
+
+// compare 单方案：返回首列 {R,JA,P,page}
+async function openCompareResult(mp, sharedInput, plan) {
+  const cols = await openCompareResultN(mp, sharedInput, [plan]);
+  return Object.assign({}, cols[0], { page: null });
 }
 
 // basic：reLaunch index，month 模式喂与 compare 同源完整段，调页面真实 onCalculate（产品 buildInput+Engine），result 页只读取值
@@ -278,6 +283,6 @@ module.exports = {
   launchAndConnect, waitLanded, resetToEntry, gotoCompare,
   commonBlock, importFixture, compareCtx, waitCardsReady, addMonths,
   COMPARE_RESULT_KEY, buildFixtureInput, fullMonthSegments, safeAttempt,
-  reLaunchReady, waitCurrentReady, injectStorage, openCompareResult, runBasicMonth,
+  reLaunchReady, waitCurrentReady, injectStorage, openCompareResult, openCompareResultN, runBasicMonth,
   disconnectQuiet, connectExisting, makeRecorder
 };

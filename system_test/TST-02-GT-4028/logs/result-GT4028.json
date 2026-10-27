@@ -1,0 +1,103 @@
+{
+  "case": "GT-4028",
+  "type": "GUI compare three-plan J-spread",
+  "ok": true,
+  "startedAt": "2026-10-27T16:04:57.584Z",
+  "finishedAt": "2026-10-27T16:05:43.952Z",
+  "input": {
+    "fixture": "My-Case.md",
+    "plans": [
+      "Z0.6",
+      "Z1.0",
+      "Z3.0"
+    ],
+    "rates": [
+      "0%",
+      "1.5%"
+    ]
+  },
+  "spreadOver": 100,
+  "expectedGap": {
+    "0%": {
+      "1-0": 228.73,
+      "2-1": 1143.61,
+      "2-0": 1372.34
+    },
+    "1.5%": {
+      "1-0": 240.7,
+      "2-1": 1203.49,
+      "2-0": 1444.19
+    }
+  },
+  "table": [
+    {
+      "rate": "0%",
+      "J账": [
+        5184.23,
+        5412.96,
+        6556.57
+      ],
+      "gaps": {
+        "1-0": 228.73,
+        "2-1": 1143.61,
+        "2-0": 1372.34
+      }
+    },
+    {
+      "rate": "1.5%",
+      "J账": [
+        5724.39,
+        5965.09,
+        7168.58
+      ],
+      "gaps": {
+        "1-0": 240.7,
+        "2-1": 1203.49,
+        "2-0": 1444.19
+      }
+    }
+  ],
+  "screenshot": "C:\\Users\\Administrator\\Desktop\\Wechat projects\\pension\\system_test\\TST-02-GT-4028\\logs\\GT4028-triple-compare-0pct.png",
+  "totals": {
+    "pass": 6,
+    "fail": 0
+  },
+  "assertions": [
+    {
+      "id": "J账拉开 0% Z1.0-Z0.6",
+      "title": true,
+      "pass": true,
+      "actual": ">100 且期望 228.73"
+    },
+    {
+      "id": "J账拉开 0% Z3.0-Z1.0",
+      "title": true,
+      "pass": true,
+      "actual": ">100 且期望 1143.61"
+    },
+    {
+      "id": "J账拉开 0% Z3.0-Z0.6",
+      "title": true,
+      "pass": true,
+      "actual": ">100 且期望 1372.34"
+    },
+    {
+      "id": "J账拉开 1.5% Z1.0-Z0.6",
+      "title": true,
+      "pass": true,
+      "actual": ">100 且期望 240.7"
+    },
+    {
+      "id": "J账拉开 1.5% Z3.0-Z1.0",
+      "title": true,
+      "pass": true,
+      "actual": ">100 且期望 1203.49"
+    },
+    {
+      "id": "J账拉开 1.5% Z3.0-Z0.6",
+      "title": true,
+      "pass": true,
+      "actual": ">100 且期望 1444.19"
+    }
+  ]
+}

@@ -1,0 +1,144 @@
+{
+  "case": "GT-4030",
+  "type": "compile gate + four-page render",
+  "ok": true,
+  "startedAt": "2026-10-27T16:12:29.728Z",
+  "finishedAt": "2026-10-27T16:13:31.257Z",
+  "input": {
+    "pages": [
+      "pages/entry/entry",
+      "pages/index/index",
+      "pages/compare/compare",
+      "pages/compare-result/compare-result"
+    ],
+    "skipCompile": false
+  },
+  "compile": {
+    "exitCode": 0,
+    "previewMark": true,
+    "appid": "wx9c012db494b84dae",
+    "errorLines": []
+  },
+  "pages": [
+    {
+      "route": "/pages/entry/entry",
+      "desc": "entry 数据通道选择页",
+      "open": true,
+      "nodeCount": 16,
+      "dataKeys": 1
+    },
+    {
+      "route": "/pages/index/index",
+      "desc": "basic 基本信息录入页",
+      "open": true,
+      "nodeCount": 425,
+      "dataKeys": 40
+    },
+    {
+      "route": "/pages/compare/compare",
+      "desc": "compare 方案比较页",
+      "open": true,
+      "nodeCount": 9,
+      "dataKeys": 7
+    },
+    {
+      "route": "/pages/compare-result/compare-result",
+      "desc": "compare 结果页",
+      "open": true,
+      "nodeCount": 141,
+      "dataKeys": 11
+    }
+  ],
+  "pageErrors": [],
+  "screenshot": "C:\\Users\\Administrator\\Desktop\\Wechat projects\\pension\\system_test\\TST-02-GT-4030\\logs\\GT4030-entry.png",
+  "totals": {
+    "pass": 12,
+    "fail": 0
+  },
+  "assertions": [
+    {
+      "id": "compile exit=0",
+      "title": "DevTools compile exit",
+      "pass": true,
+      "actual": 0,
+      "expected": 0
+    },
+    {
+      "id": "compile √preview",
+      "title": "真实 preview 标记",
+      "pass": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "id": "compile 无 error 行",
+      "title": "无新增错误",
+      "pass": true,
+      "actual": [],
+      "expected": []
+    },
+    {
+      "id": "entry 数据通道选择页 可打开",
+      "title": "reLaunch 落地路由",
+      "pass": true,
+      "actual": "pages/entry/entry",
+      "expected": "pages/entry/entry"
+    },
+    {
+      "id": "entry 数据通道选择页 非白屏渲染",
+      "title": "根节点可渲染且有数据",
+      "pass": true,
+      "actual": "nodes=16 keys=1",
+      "expected": "nodes>=1 keys>0"
+    },
+    {
+      "id": "basic 基本信息录入页 可打开",
+      "title": "reLaunch 落地路由",
+      "pass": true,
+      "actual": "pages/index/index",
+      "expected": "pages/index/index"
+    },
+    {
+      "id": "basic 基本信息录入页 非白屏渲染",
+      "title": "根节点可渲染且有数据",
+      "pass": true,
+      "actual": "nodes=425 keys=40",
+      "expected": "nodes>=1 keys>0"
+    },
+    {
+      "id": "compare 方案比较页 可打开",
+      "title": "reLaunch 落地路由",
+      "pass": true,
+      "actual": "pages/compare/compare",
+      "expected": "pages/compare/compare"
+    },
+    {
+      "id": "compare 方案比较页 非白屏渲染",
+      "title": "根节点可渲染且有数据",
+      "pass": true,
+      "actual": "nodes=9 keys=7",
+      "expected": "nodes>=1 keys>0"
+    },
+    {
+      "id": "compare 结果页 可打开",
+      "title": "reLaunch 落地路由",
+      "pass": true,
+      "actual": "pages/compare-result/compare-result",
+      "expected": "pages/compare-result/compare-result"
+    },
+    {
+      "id": "compare 结果页 非白屏渲染",
+      "title": "根节点可渲染且有数据",
+      "pass": true,
+      "actual": "nodes=141 keys=11",
+      "expected": "nodes>=1 keys>0"
+    },
+    {
+      "id": "四页全程无 pageError",
+      "title": "无 JS 报错",
+      "pass": true,
+      "actual": [],
+      "expected": []
+    }
+  ]
+}
