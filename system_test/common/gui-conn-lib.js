@@ -348,6 +348,26 @@ async function compareStartAndWait(mp, perMs) {
   return { landed: false, columns: [] };
 }
 
+/* 列沙箱 pension/outputs 下文件名（目录不存在返[]）。 */
+async function listOutputFiles(mp) {
+  return await ev(mp, function () {
+    return new Promise(function (res) {
+      var dir = wx.env.USER_DATA_PATH.replace(/[\/]+$/, '') + '/pension/outputs';
+      wx.getFileSystemManager().readdir({ dirPath: dir, success: function (r) { res(r.files || []); }, fail: function () { res([]); } });
+    });
+  });
+}
+
+/* 读沙箱 outputs/<name> 文本（失败返''）。 */
+async function readOutputFile(mp, name) {
+  return await ev(mp, function (n) {
+    return new Promise(function (res) {
+      var p = wx.env.USER_DATA_PATH.replace(/[\/]+$/, '') + '/pension/outputs/' + n;
+      wx.getFileSystemManager().readFile({ filePath: p, encoding: 'utf8', success: function (r) { res(r.data); }, fail: function () { res(''); } });
+    });
+  }, name);
+}
+
 // case 级断言记录器（独立入口各自持有一个，公共的收集/统计逻辑）
 function makeRecorder() {
   const list = [];
@@ -365,6 +385,7 @@ module.exports = {
   commonBlock, importFixture, compareCtx, waitCardsReady, addMonths,
   K_PLANS, K_SHARED, K_PAYLOAD, K_BASIC,
   clearCompareDrafts, clearBasicDraft, readCompare, patchPlanCard, setSharedCtx, compareStartAndWait,
+  listOutputFiles, readOutputFile,
   COMPARE_RESULT_KEY, buildFixtureInput, fullMonthSegments, safeAttempt,
   reLaunchReady, waitCurrentReady, injectStorage, openCompareResult, openCompareResultN, runBasicMonth,
   disconnectQuiet, connectExisting, makeRecorder

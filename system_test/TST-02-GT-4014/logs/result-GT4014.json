@@ -1,0 +1,77 @@
+{
+  "at": "2026-10-28T08:22:21.115Z",
+  "testcase": "TST-02-GT-4014",
+  "tag": "wife4",
+  "baseline": "unknown",
+  "port": 40215,
+  "newFile": "basic-20261028-162245.txt",
+  "report": {
+    "bytes": 8025,
+    "hasP": "6416.07",
+    "hasBasic": "3362.59",
+    "hasAccount": "3053.48",
+    "hasMarkers": true
+  },
+  "node": {
+    "repBytes": 8025,
+    "containsP": true
+  },
+  "pension": {
+    "total": 6416.07,
+    "J基础": 3362.59,
+    "J账户": 3053.48,
+    "J过渡": 0
+  },
+  "finishedAt": "2026-10-28T08:22:47.006Z",
+  "checks": [
+    {
+      "id": "4014-0",
+      "title": "手工妻子结果页 ready",
+      "pass": true,
+      "actual": "path=pages/result/result",
+      "expected": "pages/result/result"
+    },
+    {
+      "id": "4014-1",
+      "title": "outputs 恰好新增1个 basic-<stamp>.txt",
+      "pass": true,
+      "actual": "added=[\"basic-20261028-162245.txt\"]",
+      "expected": "one basic-*.txt"
+    },
+    {
+      "id": "4014-2",
+      "title": "报告文件非空且字节>200",
+      "pass": true,
+      "actual": "bytes=8025",
+      "expected": ">200"
+    },
+    {
+      "id": "4014-3",
+      "title": "报告含独立 P月=6416.07",
+      "pass": true,
+      "actual": "contains 6416.07",
+      "expected": "yes"
+    },
+    {
+      "id": "4014-4",
+      "title": "报告含三分项 3362.59/3053.48",
+      "pass": true,
+      "actual": "basicIdx=639 accountIdx=663",
+      "expected": "both found"
+    },
+    {
+      "id": "4014-5",
+      "title": "报告含养老金/退休标记",
+      "pass": true,
+      "actual": "markers=true",
+      "expected": "yes"
+    },
+    {
+      "id": "4014-6",
+      "title": "node buildBasicReport 独立产出含同 P月",
+      "pass": true,
+      "actual": "nodeContains 6416.07",
+      "expected": "yes"
+    }
+  ]
+}

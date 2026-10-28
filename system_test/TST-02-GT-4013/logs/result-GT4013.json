@@ -1,0 +1,64 @@
+{
+  "at": "2026-10-28T08:09:17.857Z",
+  "testcase": "TST-02-GT-4013",
+  "tag": "wife1",
+  "baseline": "unknown",
+  "port": 40215,
+  "gui": {
+    "total": 6416.07,
+    "J基础": 3362.59,
+    "J账户": 3053.48,
+    "J过渡": 0
+  },
+  "node": {
+    "total": 6416.07,
+    "J基础": 3362.59,
+    "J账户": 3053.48,
+    "J过渡": 0
+  },
+  "finishedAt": "2026-10-28T08:09:43.752Z",
+  "checks": [
+    {
+      "id": "4013-1",
+      "title": "手工妻子结果页 ready（非白屏/报错）",
+      "pass": true,
+      "actual": "path=pages/result/result",
+      "expected": "pages/result/result"
+    },
+    {
+      "id": "4013-2",
+      "title": "GUI P月有限正值",
+      "pass": true,
+      "actual": 6416.07,
+      "expected": "finite >0"
+    },
+    {
+      "id": "4013-3",
+      "title": "GUI 三分项有限非负",
+      "pass": true,
+      "actual": "3362.59/3053.48/0",
+      "expected": "finite >=0"
+    },
+    {
+      "id": "4013-4",
+      "title": "node 独立重算 P月有限正值",
+      "pass": true,
+      "actual": 6416.07,
+      "expected": "finite >0"
+    },
+    {
+      "id": "4013-5",
+      "title": "GUI=node P月",
+      "pass": true,
+      "actual": 6416.07,
+      "expected": 6416.07
+    },
+    {
+      "id": "4013-6",
+      "title": "GUI=node 三分项",
+      "pass": true,
+      "actual": "3362.59/3053.48/0",
+      "expected": "3362.59/3053.48/0"
+    }
+  ]
+}

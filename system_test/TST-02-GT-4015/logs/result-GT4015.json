@@ -1,0 +1,68 @@
+{
+  "at": "2026-10-28T08:26:59.470Z",
+  "testcase": "TST-02-GT-4015",
+  "tag": "wife6",
+  "baseline": "unknown",
+  "port": 40215,
+  "steps": {
+    "export1": "basic-20261028-162723.txt",
+    "f1AfterShare": true,
+    "export2": "basic-20261028-162729.txt",
+    "f1Bytes": 8025
+  },
+  "pension": {
+    "total": 6416.07
+  },
+  "finishedAt": "2026-10-28T08:27:30.723Z",
+  "checks": [
+    {
+      "id": "4015-0",
+      "title": "手工妻子结果页 ready",
+      "pass": true,
+      "actual": "path=pages/result/result",
+      "expected": "pages/result/result"
+    },
+    {
+      "id": "4015-1",
+      "title": "导出1 沙箱落盘 basic 文件",
+      "pass": true,
+      "actual": "f1=basic-20261028-162723.txt",
+      "expected": "basic-*.txt"
+    },
+    {
+      "id": "4015-2",
+      "title": "分享动作后 f1 仍在 outputs（OUT-003）",
+      "pass": true,
+      "actual": "present=true",
+      "expected": "present"
+    },
+    {
+      "id": "4015-3",
+      "title": "导出2 落盘 basic 文件",
+      "pass": true,
+      "actual": "f2=basic-20261028-162729.txt",
+      "expected": "basic-*.txt"
+    },
+    {
+      "id": "4015-4",
+      "title": "f1/f2 并存（多次导出不删旧文件）",
+      "pass": true,
+      "actual": "f1=true f2=true",
+      "expected": "both present"
+    },
+    {
+      "id": "4015-5",
+      "title": "f1 内容仍含独立 P月=6416.07 且非空",
+      "pass": true,
+      "actual": "bytes=8025 containsP=true",
+      "expected": "yes"
+    },
+    {
+      "id": "4015-6",
+      "title": "node buildBasicReport 含同 P月（独立交叉）",
+      "pass": true,
+      "actual": "nodeContains 6416.07",
+      "expected": "yes"
+    }
+  ]
+}
