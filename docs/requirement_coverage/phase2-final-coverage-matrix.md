@@ -62,9 +62,10 @@
 | REQ-02-FMT-000, REQ-02-NFR-004 | 旧3列文件向后兼容（BUG-02-0010） | developer | no | TST-02-UT-1034 | 旧3列文件向后兼容 | developer_test/TST-02-UT-1034/legacy-3col-compat-check.js | PASS | BUG-02-0010 |
 | REQ-02-SCOPE-003, REQ-02-NFR-001 | 文件比较主链路身份合法出结果+双保险兜底（BUG-02-0010） | developer | no | TST-02-UT-1035 | 主链路身份合法并出结果 | developer_test/TST-02-UT-1035/compare-pipeline-identity-check.js | PASS | BUG-02-0010 |
 | REQ-02-NFR-003, REQ-02-NFR-004 | compare-result 坏输入不白屏容错（BUG-02-0010） | developer | no | TST-02-UT-1036 | 坏输入不白屏并可读报错 | developer_test/TST-02-UT-1036/compare-result-faulttolerance-check.js | PASS | BUG-02-0010 |
-| REQ-02-CAL-000 | 缴费起始时间可手动编辑（项目主手测） | YDL | no | TST-02-MT-9000 | 手改起始月后自动段更新（手测） | （manual，无脚本） |  | - |
-| REQ-02-CAL-000 | 缴费起始时间动态化+缺省（项目主手测） | YDL | no | TST-02-MT-9001 | 缺省起始月展示（手测） | （manual，无脚本） |  | - |
-| REQ-02-CAL-000, REQ-02-VAL-004 | 起始月越界校验（项目主手测） | YDL | no | TST-02-MT-9002 | 越界起始月拦截（手测） | （manual，无脚本） |  | - |
+| REQ-02-CAL-000 | 缴费起始时间可手动编辑（项目主手测） | YDL | no | TST-02-MT-9000 | 手改起始月后自动段更新（手测） | （manual，无脚本） | PASS | - |
+| REQ-02-CAL-000 | 缴费起始时间动态化+缺省（项目主手测） | YDL | no | TST-02-MT-9001 | 缺省起始月展示（手测） | （manual，无脚本） | PASS | - |
+| REQ-02-CAL-000, REQ-02-VAL-004 | 起始月越界校验（项目主手测） | YDL | no | TST-02-MT-9002 | 越界起始月拦截（手测） | （manual，无脚本） | PASS | - |
+| REQ-02-CAL-000 | 基本计算与方案比较一致性（项目主手测） | YDL | no | TST-02-MT-9003 | 基本计算与方案比较结果一致 | （manual，无脚本） | FAIL | BUG-02-0011, BUG-02-0012, BUG-02-0013 |
 | REQ-02-CAL-000 | my1 缺省起始月展示+数据层（BUG-02-0004） | tester | no | TST-02-GT-4019 | My缺省起始月数据层断言 | system_test/TST-02-GT-4019/gt4019-planstart.js | PASS | - |
 | REQ-02-CAL-000 | wife5 缺省起始月=paidTo+1=2026-01（BUG-02-0004） | tester | no | TST-02-GT-4020 | wife缺省起始月=paidTo+1 | system_test/TST-02-GT-4020/gt4020-planstart-wife.js | PASS | - |
 | REQ-02-CAL-000, REQ-02-VAL-004 | 起始月边界/越界数据层（BUG-02-0004/0009 修复复测） | tester | no | TST-02-GT-4021 | 起始月边界/越界修复复测 | system_test/TST-02-GT-4021/gt-4021-task75.js | PASS 13/13 | BUG-02-0009 |

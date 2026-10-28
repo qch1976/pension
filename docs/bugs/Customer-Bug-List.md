@@ -328,3 +328,63 @@ The specification of phase2 and the dedicated test coverage matrix are not in .\
 
 # bug status
 **bug status**: closed（项目主 2026-10-28 批准；修复 + 独立复测通过）
+
+## BUG-02-0011
+# testcase ID
+- TST-02-MT-9003
+
+# failure description
+缴费基数和每月缴费的精度有误，应该**精确到个位，四舍五入**。
+复现："方案比较" --> "文件输入" --> e7-my1.txt --> 方案卡 -> Z值=0.6。目前计算 2026.9 之后的缴费基数和每月缴费值精确到小数点后 2 位：12116*0.6=7269.6，月缴=7269.6*20%=1453.92。官方口径（项目主实测口径）应为：12116*0.6=7269.6 => **7270（精确到个位，四舍五入）**，月缴=7270*20% => **1454（精确到个位，四舍五入）**。
+要求：修改代码；并由 worker2 查找有无相关官方文件说明该四舍五入算法，更新到项目相应文档与 code 中。
+
+# root cause analysis
+待 developer（worker3）定位、architect（worker2）核对官方口径后回填（已派工，本节随后补实测根因与源码行号）。
+
+# fix solution description
+待修复：缴费基数与每月缴费改为精确到个位、四舍五入；worker2 负责查证官方四舍五入文件并落文档/代码注释。修复方案与 commit hash 回填本节。
+
+# fix verification process
+待 tester（worker4）独立复测：TST-02-MT-9003 基本计算与方案比较一致性，核对 7270 / 1454 口径，证据与结果回填本节。
+
+# bug status
+**bug status**: open
+
+## BUG-02-0012
+# testcase ID
+- TST-02-MT-9003
+
+# failure description
+"方案比较"的输出页面，ROI 的计算细节没有显示。需要找一个合适的地方显示，例如在"数值下钻" -> "查看明细"中展示 ROI 计算细节。
+
+# root cause analysis
+待 developer（worker3）定位比较结果页 ROI 明细缺失原因后回填（已派工）。
+
+# fix solution description
+待修复：在比较结果页合适位置（建议"数值下钻" -> "查看明细"）展示 ROI 计算细节。修复内容与 commit hash 回填本节。
+
+# fix verification process
+待 tester（worker4）独立 GUI 复测：比较结果页可查看 ROI 计算细节，证据回填本节。
+
+# bug status
+**bug status**: open
+
+## BUG-02-0013
+# testcase ID
+- TST-02-MT-9003
+
+# failure description
+./pension/autotest/ 目录再次出现，需 worker4 检查其内容是 testcase 正式 log 还是临时测试输出，并挪到合适位置（参照 project-documentation SKILL）。
+另：临时文件不得放在 ./pension/ 下，./pension/temp/ 目录是错误的，应删除；测试生成的文件只要不是 official log，就不要放在 project folder 内。./pension/temp/ 现有内容移至 C:\Users\Administrator\Desktop\Wechat projects\temp\。项目主已将此要求更新到 INPUT-COMMON.md。
+
+# root cause analysis
+待 tester（worker4）核查 autotest/ 与 temp/ 内容及来源后回填（已派工）。
+
+# fix solution description
+待整改（worker4）：鉴别 autotest/ 内容并归位；删除项目内 temp/，非 official log 全部移出 project folder 至 C:\Users\Administrator\Desktop\Wechat projects\temp\；依据 project-documentation SKILL 与新版 INPUT-COMMON.md。整改结果回填本节。
+
+# fix verification process
+待 tester 自检并由 Manager 复核：项目目录内不再有 temp/、autotest/ 已正确归位，证据回填本节。
+
+# bug status
+**bug status**: open
