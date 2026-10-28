@@ -172,7 +172,9 @@ The specification of phase2 and the dedicated test coverage matrix are not in .\
 
 **性别前提说明（Manager 已独立核实）**：MyWife-Case.md 无性别字段，services/caseValidator.js L64 `gender: options.gender \|\| 'male'`，导入不传性别即默认 male，故“导入即女性档”在现有解析下不会自动发生；B 点按“导入不残留 2026-01(male 2044-07)＋共享区正规交互切 female 验女性法定值”覆盖，符合工单“按性别/femaleType 正确计算”。夹具/解析自动识别性别属需求改动，已另报项目主裁定。
 
-**当前状态＝verified（fixed + independently verified，2026-10-28）**；final closed 待项目主确认。
+> **项目主 2026-10-28 10:43 裁定（无需改）**：gender 仅影响“预计退休时间”；My-Case.md / MyWife-Case.md 中 4 个 customer testcase 均已显式指定退休时间，故夹具内不必添加 gender 字段。本条关闭，不做解析/夹具改动。
+
+**当前状态＝closed（fixed + independently verified；项目主 2026-10-28 10:43 批准 close）**。
 
 
 ## BUG-02-0009
@@ -207,7 +209,7 @@ The specification of phase2 and the dedicated test coverage matrix are not in .\
 
 **修复与独立验收（2026-10-28，项目主 2026-10-28 00:24 授权其休息后自主修复）**：① developer task-74 按 Fix Solution 修复两处下界 `<`→`<=`、文案改「不得早于最后缴费月的次月」、订正注释、补 TST-02-UT-1027 等值边界，本地 commit e530e95；Manager 独立复核 diff + 独立复跑 UT（1025 3/0、1026 3/0、1027 15/0）后经 Windows 推送（e530e95）。② tester task-75 独立 GUI 验收（非引用 developer 回显）：GT-4021 回归 13/13 PASS（2026-08 等值现正确拦截、2026-07/2033-08 仍拦、2026-09/2033-07/留空合法；真实 sharedInput 复核合法起点自动段首月=历史末月+1、历史/自动段月份零交集）、独立复跑 UT-1027 15/15、developer_test 全量 42 文件/537 断言零失败；矩阵 GT-4021 FAIL→PASS（bug 列保留）；结构按一 testcase 一入口整改（删旧入口 gt4021-planstart-boundary.js、保留单一 gt-4021-task75.js），commit 95a26cc 经 Windows 推送 origin/master。
 
-**当前状态＝verified（fixed + independently verified，2026-10-28）**；final closed 待项目主确认。
+**当前状态＝closed（fixed + independently verified；项目主 2026-10-28 10:43 批准 close）**。
 
 
 ## BUG-02-0010
