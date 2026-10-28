@@ -1,0 +1,13 @@
+MATRIX GATE: FAIL  2026-10-28T12:53:28.225Z
+spec (baseline)=docs\requirement_coverage\phase2-final-coverage-matrix.md
+REQ index=0  final rows=76  unique TST=76  initial matrix=absent
+
+ERRORS (3):
+  ✗ TST-02-MT-9000: result missing
+  ✗ TST-02-MT-9001: result missing
+  ✗ TST-02-MT-9002: result missing
+
+WARNINGS (3):
+  ! TST-02-UT-1015: script path folder "TST-02-CT-1015" does not match testcase ID "TST-02-UT-1015" (historical one-script-multi-testcase; must be same-named folder or common/utils/customer_testcases for new cases)
+  ! TST-02-UT-1016: script path folder "TST-02-CT-1016" does not match testcase ID "TST-02-UT-1016" (historical one-script-multi-testcase; must be same-named folder or common/utils/customer_testcases for new cases)
+  ! architect initial matrix not present (closed phase-1) — coverage-completeness skipped; integrity checks only
