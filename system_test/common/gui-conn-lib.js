@@ -267,6 +267,87 @@ async function disconnectQuiet(mp) { try { if (mp) await mp.disconnect(); } catc
 // 只连接已由 keeper 拉起的常驻口（external：不 spawn cli、不杀端口）
 async function connectExisting(port) { const r = await launchAndConnect(port, true); return r.mp; }
 
+/* ===== task-79 通用 compare/basic 流程 helper（零 case-specific input/expect）=====
+ * storage key 以 char code 构造，避免字面量转码。 */
+const K_PLANS = String.fromCharCode(112,101,110,115,105,111,110,95,112,108,97,110,115,95,118,49);
+const K_SHARED = String.fromCharCode(112,101,110,115,105,111,110,95,99,111,109,112,97,114,101,95,105,110,112,117,116,95,118,49);
+const K_PAYLOAD = String.fromCharCode(112,101,110,115,105,111,110,95,99,111,109,112,97,114,101,95,112,97,121,108,111,97,100,95,118,49);
+const K_BASIC = String.fromCharCode(112,101,110,115,105,111,110,95,105,110,112,117,116,95,118,49);
+
+/* compare 干净基线：reLaunch entry + 清 plans/shared/payload 三 draft。 */
+async function clearCompareDrafts(mp) {
+  await mp.reLaunch('/pages/entry/entry').catch(() => {});
+  await sleep(2200);
+  await ev(mp, function (a, b, c) { [a, b, c].forEach(function (k) { try { wx.removeStorageSync(k); } catch (e) {} }); return true; }, K_PLANS, K_SHARED, K_PAYLOAD);
+  await sleep(300);
+}
+
+/* basic 干净基线：reLaunch index + 清 pension_input_v1。 */
+async function clearBasicDraft(mp) {
+  await mp.reLaunch('/pages/index/index').catch(() => {});
+  await sleep(2200);
+  await ev(mp, function (k) { try { wx.removeStorageSync(k); } catch (e) {} return true; }, K_BASIC);
+  await sleep(300);
+}
+
+/* 回读 compare：page.ctx / plan-list.plans / storage plans。 */
+async function readCompare(mp) {
+  return await ev(mp, function (k) {
+    const p = getCurrentPages().slice(-1)[0];
+    const pl = p.selectComponent('#planList');
+    let st = null; try { st = wx.getStorageSync(k); } catch (e) {}
+    return {
+      route: p.route,
+      ctx: p.data.ctx,
+      plans: pl.getPlans().map(function (x) { return { retireYM: x.retireYM, retireTouched: !!x.retireTouched, z: x.z, segType: x.segType, windowStartYM: x.windowStartYM }; }),
+      storagePlans: (st && st.plans ? st.plans : []).map(function (x) { return { retireYM: x.retireYM, retireTouched: !!x.retireTouched }; })
+    };
+  }, K_PLANS);
+}
+
+/* 对第 idx(0基) 卡下发真实 patch（走 plan-list 真实 onCardChange→applyPlans/persist）。 */
+async function patchPlanCard(mp, idx, patch) {
+  await ev(mp, function (i, pp) {
+    const p = getCurrentPages().slice(-1)[0]; const pl = p.selectComponent('#planList');
+    pl.onCardChange({ detail: { index: i + 1, patch: pp } });
+    return true;
+  }, idx, patch);
+  await sleep(700);
+}
+
+/* compare：共享区正规交互 setGender/setFemaleType/onBirth 后 syncCtx（触发 plan-list observer）。 */
+async function setSharedCtx(mp, patch) {
+  await ev(mp, function (pp) {
+    const p = getCurrentPages().slice(-1)[0]; const s = p.selectComponent('#sharedData');
+    if (pp.gender) s.setGender({ currentTarget: { dataset: { v: pp.gender } } });
+    if (pp.femaleType) s.setFemaleType({ currentTarget: { dataset: { v: pp.femaleType } } });
+    if (pp.birthYM) s.onBirth({ detail: { value: pp.birthYM } });
+    return true;
+  }, patch);
+  await sleep(300);
+  await ev(mp, () => { getCurrentPages().slice(-1)[0].syncCtx(); return true; });
+  await sleep(1000);
+}
+
+/* compare 开始比较并等 compare-result；返回 {landed, columns:[{P,R,JA}]}。 */
+async function compareStartAndWait(mp, perMs) {
+  await ev(mp, () => { getCurrentPages().slice(-1)[0].startCompare(); return true; });
+  const t0 = Date.now(); const ms = perMs || 30000;
+  while (Date.now() - t0 < ms) {
+    const r = await ev(mp, () => {
+      const p = getCurrentPages().slice(-1)[0];
+      if (p.route === 'pages/compare-result/compare-result') {
+        const cols = (((p.data || {}).view || {}).columns || []).map(function (c) { return { P: c.pMonthly, R: c.rContinued, JA: c.jAccount, eligible: c.eligible }; });
+        return { landed: true, columns: cols };
+      }
+      return { landed: false };
+    });
+    if (r && r.landed) return r;
+    await sleep(800);
+  }
+  return { landed: false, columns: [] };
+}
+
 // case 级断言记录器（独立入口各自持有一个，公共的收集/统计逻辑）
 function makeRecorder() {
   const list = [];
@@ -282,6 +363,8 @@ module.exports = {
   discoverCli, portUp, waitPort, ev,
   launchAndConnect, waitLanded, resetToEntry, gotoCompare,
   commonBlock, importFixture, compareCtx, waitCardsReady, addMonths,
+  K_PLANS, K_SHARED, K_PAYLOAD, K_BASIC,
+  clearCompareDrafts, clearBasicDraft, readCompare, patchPlanCard, setSharedCtx, compareStartAndWait,
   COMPARE_RESULT_KEY, buildFixtureInput, fullMonthSegments, safeAttempt,
   reLaunchReady, waitCurrentReady, injectStorage, openCompareResult, openCompareResultN, runBasicMonth,
   disconnectQuiet, connectExisting, makeRecorder
