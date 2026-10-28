@@ -1,0 +1,125 @@
+{
+  "at": "2026-10-28T08:03:03.207Z",
+  "testcase": "TST-02-GT-4012",
+  "tag": "my3",
+  "baseline": "unknown",
+  "port": 40215,
+  "gui": {
+    "landed": true,
+    "columns": [
+      {
+        "P": 13290.66,
+        "R": 119221.44,
+        "JA": 5724.39,
+        "eligible": true
+      },
+      {
+        "P": 15904.33,
+        "R": 596107.2,
+        "JA": 7168.58,
+        "eligible": true
+      }
+    ]
+  },
+  "node": {
+    "ok": true,
+    "P": [
+      13290.66,
+      15904.33
+    ]
+  },
+  "filled": {
+    "route": "pages/compare/compare",
+    "ctx": {
+      "gender": "male",
+      "femaleType": "worker",
+      "birthYM": "1973-07",
+      "historyEndYM": "2026-08"
+    },
+    "plans": [
+      {
+        "retireYM": "2033-07",
+        "retireTouched": true,
+        "z": "0.6",
+        "segType": "flexible",
+        "windowStartYM": ""
+      },
+      {
+        "retireYM": "2033-07",
+        "retireTouched": true,
+        "z": "3.0",
+        "segType": "flexible",
+        "windowStartYM": ""
+      }
+    ],
+    "storagePlans": [
+      {
+        "retireYM": "2033-07",
+        "retireTouched": true
+      },
+      {
+        "retireYM": "2033-07",
+        "retireTouched": true
+      }
+    ]
+  },
+  "finishedAt": "2026-10-28T08:03:36.133Z",
+  "checks": [
+    {
+      "id": "4012-1",
+      "title": "真实文件导入 common 成功",
+      "pass": true,
+      "actual": "My-Case.md",
+      "expected": "My-Case.md"
+    },
+    {
+      "id": "4012-2",
+      "title": "Z=3.0 上限合法（validateZ=null）",
+      "pass": true,
+      "actual": null,
+      "expected": "null"
+    },
+    {
+      "id": "4012-3",
+      "title": "Z=3.01 超上限被拦",
+      "pass": true,
+      "actual": "Z 值须在 0.60~3.00 之间（当前 3.01），越界不能比较",
+      "expected": "red error"
+    },
+    {
+      "id": "4012-4",
+      "title": "两卡含 Z=3.0 上限方案按界面落库",
+      "pass": true,
+      "actual": "z0.6/flexible ; z3.0/flexible",
+      "expected": "z0.6 ; z3.0"
+    },
+    {
+      "id": "4012-5",
+      "title": "两卡 isValidPlan=true（3.0 方案有效）",
+      "pass": true,
+      "actual": "true,true",
+      "expected": "true,true"
+    },
+    {
+      "id": "4012-6",
+      "title": "进入 compare-result 且2列",
+      "pass": true,
+      "actual": "landed=true n=2",
+      "expected": "landed,2"
+    },
+    {
+      "id": "4012-7",
+      "title": "GUI 列 P月=期望（含 Z3.0=15292.32）",
+      "pass": true,
+      "actual": "13290.66,15904.33",
+      "expected": "13290.66,15904.33"
+    },
+    {
+      "id": "4012-8",
+      "title": "node 与 GUI 列一致",
+      "pass": true,
+      "actual": "13290.66,15904.33",
+      "expected": "13290.66,15904.33"
+    }
+  ]
+}

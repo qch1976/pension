@@ -1,0 +1,153 @@
+{
+  "at": "2026-10-28T08:01:49.852Z",
+  "testcase": "TST-02-GT-4011",
+  "tag": "my2",
+  "baseline": "unknown",
+  "port": 40215,
+  "afterImport": {
+    "route": "pages/compare/compare",
+    "ctx": {
+      "gender": "male",
+      "femaleType": "worker",
+      "birthYM": "1973-07",
+      "historyEndYM": "2026-08"
+    },
+    "plans": [
+      {
+        "retireYM": "2035-09",
+        "retireTouched": false,
+        "z": "",
+        "segType": "",
+        "windowStartYM": ""
+      },
+      {
+        "retireYM": "2035-09",
+        "retireTouched": false,
+        "z": "",
+        "segType": "",
+        "windowStartYM": ""
+      }
+    ],
+    "storagePlans": [
+      {
+        "retireYM": "2035-09",
+        "retireTouched": false
+      },
+      {
+        "retireYM": "2035-09",
+        "retireTouched": false
+      }
+    ]
+  },
+  "gui": {
+    "landed": true,
+    "columns": [
+      {
+        "P": 13290.66,
+        "R": 119221.44,
+        "JA": 5724.39,
+        "eligible": true
+      },
+      {
+        "P": 13726.27,
+        "R": 198702.4,
+        "JA": 5965.09,
+        "eligible": true
+      }
+    ]
+  },
+  "node": {
+    "ok": true,
+    "P": [
+      13290.66,
+      13726.27
+    ]
+  },
+  "filled": {
+    "route": "pages/compare/compare",
+    "ctx": {
+      "gender": "male",
+      "femaleType": "worker",
+      "birthYM": "1973-07",
+      "historyEndYM": "2026-08"
+    },
+    "plans": [
+      {
+        "retireYM": "2033-07",
+        "retireTouched": true,
+        "z": "0.6",
+        "segType": "flexible",
+        "windowStartYM": ""
+      },
+      {
+        "retireYM": "2033-07",
+        "retireTouched": true,
+        "z": "1.0",
+        "segType": "flexible",
+        "windowStartYM": ""
+      }
+    ],
+    "storagePlans": [
+      {
+        "retireYM": "2033-07",
+        "retireTouched": true
+      },
+      {
+        "retireYM": "2033-07",
+        "retireTouched": true
+      }
+    ]
+  },
+  "finishedAt": "2026-10-28T08:02:21.725Z",
+  "checks": [
+    {
+      "id": "4011-1",
+      "title": "真实文件导入 common 成功",
+      "pass": true,
+      "actual": "My-Case.md",
+      "expected": "My-Case.md"
+    },
+    {
+      "id": "4011-2",
+      "title": "导入后两卡默认法定退休=2035-09/touched=false",
+      "pass": true,
+      "actual": "2035-09/false,2035-09/false",
+      "expected": "2035-09/false,..."
+    },
+    {
+      "id": "4011-3",
+      "title": "两卡差异按界面落库（退休/z/性质）",
+      "pass": true,
+      "actual": "2033-07/z0.6/flexible/true ; 2033-07/z1.0/flexible/true",
+      "expected": "two distinct cards"
+    },
+    {
+      "id": "4011-4",
+      "title": "两卡 isValidPlan=true",
+      "pass": true,
+      "actual": "true,true",
+      "expected": "true,true"
+    },
+    {
+      "id": "4011-5",
+      "title": "进入 compare-result 且2列",
+      "pass": true,
+      "actual": "landed=true n=2",
+      "expected": "landed,2"
+    },
+    {
+      "id": "4011-6",
+      "title": "GUI 列 P月=期望",
+      "pass": true,
+      "actual": "13290.66,13726.27",
+      "expected": "13290.66,13726.27"
+    },
+    {
+      "id": "4011-7",
+      "title": "node buildViewSafe 与 GUI 列一致",
+      "pass": true,
+      "actual": "13290.66,13726.27",
+      "expected": "13290.66,13726.27"
+    }
+  ]
+}
