@@ -1,0 +1,38 @@
+BUG GATE: PASS  2026-10-28T13:16:21.338Z
+bug table=docs\bugs\Customer-Bug-List.md  matrix=docs\requirement_coverage\phase2-final-coverage-matrix.md  tickets=7
+status tally=closed:7
+
+WARNINGS (33):
+  ! BUG-00-0000: legacy ticket (outside BUG-02) — format not enforced
+  ! BUG-00-0001: legacy ticket (outside BUG-02) — format not enforced
+  ! BUG-00-0002: legacy ticket (outside BUG-02) — format not enforced
+  ! BUG-00-0003: legacy ticket (outside BUG-02) — format not enforced
+  ! BUG-00-0004: legacy ticket (outside BUG-02) — format not enforced
+  ! BUG-00-0005: legacy ticket (outside BUG-02) — format not enforced
+  ! BUG-00-0006: legacy ticket (outside BUG-02) — format not enforced
+  ! BUG-00-0007: legacy ticket (outside BUG-02) — format not enforced
+  ! BUG-00-0008: legacy ticket (outside BUG-02) — format not enforced
+  ! BUG-00-0009: legacy ticket (outside BUG-02) — format not enforced
+  ! BUG-00-0010: legacy ticket (outside BUG-02) — format not enforced
+  ! BUG-00-0011: legacy ticket (outside BUG-02) — format not enforced
+  ! BUG-00-0012: legacy ticket (outside BUG-02) — format not enforced
+  ! BUG-00-0013: legacy ticket (outside BUG-02) — format not enforced
+  ! BUG-00-0014: legacy ticket (outside BUG-02) — format not enforced
+  ! BUG-01-0015: legacy ticket (outside BUG-02) — format not enforced
+  ! BUG-01-0016: legacy ticket (outside BUG-02) — format not enforced
+  ! BUG-00-0017: legacy ticket (outside BUG-02) — format not enforced
+  ! BUG-00-0018: legacy ticket (outside BUG-02) — format not enforced
+  ! BUG-00-0019: legacy ticket (outside BUG-02) — format not enforced
+  ! BUG-00-0020: legacy ticket (outside BUG-02) — format not enforced
+  ! BUG-00-0021: legacy ticket (outside BUG-02) — format not enforced
+  ! BUG-00-0022: legacy ticket (outside BUG-02) — format not enforced
+  ! BUG-00-0023: legacy ticket (outside BUG-02) — format not enforced
+  ! BUG-00-0024: legacy ticket (outside BUG-02) — format not enforced
+  ! BUG-00-0025: legacy ticket (outside BUG-02) — format not enforced
+  ! BUG-00-0026: legacy ticket (outside BUG-02) — format not enforced
+  ! BUG-00-0027: legacy ticket (outside BUG-02) — format not enforced
+  ! BUG-00-0028: legacy ticket (outside BUG-02) — format not enforced
+  ! BUG-02-0000: legacy ticket (outside BUG-02) — format not enforced
+  ! BUG-02-0001: legacy ticket (outside BUG-02) — format not enforced
+  ! BUG-02-0002: legacy ticket (outside BUG-02) — format not enforced
+  ! BUG-02-0003: legacy ticket (outside BUG-02) — format not enforced
