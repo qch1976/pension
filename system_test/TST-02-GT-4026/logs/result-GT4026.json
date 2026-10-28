@@ -1,0 +1,90 @@
+{
+  "at": "2026-10-28T08:52:46.717Z",
+  "testcase": "TST-02-GT-4026",
+  "baseline": "unknown",
+  "port": 40215,
+  "builtAfterImport": {
+    "ok": true,
+    "error": "",
+    "rate": 0.015
+  },
+  "err25": "记账年利率超出合理范围(0~20%)：25",
+  "guiErr25": "记账年利率超出合理范围(0~20%)：25",
+  "planKeys": [
+    [],
+    []
+  ],
+  "finishedAt": "2026-10-28T08:53:18.121Z",
+  "checks": [
+    {
+      "id": "4026-0",
+      "title": "真实文件导入 common 成功",
+      "pass": true,
+      "actual": "My-Case.md",
+      "expected": "My-Case.md"
+    },
+    {
+      "id": "4026-1",
+      "title": "导入后 built ok 且 futureMonthlyRate=0.015",
+      "pass": true,
+      "actual": "ok=true rate=0.015",
+      "expected": "ok,0.015"
+    },
+    {
+      "id": "4026-2",
+      "title": "parseSharedRatePct('1.5')=0.015",
+      "pass": true,
+      "actual": 0.015,
+      "expected": "0.015"
+    },
+    {
+      "id": "4026-3",
+      "title": "留空→默认0.015 且 usedDefault",
+      "pass": true,
+      "actual": "0.015/true",
+      "expected": "0.015/true"
+    },
+    {
+      "id": "4026-4",
+      "title": "录'0'→0 不计息",
+      "pass": true,
+      "actual": 0,
+      "expected": "0"
+    },
+    {
+      "id": "4026-5",
+      "title": "录'25'→抛错（0~20 拦截）",
+      "pass": true,
+      "actual": "记账年利率超出合理范围(0~20%)：25",
+      "expected": "throws 0~20"
+    },
+    {
+      "id": "4026-6",
+      "title": "GUI 留空→built rate=0.015",
+      "pass": true,
+      "actual": "ok=true rate=0.015",
+      "expected": "ok,0.015"
+    },
+    {
+      "id": "4026-7",
+      "title": "GUI 录'0'→built rate=0",
+      "pass": true,
+      "actual": "ok=true rate=0",
+      "expected": "ok,0"
+    },
+    {
+      "id": "4026-8",
+      "title": "GUI 录'25'→built ok:false 且红错含25",
+      "pass": true,
+      "actual": "ok=false err=记账年利率超出合理范围(0~20%)：25",
+      "expected": "ok:false, contains 25"
+    },
+    {
+      "id": "4026-9",
+      "title": "两方案卡均无 futureMonthlyRate 字段（利率只在共享区 Q1=B）",
+      "pass": true,
+      "actual": "[[],[]]",
+      "expected": "[[],[]]"
+    }
+  ]
+}

@@ -1,0 +1,100 @@
+{
+  "at": "2026-10-28T08:54:50.944Z",
+  "testcase": "TST-02-GT-4031",
+  "baseline": "unknown",
+  "port": 40215,
+  "finishedAt": "2026-10-28T08:55:41.198Z",
+  "checks": [
+    {
+      "id": "4031-1",
+      "title": "My built ok 且27段",
+      "pass": true,
+      "actual": "ok=true n=27",
+      "expected": "ok,27"
+    },
+    {
+      "id": "4031-2",
+      "title": "My 首段 2000-11~2000-12 enterprise/3071",
+      "pass": true,
+      "actual": "{\"type\":\"enterprise\",\"startYM\":\"2000-11\",\"endYM\":\"2000-12\",\"baseMonthly\":3071}",
+      "expected": "2000-11,2000-12,enterprise,3071"
+    },
+    {
+      "id": "4031-3",
+      "title": "My 全 enterprise",
+      "pass": true,
+      "actual": "allEnt",
+      "expected": "true"
+    },
+    {
+      "id": "4031-4",
+      "title": "My rate=0.015 且 fileErrors0",
+      "pass": true,
+      "actual": "rate=0.015",
+      "expected": "0.015"
+    },
+    {
+      "id": "4031-5",
+      "title": "Wife built ok 且23段",
+      "pass": true,
+      "actual": "ok=true n=23",
+      "expected": "ok,23"
+    },
+    {
+      "id": "4031-6",
+      "title": "Wife 跨度 2003-09~12/2005-01~07/2006-04~12",
+      "pass": true,
+      "actual": "spans",
+      "expected": "three spans"
+    },
+    {
+      "id": "4031-7",
+      "title": "Wife 全enterprise 且账户余额481459",
+      "pass": true,
+      "actual": "allEnt=true bal=481459",
+      "expected": "true,481459"
+    },
+    {
+      "id": "4031-8",
+      "title": "Wife 比较结果2列 P=8465.41/11179.12",
+      "pass": true,
+      "actual": "landed=true P=8465.41/11179.12",
+      "expected": "8465.41/11179.12"
+    },
+    {
+      "id": "4031-9",
+      "title": "临时5列「灵活」→type=flexible，段2010-03~04",
+      "pass": true,
+      "actual": "{\"year\":2010,\"base\":1000,\"startMonth\":3,\"months\":2,\"type\":\"flexible\"} err=[]",
+      "expected": "flexible,start3,2months"
+    },
+    {
+      "id": "4031-10",
+      "title": "临时5列「单位」→type=enterprise",
+      "pass": true,
+      "actual": "{\"year\":2010,\"base\":1000,\"startMonth\":6,\"months\":1,\"type\":\"enterprise\"}",
+      "expected": "enterprise"
+    },
+    {
+      "id": "4031-11",
+      "title": "旧3列 startMonth缺省=1 type缺省=enterprise（向后兼容）",
+      "pass": true,
+      "actual": "{\"year\":2010,\"base\":1000,\"startMonth\":1,\"months\":5,\"type\":\"enterprise\"}",
+      "expected": "1,enterprise,5"
+    },
+    {
+      "id": "4031-12",
+      "title": "非法身份「外包」逐行拦截（validate ok=false）",
+      "pass": true,
+      "actual": "[{\"line\":6,\"reason\":\"第2010年 缴费身份无法识别（须为 单位/企业职工 或 灵活/灵活就业/失业灵活就业）：外包\"}]",
+      "expected": "blocked"
+    },
+    {
+      "id": "4031-13",
+      "title": "起始月13（非1~12）逐行拦截",
+      "pass": true,
+      "actual": "[{\"line\":6,\"reason\":\"第2010年 年内起始月份须为 1~12 的整数：13\"}]",
+      "expected": "blocked"
+    }
+  ]
+}

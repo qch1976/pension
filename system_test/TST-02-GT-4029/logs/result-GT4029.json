@@ -1,0 +1,154 @@
+{
+  "at": "2026-10-28T08:53:50.827Z",
+  "testcase": "TST-02-GT-4029",
+  "baseline": "unknown",
+  "port": 40215,
+  "gui": {
+    "landed": true,
+    "columns": [
+      {
+        "P": 13290.66,
+        "R": 119221.44,
+        "JA": 5724.39,
+        "eligible": true
+      },
+      {
+        "P": 13726.27,
+        "R": 198702.4,
+        "JA": 5965.09,
+        "eligible": true
+      }
+    ]
+  },
+  "items": [
+    {
+      "status": "ok",
+      "continueP": 13290.66,
+      "stopP": 10765.69,
+      "contInterest": 75082.18,
+      "stopInterest": null,
+      "contSegs": 28,
+      "stopSegs": 27,
+      "stopRate": null,
+      "stopEndMax": "2026-08",
+      "contAutoFirst": "2026-09",
+      "contAutoLast": "2033-06",
+      "stopEligible": true
+    },
+    {
+      "status": "ok",
+      "continueP": 13726.27,
+      "stopP": 10765.69,
+      "contInterest": 76746.67,
+      "stopInterest": null,
+      "contSegs": 28,
+      "stopSegs": 27,
+      "stopRate": null,
+      "stopEndMax": "2026-08",
+      "contAutoFirst": "2026-09",
+      "contAutoLast": "2033-06",
+      "stopEligible": true
+    }
+  ],
+  "finishedAt": "2026-10-28T08:54:23.108Z",
+  "checks": [
+    {
+      "id": "4029-0",
+      "title": "真实文件导入 common 成功",
+      "pass": true,
+      "actual": "My-Case.md",
+      "expected": "My-Case.md"
+    },
+    {
+      "id": "4029-1",
+      "title": "开始比较→compare-result ready 且2列（GUI 零回归/不再白屏）",
+      "pass": true,
+      "actual": "landed=true n=2",
+      "expected": "landed,2"
+    },
+    {
+      "id": "4029-2",
+      "title": "GUI 列 P月=期望",
+      "pass": true,
+      "actual": "13290.66,13726.27",
+      "expected": "13290.66,13726.27"
+    },
+    {
+      "id": "4029-C0",
+      "title": "方案1 continue 账户利息>0（利率透传计息）",
+      "pass": true,
+      "actual": "interest=75082.18",
+      "expected": ">0"
+    },
+    {
+      "id": "4029-A0",
+      "title": "方案1 continue 自动段首=2026-09 末=2033-06（retire2033-07前月）",
+      "pass": true,
+      "actual": "first=2026-09 last=2033-06",
+      "expected": "2026-09,2033-06"
+    },
+    {
+      "id": "4029-S0",
+      "title": "方案1 stop rate=null（停保）",
+      "pass": true,
+      "actual": "rate=null",
+      "expected": "null"
+    },
+    {
+      "id": "4029-H0",
+      "title": "方案1 stop 仅历史段 maxEnd=2026-08",
+      "pass": true,
+      "actual": "maxEnd=2026-08",
+      "expected": "2026-08"
+    },
+    {
+      "id": "4029-I0",
+      "title": "方案1 stop 零计息且 eligible",
+      "pass": true,
+      "actual": "interest=null eligible=true",
+      "expected": "0,true"
+    },
+    {
+      "id": "4029-C1",
+      "title": "方案2 continue 账户利息>0（利率透传计息）",
+      "pass": true,
+      "actual": "interest=76746.67",
+      "expected": ">0"
+    },
+    {
+      "id": "4029-A1",
+      "title": "方案2 continue 自动段首=2026-09 末=2033-06（retire2033-07前月）",
+      "pass": true,
+      "actual": "first=2026-09 last=2033-06",
+      "expected": "2026-09,2033-06"
+    },
+    {
+      "id": "4029-S1",
+      "title": "方案2 stop rate=null（停保）",
+      "pass": true,
+      "actual": "rate=null",
+      "expected": "null"
+    },
+    {
+      "id": "4029-H1",
+      "title": "方案2 stop 仅历史段 maxEnd=2026-08",
+      "pass": true,
+      "actual": "maxEnd=2026-08",
+      "expected": "2026-08"
+    },
+    {
+      "id": "4029-I1",
+      "title": "方案2 stop 零计息且 eligible",
+      "pass": true,
+      "actual": "interest=null eligible=true",
+      "expected": "0,true"
+    },
+    {
+      "id": "4029-X",
+      "title": "node buildViewSafe 列 P=GUI",
+      "pass": true,
+      "actual": "13290.66,13726.27",
+      "expected": "13290.66,13726.27"
+    }
+  ]
+}
