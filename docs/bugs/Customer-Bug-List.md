@@ -467,13 +467,37 @@ Z=0.6 是**最低**缴费系数。它对应的**最低缴费基数**和**最低�
 要求：修改**最低** Z 值（=0.6）对应的算法。对于 **0.6 < Z <= 3.0** 的 Z 值，**没有**四舍五入到个位的要求。
 
 # root cause analysis
-待 developer（worker3）定位：自动段 planAssembler.buildAutoSegments 中 base = z * c 为裸值（L95），rContribution 月缴亦为精确值，均无"最低档基数取整"分支。需查清 Z=0.6（下限档）与 0.6<Z<=3.0 的分支区分点并回填源码行号。
+（developer worker3 独立复核，基线 066b60f）
+计算侧从未区分「最低缴费档」与其余档位，所有 Z 走同一条裸值算式，故最低档缺失"到元四舍五入"这一步：
+1) **calculator/planAssembler.js `buildAutoSegments` L94-95**：原 `var base = z * c;`，注释明写"中间不四舍五入，保留精确基数"。Z=0.6、C=12116 时得 7269.599999999999（裸值，未取整），作为自动段 `baseMonthly` 输出给下游。
+2) **calculator/rContribution.js `computeR` L47**：原 `var burden = s.baseMonthly * rate;`，直接用未取整基数乘费率。灵活就业 20% → 1453.92；企业职工 8% → 581.568。R续 合计亦按此精确值逐月累加。
+3) **constants/policyData.js**：无"缴费基数核定区间/最低档"相关常量，业务代码里 0.6 / 3 仅出现在 inputValidator 的越界提示（L85 `denom*0.6`）与 planModel 的 Z 校验区间（Z_MIN=0.60），**没有任何一处可作为"最低档"判定依据被计算链复用**。
+4) 档位判定依赖需注意：`Z_MIN` 定义在 `calculator/planModel.js`，而 planModel 已 `require('./planAssembler.js')`；若让 planAssembler 反向 require planModel 会形成**循环依赖**（小程序端可能拿到空对象）。故最低档下限必须下沉到 policyData 作为唯一事实来源。
 
+结论：这是"最低档缺专门取整规则"的实现缺口（即 0011 被否的根因正是把该口径错误地做成全局取整）；其余档位当前精确算法本身正确，不得改动。
 # fix solution description
-待修复：仅对最低档 Z=0.6 的自动段缴费基数与每月缴费做"精确到个位、四舍五入"（7269.6→7270，7270×20%→1454）；0.6<Z<=3.0 保持现有精确算法不变。修复方案与 commit hash 回填本节。
+仅对**最低缴费档 Z=0.6**的自动段缴费基数与每月缴费做"精确到个位、四舍五入"；**0.6<Z<=3.0 一律保持原精确算法不变**（未做任何全局取整）。
 
+改动清单（commit **588efb8**，基线 066b60f，未 push）：
+1) `constants/policyData.js`：新增核定区间常量
+   `baseRatio: { min: 0.6, max: 3.0, roundLowestToYuan: true }`（60%~300% 依国办发〔2019〕13号；`min` 即最低档判定依据，**唯一事实来源**，业务代码不再散写魔法数）
+2) `calculator/planAssembler.js`
+   - 新增 `LOWEST_Z`（取自 `P.baseRatio.min`）、`isLowestZ(z)`（浮点容差 `1e-9`，'0.6'/'0.60'/0.6 同档）、`roundYuan(n)`（四舍五入到个位）、`roundLowestToYuan(n, z)`（仅"最低档且开关开启"才取整），均导出便于单测与 rContribution 复用
+   - `buildAutoSegments` L94-95：`var base = z * c;` → `var base = roundLowestToYuan(z * c, z);`（非最低档原样返回裸值，行为逐位不变）
+3) `calculator/rContribution.js computeR`：`var burden = s.baseMonthly * rate;` → `var burden = Asm.roundLowestToYuan(s.baseMonthly * rate, plan.z);`
+   - 取整顺序严格两级：① 基数到元 ② 以取整后基数×费率再取整到元。Z=0.6/C=12116：7269.6 → **7270**；灵活 7270×20% → **1454**；企业 7270×8%=581.6 → **582**
+4) **pensionEngine 未改动**：自动段基数已由 ①② 产出 7270，引擎自动继承；刻意不对账户 8% 入账再取整，避免改变 R储 进而影响 P月/三分项（守住"不影响 P月/三分项"约束）
+5) `developer_test/TST-02-UT-1040/lowest-z-rounding-check.js`（新增，64 断言）
+   - 最低档判定：`baseRatio.min`/`LOWEST_Z`/`isLowestZ`（0.6/'0.6'/'0.60' 为真；0.7/1.0/1.3/3.0/空/NaN/'abc' 为假）
+   - Z=0.6 取整：基数 7270（整元）、灵活月缴 1454、企业月缴 582、全区间逐月均整元、R续=月数×1454
+   - **非最低档防回归红线**：0.7/1.0/1.3/1.5/2.0/3.0 逐档断言基数与月缴严格等于原精确值（如 Z=1.0 灵活月缴 2423.2000000000003 且 ≠2423；Z=3.0 灵活 7269.6 且 ≠7270；Z=1.3 基数 15750.800000000001 且 ≠15751）
+   - 引擎侧：Z=0.6 自动段逐月基数=7270；Z=1.3 仍为精确值、≠15751
+   - P月/三分项自洽（Z=0.6 与 Z=1.3 均验），证明计发口径未被本改动破坏
+
+验证：TST-02-UT-1040 **pass=64 fail=0**；全量 developer_test **44 文件 pass=684 fail=0 failFiles=0**（原 620 + 新增 64），零回归。
+实测各档位（dev box 直算，非引用回显）：Z=0.6→基数 7270 / flex 1454 / ent 582；Z=0.7→8481.199999999999 / 1696.2399999999998 / 678.496；Z=1.0→12116 / 2423.2000000000003 / 969.28；Z=1.3→15750.800000000001 / 3150.1600000000003 / 1260.064；Z=3.0→36348 / 7269.6 / 2907.84 —— 除 Z=0.6 外全部与改动前逐位一致。
 # fix verification process
 待 tester（worker4）独立验收：Z=0.6 场景基数=7270、月缴=1454；Z 取 0.7/1.0/1.3/3.0 等非最低值时不取整（与当前口径一致）；TST-02-MT-9003 复测；证据与结果回填本节。
 
 # bug status
-**bug status**: open
+**bug status**: fixed（commit 588efb8，待 tester 独立验收）
