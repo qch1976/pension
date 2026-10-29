@@ -342,13 +342,13 @@ The specification of phase2 and the dedicated test coverage matrix are not in .\
 待 developer（worker3）定位、architect（worker2）核对官方口径后回填（已派工，本节随后补实测根因与源码行号）。
 
 # fix solution description
-待修复：缴费基数与每月缴费改为精确到个位、四舍五入；worker2 负责查证官方四舍五入文件并落文档/代码注释。修复方案与 commit hash 回填本节。
+YDL(项目主)：问题描述有误。缴费基数和每月缴费的精度**没有**“精确到个位，四舍五入”的提法。之所以Z=0.6时看到四舍五入到个位，只是因为它是下限值，官方文件的额外处理。如果缴费基数为Z=0.7, Z=1.3, 就不会有四舍五入到个位的情况。所以问题的提法有误。进一步的action放到BUG-02-0014.
 
 # fix verification process
-待 tester（worker4）独立复测：TST-02-MT-9003 基本计算与方案比较一致性，核对 7270 / 1454 口径，证据与结果回填本节。
+NA
 
 # bug status
-**bug status**: open
+**bug status**: cnn
 
 ## BUG-02-0012
 # testcase ID
