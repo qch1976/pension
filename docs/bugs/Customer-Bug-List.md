@@ -342,11 +342,7 @@ The specification of phase2 and the dedicated test coverage matrix are not in .\
 待 developer（worker3）定位、architect（worker2）核对官方口径后回填（已派工，本节随后补实测根因与源码行号）。
 
 # fix solution description
-YDL(项目主)：问题描述有误。缴费基数和每月缴费的精度**没有**“精确到个位，四舍五入”的提法。之所以Z=0.6时看到四舍五入到个位，只是因为它是下限值，官方文件的额外处理。如果缴费基数为Z=0.7, Z=1.3, 就不会有四舍五入到个位的情况。所以问题的提法有误。进一步的action放到BUG-02-0014.
-
-# fix verification process
-NA
-
+YDL()
 # bug status
 **bug status**: cnn
 
@@ -358,16 +354,44 @@ NA
 "方案比较"的输出页面，ROI 的计算细节没有显示。需要找一个合适的地方显示，例如在"数值下钻" -> "查看明细"中展示 ROI 计算细节。
 
 # root cause analysis
-待 developer（worker3）定位比较结果页 ROI 明细缺失原因后回填（已派工）。
-
+展示层缺失，非计算错误。独立源码复核（基线 ee67b1f）：
+1) 计算侧已具备：`calculator/roiModel.js computeROI()` 已完整产出 ROI 全链条——`pMonthly`（继续缴费 P月=continueResult.pension.total）、`baselineMonthly`（停保 0 投入基准 P月=baselineResult.pension.total）、`rContinued`（R续累计）、`roi`/`roiRounded`/`percentText`、`status`('ok'|'blocked')/`reason`、`eligible`/`baselineEligible`、`minRequiredMonths`/`baselineTotalMonths`；公式 `roi=(pMonthly-baselineMonthly)/rCont`（roiModel.js L98）。
+2) 视图编排侧断链：`calculator/compareResultModel.js buildView()` 的 `drills`（第 5 步，原 L163-207）只装配了 history/deemed/account/customCYear/pension(三分项)/cashflow 六项，**未把 roiModel 的 ROI 产出透传到 drills**；`columns` 只取了 `roiText`/`roiStatus`（表格单格文本）与 `rank`。
+3) 页面侧无承接：`pages/compare-result/compare-result.wxml` 下钻弹窗（"数值下钻→查看明细"，cr-sheet-body）原有 5 个 section 无任何 ROI 段；`compare-result.js` 的 `openDrill` 仅按 `view.drills` 取对象，无 ROI 字段可渲染。
+结论：ROI 数值确实算出来了，但结果页下钻视图从未包含 ROI 明细字段与展示节点，用户只能看到表格里一个 ROI 百分比，无法看到"分子/分母/结果"的推导过程。属纯展示层缺失（BUG-02-0012），与 BUG-02-0011 的取整口径无关（该票已 cnn 作废）。
 # fix solution description
-待修复：在比较结果页合适位置（建议"数值下钻" -> "查看明细"）展示 ROI 计算细节。修复内容与 commit hash 回填本节。
+已在「数值下钻 → 查看明细」弹窗中新增「ROI 计算细节」section（进入即展开，位于"月养老金三分项"之后、"相对基准净差额现金流"之前），纯展示层改动、不重算任何计发数值。
 
+改动清单（commit **b6c82b9**，基线 ee67b1f，未 push）：
+1) `calculator/compareResultModel.js`
+   - 新增纯函数 `buildRoiDrill(it, contMonths, userRatePercent, pbRes)`：只做展示派生（月差额、回本文案、只读上下文），字段全部透传 roiModel 实际产出；
+   - `drills` 每项新增 `roi` 字段；`module.exports` 增列 `buildRoiDrill`（便于单测）；
+   - 未改动任何计发/ROI/payback 计算逻辑。
+2) `pages/compare-result/compare-result.wxml`
+   - `cr-sheet-body` 内新增 `<view class="cr-dr-section">ROI 计算细节</view>`；
+   - 复用既有 `cr-dr-section/cr-dr-h/cr-dr-row` 样式，**未新增 wxss、未新增组件**；
+   - 正常分支展示：用户年利率（只读上下文）、回本情况（只读上下文，源自 paybackModel 的 branch/ceilMonths）、继续缴费 P月（分子基准）、停保 0 投入基准 P月、月差额（继续−停保）、R续累计（含缴费月数）、`ROI = 月差额 ÷ R续`（百分比 + 4 位原值）；
+   - blocked 分支展示：ROI 不可用 + 阻断原因 + 最低需缴月数 + 停保累计缴费月数 + 继续情形是否满足按月领取（不展示公式链，避免误导）。
+3) `developer_test/TST-02-UT-1039/roi-drill-check.js`（新增，55 断言）
+   - 正常分支：roi 对象存在性、字段完整性（16 项 key）、与 roiModel 独立算值逐项比对（pMonthly/baselineMonthly/rContinued/roiRounded/percentText）；
+   - 数值勾稽：月差额 = P月 − 基准；ROI = (P月−基准)/R续（原值恒等 + 4 位舍入容差）；两方案均验；
+   - blocked 分支：status/reason/roiRounded=null/percentText=''/baselineEligible=false/月数依据齐全且自洽（停保累计 < 最低需缴）；
+   - `buildRoiDrill` 纯函数边界（无 payback 结果不炸）；
+   - 回归：drills 既有 6 字段与 columns.roiText 未被破坏。
+
+验证：TST-02-UT-1039 pass=55 fail=0；全量 developer_test **43 文件 pass=620 fail=0 failFiles=0**（原 565 + 新增 55），零回归。
+
+字段来源严格取自 roiModel 实际产出，未臆造；"回本月份/未回本原因/年利率"属 `calculator/paybackModel.js`（branch A/B/C/BASELINE、months/ceilMonths/rate），在本 section 仅作只读上下文展示，不参与 ROI 公式。
 # fix verification process
-待 tester（worker4）独立 GUI 复测：比较结果页可查看 ROI 计算细节，证据回填本节。
-
+待 tester（worker4）独立 GUI 复测（不引用开发回显，独立读 page.data + 截图）：
+1) compare 文件输入完整案例（如 e7-my1.txt）→ 开始比较 → 结果页点任一方案"数值下钻 → 查看明细"；
+2) 断言弹窗内出现「ROI 计算细节」段，且正常情形 7 行齐备（用户年利率 / 回本情况 / 继续缴费 P月 / 停保基准 P月 / 月差额 / R续累计 / ROI 公式与百分比）；
+3) 独立核算：月差额 = 继续P月 − 停保基准P月；ROI ≈ 月差额 ÷ R续（与页面显示一致）；
+4) blocked 场景（历史缴费月数不足致停保基准不合格）：ROI 段显示"不可用 + 原因 + 最低需缴月数 + 停保累计月数"，不显示公式链；
+5) 回归：三分项/现金流/回本双列/条形图/导出报告均正常；
+6) 证据：page.data 回读 + storage 回读 + 至少 1 张 automator 原生截图，结论独立判定。
 # bug status
-**bug status**: open
+**bug status**: fixed（commit b6c82b9，待 tester 独立 GUI 验证）
 
 ## BUG-02-0013
 # testcase ID
