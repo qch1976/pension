@@ -342,14 +342,15 @@ The specification of phase2 and the dedicated test coverage matrix are not in .\
 待 developer（worker3）定位、architect（worker2）核对官方口径后回填（已派工，本节随后补实测根因与源码行号）。
 
 # fix solution description
-YDL()
+YDL(项目主)：问题描述有误。缴费基数和每月缴费的精度没有“**精确到个位，四舍五入**”的提法。之所以Z=0.6时看到四舍五入到个位，只是因为它是下限值，官方文件的额外处理。如果缴费基数为Z=0.7, Z=1.3, 就不会有四舍五入到个位的情况。所以问题的提法有误。进一步的action放到BUG-02-0014.
+
 # fix verification process
 （2026-10-29 tester worker4 独立验收）项目主 2026-10-28 复核确认：0011 原提法「精度到个位四舍五入」不是通用规则——Z=0.6 时所见取整属该情形下限值的额外处理，Z=0.7/1.3 并不取整；故本票裁定 **cnn（correction not needed）**，相关代码改动全部回滚。
 tester 独立实测佐证（基线 7723276，产品模块直算）：`planAssembler` 自动段 `baseMonthly = z × c` 为裸值 7269.599999999999（未取整），与项目主复核结论一致，属**当前正确状态**；不据此判缺陷。
-取整相关的一切判断推迟到 BUG-02-0014（若落地），本轮不做。
+取整相关的一切判断推迟到 BUG-02-0014，本轮不做。
 
 # bug status
-**bug status**: cnn
+**bug status**: closed（项目主 2026-10-29 决定关闭：原提法有误、非缺陷，属取消类闭环）
 
 ## BUG-02-0012
 # testcase ID
@@ -455,3 +456,24 @@ tester 独立实测佐证（基线 7723276，产品模块直算）：`planAssemb
 
 # bug status
 **bug status**: closed（修复 + tester 自检 PASS，2026-10-29 tester worker4 独立验收）
+
+## BUG-02-0014
+# testcase ID
+- TST-02-MT-9003
+
+# failure description
+Z=0.6 是**最低**缴费系数。它对应的**最低缴费基数**和**最低每月缴费**的精度有误，应该**精确到个位，四舍五入**。
+复现路径："方案比较" --> "文件输入" --> e7-my1.txt --> 方案卡，针对 Z 值=0.6（最低值）：目前计算 2026.9 之后的缴费基数和每月缴费值精确到小数点后 2 位——12116*0.6=7269.6，月缴=7269.6*20%=1453.92。官方口径应为：12116*0.6=7269.6 => **7270（四舍五入到个位）**，月缴=7270*20% => **1454（四舍五入到个位）**。
+要求：修改**最低** Z 值（=0.6）对应的算法。对于 **0.6 < Z <= 3.0** 的 Z 值，**没有**四舍五入到个位的要求。
+
+# root cause analysis
+待 developer（worker3）定位：自动段 planAssembler.buildAutoSegments 中 base = z * c 为裸值（L95），rContribution 月缴亦为精确值，均无"最低档基数取整"分支。需查清 Z=0.6（下限档）与 0.6<Z<=3.0 的分支区分点并回填源码行号。
+
+# fix solution description
+待修复：仅对最低档 Z=0.6 的自动段缴费基数与每月缴费做"精确到个位、四舍五入"（7269.6→7270，7270×20%→1454）；0.6<Z<=3.0 保持现有精确算法不变。修复方案与 commit hash 回填本节。
+
+# fix verification process
+待 tester（worker4）独立验收：Z=0.6 场景基数=7270、月缴=1454；Z 取 0.7/1.0/1.3/3.0 等非最低值时不取整（与当前口径一致）；TST-02-MT-9003 复测；证据与结果回填本节。
+
+# bug status
+**bug status**: open
