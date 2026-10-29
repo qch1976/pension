@@ -53,6 +53,42 @@ function paybackText(res) {
   return { text: '无法抵回', sub: '（该利率下）' };
 }
 
+// BUG-02-0012：ROI 计算细节下钻数据。
+// 字段全部取自 roiModel.computeROI 已有产出（pMonthly/baselineMonthly/rContinued/roi/roiRounded/
+// percentText/status/reason/minRequiredMonths/baselineTotalMonths/eligible/baselineEligible），
+// 本函数只做展示派生（月差额、文案），不做任何计发或 ROI 重算；回本与利率属 paybackModel，仅作只读上下文。
+function buildRoiDrill(it, contMonths, userRatePercent, pbRes) {
+  var ok = it.status === 'ok';
+  var delta = null;
+  if (typeof it.pMonthly === 'number' && typeof it.baselineMonthly === 'number') {
+    delta = Rmod.round2(it.pMonthly - it.baselineMonthly);
+  }
+  var pb = paybackText(pbRes || {});
+  return {
+    ok: ok,
+    status: it.status || '',
+    reason: ok ? '' : (it.reason || ''),
+    // 只读上下文（来自 payback 视图，不参与 ROI 公式）
+    userRatePercent: userRatePercent,
+    paybackText: pb.text,
+    paybackSub: pb.sub || '',
+    // 分子 / 分母
+    pMonthly: it.pMonthly,
+    baselineMonthly: it.baselineMonthly,
+    deltaMonthly: delta,
+    rContinued: it.rContinued,
+    contMonths: (contMonths == null ? null : contMonths),
+    // 结果
+    roiRounded: ok ? it.roiRounded : null,
+    percentText: ok ? it.percentText : '',
+    // 阻断依据
+    minRequiredMonths: (it.minRequiredMonths == null ? null : it.minRequiredMonths),
+    baselineTotalMonths: (it.baselineTotalMonths == null ? null : it.baselineTotalMonths),
+    eligible: !!it.eligible,
+    baselineEligible: !!it.baselineEligible
+  };
+}
+
 // 下钻：候选 k 相对基准 b 的三段现金流
 function drillCashflows(bSeries, kSeries) {
   var d = PB.cashflows(bSeries, kSeries);
@@ -163,6 +199,7 @@ function buildView(sharedInput, plans, userAnnualRate) {
   var drills = items.map(function (it, i) {
     var contRes = it.continueResult;
     var s = series[i];
+    var col = columns[i];
     var cf = s.id === baselineSeries.id ? null : drillCashflows(baselineSeries, s);
     return {
       id: it.id,
@@ -193,7 +230,9 @@ function buildView(sharedInput, plans, userAnnualRate) {
         jAccount: contRes.pension.J账户,
         jTransition: contRes.pension.J过渡
       },
-      cashflow: cf
+      cashflow: cf,
+      // BUG-02-0012：ROI 计算细节（字段源自 roiModel 实际产出，UI 不重算）
+      roi: buildRoiDrill(it, col ? col.contMonths : null, (rate * 100).toFixed(2), dbl.atUser.byId[it.id])
     };
   });
 
@@ -231,6 +270,7 @@ module.exports = {
   planIsEstimated: planIsEstimated,
   toSeries: toSeries,
   drillCashflows: drillCashflows,
+  buildRoiDrill: buildRoiDrill,
   SEG_LABEL: SEG_LABEL,
   ORIGIN: ORIGIN
 };

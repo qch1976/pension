@@ -198,6 +198,30 @@
         <view class="cr-dr-row"><text>过渡</text><text>{{drill.pension.jTransition}}</text></view>
       </view>
 
+      <!-- BUG-02-0012：ROI 计算细节（进入即展开，字段取自 roiModel 实际产出） -->
+      <view class="cr-dr-section" wx:if="{{drill.roi}}">
+        <view class="cr-dr-h">ROI 计算细节</view>
+        <!-- 只读上下文：用户年利率 + 回本分支（来自回本模型，不参与 ROI 公式） -->
+        <view class="cr-dr-row"><text>用户年利率</text><text>{{drill.roi.userRatePercent}}%</text></view>
+        <view class="cr-dr-row"><text>回本情况</text><text>{{drill.roi.paybackText}}{{drill.roi.paybackSub}}</text></view>
+        <!-- 正常：分子 / 分母 / 结果 -->
+        <block wx:if="{{drill.roi.ok}}">
+          <view class="cr-dr-row"><text>继续缴费 P月（分子基准）</text><text>{{drill.roi.pMonthly}}</text></view>
+          <view class="cr-dr-row"><text>停保（0投入）基准 P月</text><text>{{drill.roi.baselineMonthly}}</text></view>
+          <view class="cr-dr-row"><text>月差额（继续 − 停保）</text><text>{{drill.roi.deltaMonthly}}</text></view>
+          <view class="cr-dr-row"><text>R续累计（分母，共 {{drill.roi.contMonths}} 个月）</text><text>{{drill.roi.rContinued}}</text></view>
+          <view class="cr-dr-row"><text>ROI = 月差额 ÷ R续</text><text class="cr-roi-ok">{{drill.roi.percentText}}（{{drill.roi.roiRounded}}）</text></view>
+        </block>
+        <!-- 阻断：显示原因 + 月数依据（不展示公式链） -->
+        <block wx:else>
+          <view class="cr-dr-row"><text>ROI</text><text class="cr-roi-blocked">不可用</text></view>
+          <view class="cr-dr-row"><text>原因</text><text>{{drill.roi.reason}}</text></view>
+          <view class="cr-dr-row" wx:if="{{drill.roi.minRequiredMonths !== null}}"><text>最低需缴月数</text><text>{{drill.roi.minRequiredMonths}}</text></view>
+          <view class="cr-dr-row" wx:if="{{drill.roi.baselineTotalMonths !== null}}"><text>停保累计缴费月数</text><text>{{drill.roi.baselineTotalMonths}}</text></view>
+          <view class="cr-dr-row"><text>继续缴费情形是否满足按月领取</text><text>{{drill.roi.eligible ? '是' : '否'}}</text></view>
+        </block>
+      </view>
+
       <!-- 三段现金流 -->
       <view class="cr-dr-section" wx:if="{{drill.cashflow}}">
         <view class="cr-dr-h">相对基准净差额现金流</view>
