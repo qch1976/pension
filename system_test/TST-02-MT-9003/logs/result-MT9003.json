@@ -1,0 +1,264 @@
+{
+  "at": "2026-10-29T10:34:02.902Z",
+  "testcase": "TST-02-MT-9003",
+  "baseline": "unknown",
+  "port": 40215,
+  "plan": {
+    "retireYM": "2033-07",
+    "z": "0.6",
+    "segType": "flexible",
+    "windowStartYM": ""
+  },
+  "compareInputSegs": [
+    {
+      "type": "enterprise",
+      "startYM": "2000-11",
+      "endYM": "2000-12",
+      "baseMonthly": 3071
+    },
+    {
+      "type": "enterprise",
+      "startYM": "2001-01",
+      "endYM": "2001-12",
+      "baseMonthly": 3444
+    },
+    {
+      "type": "enterprise",
+      "startYM": "2002-01",
+      "endYM": "2002-12",
+      "baseMonthly": 3932
+    },
+    {
+      "type": "enterprise",
+      "startYM": "2003-01",
+      "endYM": "2003-12",
+      "baseMonthly": 4869.5
+    },
+    {
+      "type": "enterprise",
+      "startYM": "2004-01",
+      "endYM": "2004-12",
+      "baseMonthly": 5803.75
+    },
+    {
+      "type": "enterprise",
+      "startYM": "2005-01",
+      "endYM": "2005-12",
+      "baseMonthly": 6818
+    },
+    {
+      "type": "enterprise",
+      "startYM": "2006-01",
+      "endYM": "2006-12",
+      "baseMonthly": 7923.25
+    },
+    {
+      "type": "enterprise",
+      "startYM": "2007-01",
+      "endYM": "2007-12",
+      "baseMonthly": 8818.5
+    },
+    {
+      "type": "enterprise",
+      "startYM": "2008-01",
+      "endYM": "2008-12",
+      "baseMonthly": 9730.5
+    },
+    {
+      "type": "enterprise",
+      "startYM": "2009-01",
+      "endYM": "2009-12",
+      "baseMonthly": 10875
+    },
+    {
+      "type": "enterprise",
+      "startYM": "2010-01",
+      "endYM": "2010-12",
+      "baseMonthly": 11877.75
+    },
+    {
+      "type": "enterprise",
+      "startYM": "2011-01",
+      "endYM": "2011-12",
+      "baseMonthly": 12480
+    },
+    {
+      "type": "enterprise",
+      "startYM": "2012-01",
+      "endYM": "2012-12",
+      "baseMonthly": 13662.75
+    },
+    {
+      "type": "enterprise",
+      "startYM": "2013-01",
+      "endYM": "2013-12",
+      "baseMonthly": 15255.75
+    },
+    {
+      "type": "enterprise",
+      "startYM": "2014-01",
+      "endYM": "2014-12",
+      "baseMonthly": 16524
+    },
+    {
+      "type": "enterprise",
+      "startYM": "2015-01",
+      "endYM": "2015-12",
+      "baseMonthly": 18384
+    },
+    {
+      "type": "enterprise",
+      "startYM": "2016-01",
+      "endYM": "2016-12",
+      "baseMonthly": 20323.5
+    },
+    {
+      "type": "enterprise",
+      "startYM": "2017-01",
+      "endYM": "2017-12",
+      "baseMonthly": 22188
+    },
+    {
+      "type": "enterprise",
+      "startYM": "2018-01",
+      "endYM": "2018-12",
+      "baseMonthly": 24259.5
+    },
+    {
+      "type": "enterprise",
+      "startYM": "2019-01",
+      "endYM": "2019-12",
+      "baseMonthly": 24483
+    },
+    {
+      "type": "enterprise",
+      "startYM": "2020-01",
+      "endYM": "2020-12",
+      "baseMonthly": 25053
+    },
+    {
+      "type": "enterprise",
+      "startYM": "2021-01",
+      "endYM": "2021-12",
+      "baseMonthly": 27381
+    },
+    {
+      "type": "enterprise",
+      "startYM": "2022-01",
+      "endYM": "2022-12",
+      "baseMonthly": 30052.5
+    },
+    {
+      "type": "enterprise",
+      "startYM": "2023-01",
+      "endYM": "2023-12",
+      "baseMonthly": 32887.5
+    },
+    {
+      "type": "enterprise",
+      "startYM": "2024-01",
+      "endYM": "2024-12",
+      "baseMonthly": 34587
+    },
+    {
+      "type": "enterprise",
+      "startYM": "2025-01",
+      "endYM": "2025-12",
+      "baseMonthly": 35547
+    },
+    {
+      "type": "enterprise",
+      "startYM": "2026-01",
+      "endYM": "2026-08",
+      "baseMonthly": 35945.25
+    },
+    {
+      "type": "flexible",
+      "startYM": "2026-09",
+      "endYM": "2033-06",
+      "baseMonthly": 7269.599999999999
+    }
+  ],
+  "compare": [
+    {
+      "P": 13290.66,
+      "J基础": 6697.57,
+      "J账户": 5724.39,
+      "J过渡": 868.7,
+      "z": "0.6",
+      "retire": "2033-07"
+    },
+    {
+      "P": 15904.33,
+      "J基础": 7685.58,
+      "J账户": 7168.58,
+      "J过渡": 1050.17,
+      "z": "3.0",
+      "retire": "2033-07"
+    }
+  ],
+  "basicInput": {
+    "count": 28,
+    "retireYM": "2033-07",
+    "rate": 0.015,
+    "err": ""
+  },
+  "inputDiff": {
+    "nA": 28,
+    "nB": 28,
+    "onlyA": [],
+    "onlyB": [],
+    "mismatch": []
+  },
+  "basic": {
+    "P": 13290.66,
+    "J基础": 6697.57,
+    "J账户": 5724.39,
+    "J过渡": 868.7
+  },
+  "finishedAt": "2026-10-29T10:34:51.378Z",
+  "checks": [
+    {
+      "id": "MT-1",
+      "title": "compare 结果页 ready 且2列",
+      "pass": true,
+      "actual": "landed=true n=2",
+      "expected": "2"
+    },
+    {
+      "id": "MT-2",
+      "title": "基本页真实文件导入成功",
+      "pass": true,
+      "actual": "My-Case.md",
+      "expected": "My-Case.md"
+    },
+    {
+      "id": "MT-3",
+      "title": "两页入参逐字段同构（段数组完全一致）",
+      "pass": true,
+      "actual": "nA=28 nB=28 diffs=0",
+      "expected": "0 diffs"
+    },
+    {
+      "id": "MT-4",
+      "title": "基本页结果页 ready",
+      "pass": true,
+      "actual": "path=pages/result/result",
+      "expected": "pages/result/result"
+    },
+    {
+      "id": "MT-5",
+      "title": "基本页 P月 = compare P月（同源同口径 Δ<0.01）",
+      "pass": true,
+      "actual": "basic=13290.66 compare=13290.66 Δ=0",
+      "expected": "Δ<0.01"
+    },
+    {
+      "id": "MT-6",
+      "title": "三分项一致（J基础/J账户/J过渡）",
+      "pass": true,
+      "actual": "6697.57/5724.39/868.7",
+      "expected": "6697.57/5724.39/868.7"
+    }
+  ]
+}

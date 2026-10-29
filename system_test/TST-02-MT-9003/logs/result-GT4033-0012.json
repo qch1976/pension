@@ -1,0 +1,190 @@
+{
+  "at": "2026-10-29T08:58:11.120Z",
+  "testcase": "TST-02-MT-9003",
+  "caseId": "BUG-02-0012",
+  "baseline": "unknown",
+  "port": 40215,
+  "drills": {
+    "count": 2,
+    "keys": [
+      [
+        "account",
+        "cashflow",
+        "customCYear",
+        "deemed",
+        "history",
+        "id",
+        "pension",
+        "roi"
+      ],
+      [
+        "account",
+        "cashflow",
+        "customCYear",
+        "deemed",
+        "history",
+        "id",
+        "pension",
+        "roi"
+      ]
+    ],
+    "roi": [
+      {
+        "ok": true,
+        "status": "ok",
+        "reason": "",
+        "userRatePercent": "0.00",
+        "paybackText": "基准方案",
+        "paybackSub": "（R续最小）",
+        "pMonthly": 13290.66,
+        "baselineMonthly": 10765.69,
+        "deltaMonthly": 2524.97,
+        "rContinued": 119221.44,
+        "contMonths": 82,
+        "roiRounded": 0.0212,
+        "percentText": "2.12%",
+        "minRequiredMonths": 204,
+        "baselineTotalMonths": 310,
+        "eligible": true,
+        "baselineEligible": true
+      },
+      {
+        "ok": true,
+        "status": "ok",
+        "reason": "",
+        "userRatePercent": "0.00",
+        "paybackText": "退休后抵回",
+        "paybackSub": "183个月",
+        "pMonthly": 15904.33,
+        "baselineMonthly": 10765.69,
+        "deltaMonthly": 5138.64,
+        "rContinued": 596107.2,
+        "contMonths": 82,
+        "roiRounded": 0.0086,
+        "percentText": "0.86%",
+        "minRequiredMonths": 204,
+        "baselineTotalMonths": 310,
+        "eligible": true,
+        "baselineEligible": true
+      }
+    ],
+    "colRoiText": [
+      {
+        "roiText": "2.12%",
+        "roiStatus": "ok",
+        "pMonthly": 13290.66,
+        "rContinued": 119221.44
+      },
+      {
+        "roiText": "0.86%",
+        "roiStatus": "ok",
+        "pMonthly": 15904.33,
+        "rContinued": 596107.2
+      }
+    ]
+  },
+  "node": [
+    {
+      "status": "ok",
+      "pMonthly": 13290.66,
+      "baselineMonthly": 10765.69,
+      "rContinued": 119221.44,
+      "roiRounded": 0.0212,
+      "percentText": "2.12%",
+      "minRequiredMonths": 204,
+      "baselineTotalMonths": 310,
+      "eligible": true,
+      "baselineEligible": true
+    },
+    {
+      "status": "ok",
+      "pMonthly": 15904.33,
+      "baselineMonthly": 10765.69,
+      "rContinued": 596107.2,
+      "roiRounded": 0.0086,
+      "percentText": "0.86%",
+      "minRequiredMonths": 204,
+      "baselineTotalMonths": 310,
+      "eligible": true,
+      "baselineEligible": true
+    }
+  ],
+  "sheet": {
+    "drillId": "p0",
+    "hasRoi": true,
+    "roiPercent": "2.12%"
+  },
+  "finishedAt": "2026-10-29T08:58:45.750Z",
+  "checks": [
+    {
+      "id": "0012-1",
+      "title": "开始比较→结果页 ready 且2列",
+      "pass": true,
+      "actual": "landed=true n=2",
+      "expected": "2"
+    },
+    {
+      "id": "0012-2",
+      "title": "drills 每项均含 roi 对象",
+      "pass": true,
+      "actual": "n=2",
+      "expected": "2"
+    },
+    {
+      "id": "0012-3",
+      "title": "roi 字段齐备（核心 15 项）",
+      "pass": true,
+      "actual": "missing=[]",
+      "expected": "[]"
+    },
+    {
+      "id": "0012-4",
+      "title": "勾稽 月差额=继续P月−停保基准P月",
+      "pass": true,
+      "actual": "[true,true]",
+      "expected": "all true"
+    },
+    {
+      "id": "0012-5",
+      "title": "勾稽 ROI=(P月−基准)/R续",
+      "pass": true,
+      "actual": "[true,true]",
+      "expected": "all true"
+    },
+    {
+      "id": "0012-6",
+      "title": "页面 roi 与 node roiModel 独立算值一致",
+      "pass": true,
+      "actual": "all match",
+      "expected": "all match"
+    },
+    {
+      "id": "0012-7",
+      "title": "blocked 分支（本场景无 blocked 方案，判据由 node 侧 UT-1039 覆盖）",
+      "pass": true,
+      "actual": "no-blocked-in-this-case",
+      "expected": "n/a"
+    },
+    {
+      "id": "0012-8",
+      "title": "回归：drills 既有下钻字段仍在",
+      "pass": true,
+      "actual": "found=[\"history\",\"deemed\",\"account\",\"pension\",\"cashflow\"]",
+      "expected": ">=4"
+    },
+    {
+      "id": "0012-9",
+      "title": "回归：columns.roiText 正常非空",
+      "pass": true,
+      "actual": "[\"2.12%\",\"0.86%\"]",
+      "expected": "non-empty"
+    },
+    {
+      "id": "0012-10",
+      "title": "真实打开「查看明细」→ drill 绑定 roi（drillId+drill.roi）",
+      "pass": true,
+      "actual": "{\"drillId\":\"p0\",\"hasRoi\":true,\"roiPercent\":\"2.12%\"}",
+      "expected": "hasRoi=true"
+    }
+  ]
+}

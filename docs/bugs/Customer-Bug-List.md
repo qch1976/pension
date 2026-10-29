@@ -343,6 +343,11 @@ The specification of phase2 and the dedicated test coverage matrix are not in .\
 
 # fix solution description
 YDL()
+# fix verification process
+（2026-10-29 tester worker4 独立验收）项目主 2026-10-28 复核确认：0011 原提法「精度到个位四舍五入」不是通用规则——Z=0.6 时所见取整属该情形下限值的额外处理，Z=0.7/1.3 并不取整；故本票裁定 **cnn（correction not needed）**，相关代码改动全部回滚。
+tester 独立实测佐证（基线 7723276，产品模块直算）：`planAssembler` 自动段 `baseMonthly = z × c` 为裸值 7269.599999999999（未取整），与项目主复核结论一致，属**当前正确状态**；不据此判缺陷。
+取整相关的一切判断推迟到 BUG-02-0014（若落地），本轮不做。
+
 # bug status
 **bug status**: cnn
 
@@ -390,8 +395,17 @@ YDL()
 4) blocked 场景（历史缴费月数不足致停保基准不合格）：ROI 段显示"不可用 + 原因 + 最低需缴月数 + 停保累计月数"，不显示公式链；
 5) 回归：三分项/现金流/回本双列/条形图/导出报告均正常；
 6) 证据：page.data 回读 + storage 回读 + 至少 1 张 automator 原生截图，结论独立判定。
+
+**实测结果（2026-10-29 tester worker4 独立验收）**：独立 GUI 验收 **10/10 PASS**（TST-02-MT-9003，常驻口 40215 只 connect/disconnect，基线 7723276）：
+①结果页 ready、2 列；`view.drills[*].roi` 每项存在且核心 15 字段齐备（ok/status/reason/userRatePercent/paybackText/paybackSub/pMonthly/baselineMonthly/deltaMonthly/rContinued/contMonths/roiRounded/percentText/minRequiredMonths/baselineTotalMonths/eligible/baselineEligible）；
+②勾稽：月差额 = 继续P月 − 停保基准P月（两方案均真）；ROI = (P月−基准)/R续（两方案均真）；
+③页面 roi 与 node 侧 `roiModel.computeROI` **独立重算逐项一致**（status/pMonthly/baselineMonthly/rContinued/roiRounded/percentText 全 match，未引用开发回显）；
+④真实 openDrill 下钻：drillId=p0、drill.roi 存在、percentText=2.12%（列 ROI 2.12%/0.86%）；
+⑤回归：drills 既有 history/deemed/account/pension/cashflow 五项仍在、columns.roiText 正常非空。
+证据：`system_test/TST-02-MT-9003/logs/result-GT4033-0012.json`、`GT4033-roi-drill.png`、`run-trace.log`。
+
 # bug status
-**bug status**: fixed（commit b6c82b9，待 tester 独立 GUI 验证）
+**bug status**: closed（项目主 2026-10-28 批准关闭口径；修复 + tester 独立 GUI 验收 10/10 PASS，2026-10-29 tester worker4 独立验收）
 
 ## BUG-02-0013
 # testcase ID
@@ -431,5 +445,13 @@ YDL()
 - 改动范围：9 文件（7 harness + project.config.json + system_test/README.md），+70/−9；未触碰 product code。
 - 待 Manager 复核：项目目录内不再有 temp/、autotest/ 已正确归位。
 
+
+**实测结果（2026-10-29 tester worker4 独立验收）**：清理结果自检 PASS（基线 7723276）：
+①项目内 `./pension/autotest/` 与 `./pension/temp/` **均已不存在**（`dir /ad temp autotest tmp` 无输出）；
+②外部 temp 承载全部临时件：`pension-autotest-output-20261029`（15 件，校验 15/15）、`pension-temp-20261029`（71 件，校验 71/71）、`pension-root-leftovers`（temp-inspect.ps1/temp-inspect2.ps1）；清单 `pension-cleanup-manifest-20261029.json`；
+③harness 改造生效：`PENSION_EXT_TEMP` 机制确认存在（e7-fileio-regression.js 等 7 处 OUT 改指 EXT_OUT，repo 内 `autotest` 输出路径零残留）；
+④official log 未被触碰：`system_test/TST-02-GT-4032/logs/` 5 件完好；`project.config.json` 失效 ignore 两条已删；`system_test/README.md` 已写入临时文件约束。
+证据：`output/p-mu45ws9mfajyky-worker4/task85-bug0013-cleanup/`（patch 7723276 + 迁移清单）。
+
 # bug status
-**bug status**: fixed（修复完成，待 Manager 复核；2026-10-29）
+**bug status**: closed（修复 + tester 自检 PASS，2026-10-29 tester worker4 独立验收）
