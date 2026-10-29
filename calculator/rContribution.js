@@ -44,7 +44,9 @@ function computeR(plan, customCYear, windowStartYM) {
   autoSegs.forEach(function (s) {
     var a = D.toIndex(s.startYM), b = D.toIndex(s.endYM);
     for (var i = a; i <= b; i++) {
-      var burden = s.baseMonthly * rate;
+      // BUG-02-0014：仅最低档（Z=政策下限 0.6）月缴到元四舍五入（7270×20%→1454，7270×8%→582）；
+      // 0.6<Z<=3.0 保持精确值（base×rate 不舍入），与基数口径同源。
+      var burden = Asm.roundLowestToYuan(s.baseMonthly * rate, plan.z);
       total += burden;
       monthly.push({ ym: D.toYM(i), base: s.baseMonthly, burden: burden });
     }

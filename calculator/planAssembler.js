@@ -19,6 +19,32 @@ var Engine = require('./pensionEngine.js');
 // BUG-02-0004（Q2=A）：正常起点改为动态＝实际缴费最后一月+1，方案卡可编辑；此常量仅在无历史段时回退。
 var WINDOW_START_YM = '2026-09';
 
+// ---------------------------------------------------------------------------
+// BUG-02-0014：最低缴费档（Z = 政策核定区间下限，即 0.6）的基数与月缴需「精确到个位、四舍五入」。
+// 仅最低档生效；0.6 < Z <= 3.0 保持原精确算法（不取整），绝不做全局取整（BUG-02-0011 即因此被否）。
+// 下限值来源：constants/policyData.js baseRatio.min（唯一事实来源），本文件不硬编码 0.6。
+// ---------------------------------------------------------------------------
+var LOWEST_Z = (P.baseRatio && typeof P.baseRatio.min === 'number') ? P.baseRatio.min : 0.6;
+var LOWEST_Z_ROUND = !(P.baseRatio && P.baseRatio.roundLowestToYuan === false);
+
+// 是否为最低缴费档（浮点容差比较，'0.6'/'0.60'/0.6 均视为同一档）。
+function isLowestZ(z) {
+  var n = Number(z);
+  if (!isFinite(n)) return false;
+  return Math.abs(n - LOWEST_Z) < 1e-9;
+}
+
+// 四舍五入到元（个位）。仅用于最低档基数/月缴口径；非最低档一律不调用，保持精确值。
+function roundYuan(n) {
+  if (n == null || typeof n !== 'number' || !isFinite(n)) return n;
+  return Math.round(n + Number.EPSILON);
+}
+
+// 最低档判定 + 取整开关合一的入口：仅“最低档且开关开启”时才取整到元。
+function roundLowestToYuan(n, z) {
+  return (LOWEST_Z_ROUND && isLowestZ(z)) ? roundYuan(n) : n;
+}
+
 // 由共享历史段推导缺省缴费起始月 = 实际缴费记录最后缴费月 + 1 月。
 // 历史段 endYM≤cutoff；无有效历史段时回退 WINDOW_START_YM。
 function defaultWindowStart(sharedInput) {
@@ -91,8 +117,9 @@ function buildAutoSegments(plan, customCYear, windowStartYM) {
     if (!(typeof c === 'number' && isFinite(c) && c > 0)) {
       throw new Error('年度 ' + yearY + ' 的缴费指数分母 C 缺失/非正，无法生成 B=Z×C');
     }
-    // 中间不四舍五入，保留精确基数；展示/引擎均按此计算。
-    var base = z * c;
+    // BUG-02-0014：仅最低档（Z=政策下限 0.6）基数到元四舍五入（7269.6→7270）；
+    // 0.6<Z<=3.0 保持裸值不取整（中间不舍入为既有口径）。
+    var base = roundLowestToYuan(z * c, z);
     if (cur && cur.base === base) {
       cur.endIdx = i;
     } else {
@@ -156,6 +183,10 @@ function computePlan(sharedInput, plan) {
 
 module.exports = {
   WINDOW_START_YM: WINDOW_START_YM,
+  LOWEST_Z: LOWEST_Z,
+  isLowestZ: isLowestZ,
+  roundYuan: roundYuan,
+  roundLowestToYuan: roundLowestToYuan,
   defaultWindowStart: defaultWindowStart,
   resolveWindowStart: resolveWindowStart,
   validateWindowStart: validateWindowStart,
