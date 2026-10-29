@@ -7,13 +7,20 @@
  */
 const fs = require('fs');
 const path = require('path');
+// BUG-02-0013: run-output / screenshots must NOT be written into the repo.
+// Temporary artefacts go to an external temp dir (never committed); only official
+// per-testcase logs live under <testcase>/logs/.
+const EXT_TEMP = process.env.PENSION_EXT_TEMP ||
+  path.join(process.env.USERPROFILE || 'C:\\Users\\Administrator', 'Desktop', 'Wechat projects', 'temp');
+const EXT_OUT = path.join(EXT_TEMP, 'pension-run-output');
+
 const os = require('os');
 const net = require('net');
 const cp = require('child_process');
 
 const PROJECT = 'C:\\Users\\Administrator\\Desktop\\Wechat projects\\pension';
 const SDK_DIR = 'C:\\Users\\Administrator\\wechat-automation\\node_modules\\miniprogram-automator';
-const OUT = path.join(PROJECT, 'autotest', 'output', 't3');
+const OUT = path.join(EXT_OUT, 't3');
 const AUTO_PORT = 9583;
 fs.mkdirSync(OUT, { recursive: true });
 const sleep = ms => new Promise(r => setTimeout(r, ms));

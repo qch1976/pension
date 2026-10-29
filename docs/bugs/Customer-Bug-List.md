@@ -402,13 +402,34 @@ YDL()
 另：临时文件不得放在 ./pension/ 下，./pension/temp/ 目录是错误的，应删除；测试生成的文件只要不是 official log，就不要放在 project folder 内。./pension/temp/ 现有内容移至 C:\Users\Administrator\Desktop\Wechat projects\temp\。项目主已将此要求更新到 INPUT-COMMON.md。
 
 # root cause analysis
-待 tester（worker4）核查 autotest/ 与 temp/ 内容及来源后回填（已派工）。
+（tester worker4 核查 autotest/ 与 temp/ 内容及来源，2026-10-29）
+1. `./pension/autotest/` 只剩 `output/`（15 文件 / 0.59MB），全部是**历史一次性 GUI/引擎回归的运行产物**，不是 testcase official log：
+   - `autotest/output/e7/` 13 件（e7-regression-summary.json + my1/my2/my3/wife4/wife5/wife6 各 result/export PNG，2026-10-28 00:28~00:42），写入者 `system_test/TST-02-GT-4000/gui/e7-fileio-regression.js`。
+   - `autotest/output/engine/bug25-26-assert.json`，写入者 `developer_test/utils/assert-bug25-26.js`。
+   - `autotest/output/gui/d4-compare-table.md`，写入者 `developer_test/utils/plan-compare-table.js`。
+2. 根因：上述 harness/工具把输出根硬编码为 `path.join(PROJECT,'autotest','output',...)`（B-3 迁移后 autotest/gui 已迁入 system_test，但输出路径未同步改），每次运行都会在项目内**重建** autotest/；同时调查过程又留下 `temp/`（71 件 patch/探针产物）与项目根 `temp-inspect*.ps1`。
+3. `autotest/` 与 `temp/` 均未被 git 跟踪（tracked_autotest=0、tracked_temp=0），故不影响版本库，但违反「临时文件不得落 project folder」规则，且 `docs/test_reports/` 多份历史报告以 autotest/output/gui/*.json 为证据链接。
 
 # fix solution description
-待整改（worker4）：鉴别 autotest/ 内容并归位；删除项目内 temp/，非 official log 全部移出 project folder 至 C:\Users\Administrator\Desktop\Wechat projects\temp\；依据 project-documentation SKILL 与新版 INPUT-COMMON.md。整改结果回填本节。
+（tester worker4 执行，2026-10-29，项目主批准方案 1~5）
+1. **autotest/output 外移保留**（不删，维持历史报告证据可查）：15 文件 → `C:\Users\Administrator\Desktop\Wechat projects\temp\pension-autotest-output-20261029\`，随后删除项目内 `autotest/`。
+2. **repo temp/ 外移**：71 文件 → `...\temp\pension-temp-20261029\`，随后删除项目内 `temp/`。
+3. **项目根遗留临时脚本外移**：`temp-inspect.ps1`、`temp-inspect2.ps1` → `...\temp\pension-root-leftovers\`。
+4. **harness 改造（7 个文件）** 输出根统一改为外部 temp：
+   - 注入 `const EXT_TEMP = process.env.PENSION_EXT_TEMP || <外部 temp>; const EXT_OUT = path.join(EXT_TEMP,'pension-run-output')`；
+   - `system_test/TST-02-GT-4000/gui/`{bug1416-verify, bug2224-run, e7-fileio-regression, shot-fix, t3-env-verify}.js、`system_test/TST-02-GT-4019/t47-c-planstart.js`、`developer_test/utils/plan-compare-table.js` 的 OUT 全部改指 EXT_OUT 子目录；仓库内已无 `'autotest'` 输出路径残留。
+   - official log 规则不变：仍写各自 `system_test/TST-02-<TYPE>-<NNNN>/logs/`。
+5. **配置与文档**：`project.config.json` 的 packOptions.ignore 删除已不存在的 autotest/temp 两条（最小 diff 1 行）；`system_test/README.md` 新增「临时文件约束（BUG-02-0013）」四条铁律（临时件只写外部 temp / 禁止项目内 temp|autotest|tmp|*.patch / official log 才进项目 / harness 必须用 EXT_TEMP），并列出违规示例。
+6. **清单备份**：迁移前落全量清单（文件名+大小+时间+去向）`...\temp\pension-cleanup-manifest-20261029.json`；迁移后逐项校验份数一致（15/15、71/71）才删源目录。
 
 # fix verification process
-待 tester 自检并由 Manager 复核：项目目录内不再有 temp/、autotest/ 已正确归位，证据回填本节。
+（tester worker4 自检，2026-10-29，基线 dev box HEAD=b1c326c，零 RDP、未连 GUI）
+- 迁移校验：autotest 15/15、temp 71/71 文件份数与字节数一致后删除源目录；清单 json 已落外部 temp。
+- 项目内检查：`dir /ad temp autotest tmp` 与 `dir *.patch temp-*.ps1` 均无输出 → 项目根已无临时目录/临时文件。
+- official log 完好：`system_test/TST-02-GT-4032/logs/` 仍为 5 件（3 PNG + result json + run-trace.log），未被触碰。
+- harness 残留检查：`findstr /S "'autotest'"` 在 7 个改造文件内零命中；EXT_OUT 定义与 OUT 指向均确认生效。
+- 改动范围：9 文件（7 harness + project.config.json + system_test/README.md），+70/−9；未触碰 product code。
+- 待 Manager 复核：项目目录内不再有 temp/、autotest/ 已正确归位。
 
 # bug status
-**bug status**: open
+**bug status**: fixed（修复完成，待 Manager 复核；2026-10-29）

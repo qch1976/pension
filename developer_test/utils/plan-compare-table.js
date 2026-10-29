@@ -60,7 +60,14 @@ console.log('\n' + out + '\n');
 
 var fs = require('fs');
 var path = require('path');
-var OUT = path.join(__dirname, '..', '..', 'autotest', 'output', 'gui');
+// BUG-02-0013: run-output / screenshots must NOT be written into the repo.
+// Temporary artefacts go to an external temp dir (never committed); only official
+// per-testcase logs live under <testcase>/logs/.
+const EXT_TEMP = process.env.PENSION_EXT_TEMP ||
+  path.join(process.env.USERPROFILE || 'C:\\Users\\Administrator', 'Desktop', 'Wechat projects', 'temp');
+const EXT_OUT = path.join(EXT_TEMP, 'pension-run-output');
+
+var OUT = path.join(EXT_OUT, 'gui');
 fs.mkdirSync(OUT, { recursive: true });
 fs.writeFileSync(path.join(OUT, 'd4-compare-table.md'), out, 'utf8');
 console.log('saved autotest/output/gui/d4-compare-table.md');
