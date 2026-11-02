@@ -159,8 +159,8 @@
       <view class="cr-dr-section">
         <view class="cr-dr-h">历史缴费段（≤2026-08）</view>
         <view class="cr-dr-row" wx:for="{{drill.history}}" wx:for-item="h" wx:for-index="hi" wx:key="hi">
-          <text>{{h.startYM}} 至 {{h.endYM}}</text>
-          <text>{{h.baseMonthly}}（{{h.typeLabel}}）</text>
+          <text class="cr-dr-k">{{h.startYM}} 至 {{h.endYM}}</text>
+          <text class="cr-dr-v">{{h.baseMonthly}}（{{h.typeLabel}}）</text>
         </view>
       </view>
 
@@ -168,7 +168,7 @@
       <view class="cr-dr-section">
         <view class="cr-dr-h">视同缴费</view>
         <view class="cr-dr-row">
-          <text>{{drill.deemed.text}}</text>
+          <text class="cr-dr-k">{{drill.deemed.text}}</text>
         </view>
       </view>
 
@@ -176,7 +176,8 @@
       <view class="cr-dr-section">
         <view class="cr-dr-h">个人账户锚点</view>
         <view class="cr-dr-row">
-          <text>余额 {{drill.account.balance}}（{{drill.account.balanceYM}}）</text>
+          <text class="cr-dr-k">余额</text>
+          <text class="cr-dr-v">{{drill.account.balance}}（{{drill.account.balanceYM}}）</text>
         </view>
       </view>
 
@@ -184,53 +185,56 @@
       <view class="cr-dr-section">
         <view class="cr-dr-h">自定义年度缴费基数</view>
         <view class="cr-dr-row" wx:for="{{drill.customCYear}}" wx:for-item="cy" wx:key="year">
-          <text>{{cy.year}}年：{{cy.value}}</text>
+          <text class="cr-dr-k">{{cy.year}}年</text>
+          <text class="cr-dr-v">{{cy.value}}</text>
         </view>
-        <view class="cr-dr-row" wx:if="{{drill.customCYear.length === 0}}"><text>无</text></view>
+        <view class="cr-dr-row" wx:if="{{drill.customCYear.length === 0}}"><text class="cr-dr-k">无</text></view>
       </view>
 
       <!-- J三分项 -->
       <view class="cr-dr-section">
         <view class="cr-dr-h">月养老金三分项</view>
-        <view class="cr-dr-row"><text>P月</text><text>{{drill.pension.total}}</text></view>
-        <view class="cr-dr-row"><text>基础</text><text>{{drill.pension.jBasic}}</text></view>
-        <view class="cr-dr-row"><text>账户</text><text>{{drill.pension.jAccount}}</text></view>
-        <view class="cr-dr-row"><text>过渡</text><text>{{drill.pension.jTransition}}</text></view>
+        <view class="cr-dr-row"><text class="cr-dr-k">P月</text><text class="cr-dr-v">{{drill.pension.total}}</text></view>
+        <view class="cr-dr-row"><text class="cr-dr-k">基础</text><text class="cr-dr-v">{{drill.pension.jBasic}}</text></view>
+        <view class="cr-dr-row"><text class="cr-dr-k">账户</text><text class="cr-dr-v">{{drill.pension.jAccount}}</text></view>
+        <view class="cr-dr-row"><text class="cr-dr-k">过渡</text><text class="cr-dr-v">{{drill.pension.jTransition}}</text></view>
       </view>
 
       <!-- BUG-02-0012：ROI 计算细节（进入即展开，字段取自 roiModel 实际产出） -->
       <view class="cr-dr-section" wx:if="{{drill.roi}}">
         <view class="cr-dr-h">ROI 计算细节</view>
         <!-- 只读上下文：用户年利率 + 回本分支（来自回本模型，不参与 ROI 公式） -->
-        <view class="cr-dr-row"><text>用户年利率</text><text>{{drill.roi.userRatePercent}}%</text></view>
-        <view class="cr-dr-row"><text>回本情况</text><text>{{drill.roi.paybackText}}{{drill.roi.paybackSub}}</text></view>
+        <view class="cr-dr-row"><text class="cr-dr-k">用户年利率</text><text class="cr-dr-v">{{drill.roi.userRatePercent}}%</text></view>
+        <view class="cr-dr-row"><text class="cr-dr-k">回本情况</text><text class="cr-dr-v">{{drill.roi.paybackText}}{{drill.roi.paybackSub}}</text></view>
         <!-- 正常：分子 / 分母 / 结果 -->
         <block wx:if="{{drill.roi.ok}}">
-          <view class="cr-dr-row"><text>继续缴费 P月（分子基准）</text><text>{{drill.roi.pMonthly}}</text></view>
-          <view class="cr-dr-row"><text>停保（0投入）基准 P月</text><text>{{drill.roi.baselineMonthly}}</text></view>
-          <view class="cr-dr-row"><text>月差额（继续 − 停保）</text><text>{{drill.roi.deltaMonthly}}</text></view>
-          <view class="cr-dr-row"><text>R续累计（分母，共 {{drill.roi.contMonths}} 个月）</text><text>{{drill.roi.rContinued}}</text></view>
-          <view class="cr-dr-row"><text>ROI = 月差额 ÷ R续</text><text class="cr-roi-ok">{{drill.roi.percentText}}（{{drill.roi.roiRounded}}）</text></view>
+          <view class="cr-dr-row"><text class="cr-dr-k">继续缴费 P月（分子基准）</text><text class="cr-dr-v">{{drill.roi.pMonthly}}</text></view>
+          <view class="cr-dr-row"><text class="cr-dr-k">停保（0投入）基准 P月</text><text class="cr-dr-v">{{drill.roi.baselineMonthly}}</text></view>
+          <view class="cr-dr-row"><text class="cr-dr-k">月差额（继续 − 停保）</text><text class="cr-dr-v">{{drill.roi.deltaMonthly}}</text></view>
+          <view class="cr-dr-row"><text class="cr-dr-k">R续累计（分母，共 {{drill.roi.contMonths}} 个月）</text><text class="cr-dr-v">{{drill.roi.rContinued}}</text></view>
+          <view class="cr-dr-row"><text class="cr-dr-k">ROI = 月差额 ÷ R续</text><text class="cr-dr-v cr-roi-ok">{{drill.roi.percentText}}（{{drill.roi.roiRounded}}）</text></view>
         </block>
         <!-- 阻断：显示原因 + 月数依据（不展示公式链） -->
         <block wx:else>
-          <view class="cr-dr-row"><text>ROI</text><text class="cr-roi-blocked">不可用</text></view>
-          <view class="cr-dr-row"><text>原因</text><text>{{drill.roi.reason}}</text></view>
-          <view class="cr-dr-row" wx:if="{{drill.roi.minRequiredMonths !== null}}"><text>最低需缴月数</text><text>{{drill.roi.minRequiredMonths}}</text></view>
-          <view class="cr-dr-row" wx:if="{{drill.roi.baselineTotalMonths !== null}}"><text>停保累计缴费月数</text><text>{{drill.roi.baselineTotalMonths}}</text></view>
-          <view class="cr-dr-row"><text>继续缴费情形是否满足按月领取</text><text>{{drill.roi.eligible ? '是' : '否'}}</text></view>
+          <view class="cr-dr-row"><text class="cr-dr-k">ROI</text><text class="cr-dr-v cr-roi-blocked">不可用</text></view>
+          <view class="cr-dr-row"><text class="cr-dr-k">原因</text><text class="cr-dr-v">{{drill.roi.reason}}</text></view>
+          <view class="cr-dr-row" wx:if="{{drill.roi.minRequiredMonths !== null}}"><text class="cr-dr-k">最低需缴月数</text><text class="cr-dr-v">{{drill.roi.minRequiredMonths}}</text></view>
+          <view class="cr-dr-row" wx:if="{{drill.roi.baselineTotalMonths !== null}}"><text class="cr-dr-k">停保累计缴费月数</text><text class="cr-dr-v">{{drill.roi.baselineTotalMonths}}</text></view>
+          <!-- CT-1017 修复：中文字面量不得出现在 {{}} 表达式内（wcc unexpected character inside expression），
+               改为 wx:if 文本节点，bool 判定仍直接取 drill.roi.eligible，不改 ROI 数值逻辑。 -->
+          <view class="cr-dr-row"><text class="cr-dr-k">继续缴费情形是否满足按月领取</text><text class="cr-dr-v"><text wx:if="{{drill.roi.eligible}}">是</text><text wx:else>否</text></text></view>
         </block>
       </view>
 
       <!-- 三段现金流 -->
       <view class="cr-dr-section" wx:if="{{drill.cashflow}}">
         <view class="cr-dr-h">相对基准净差额现金流</view>
-        <view class="cr-dr-row"><text>并存缴费期合计</text><text>{{drill.cashflow.sumConcurrent}}</text></view>
-        <view class="cr-dr-row"><text>基准退休后冲抵期合计</text><text>{{drill.cashflow.sumOffset}}</text></view>
-        <view class="cr-dr-row"><text>候选退休后月多领</text><text>{{drill.cashflow.deltaMonthly}}</text></view>
+        <view class="cr-dr-row"><text class="cr-dr-k">并存缴费期合计</text><text class="cr-dr-v">{{drill.cashflow.sumConcurrent}}</text></view>
+        <view class="cr-dr-row"><text class="cr-dr-k">基准退休后冲抵期合计</text><text class="cr-dr-v">{{drill.cashflow.sumOffset}}</text></view>
+        <view class="cr-dr-row"><text class="cr-dr-k">候选退休后月多领</text><text class="cr-dr-v">{{drill.cashflow.deltaMonthly}}</text></view>
         <view class="cr-dr-cf" wx:for="{{drill.cashflow.monthly}}" wx:for-item="cf" wx:key="ym">
-          <text>{{cf.ym}}</text>
-          <text class="{{cf.stage === 1 ? 'cr-cf-s1' : 'cr-cf-s2'}}">{{cf.d}}</text>
+          <text class="cr-cf-ym">{{cf.ym}}</text>
+          <text class="cr-cf-d {{cf.stage === 1 ? 'cr-cf-s1' : 'cr-cf-s2'}}">{{cf.d}}</text>
         </view>
       </view>
     </scroll-view>

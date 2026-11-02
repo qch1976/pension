@@ -151,11 +151,14 @@
 }
 .cr-sheet {
   width: 100%;
+  max-width: 100%;
   max-height: 82vh;
   background: #fff;
   border-radius: 24rpx 24rpx 0 0;
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
+  overflow: hidden; /* BUG-02-0015：弹层内部任何剩余像素溢出都不得写到屏外 */
 }
 .cr-sheet-head {
   display: flex;
@@ -163,27 +166,59 @@
   justify-content: space-between;
   padding: 28rpx 32rpx;
   border-bottom: 1rpx solid #eef0f3;
+  box-sizing: border-box;
+  width: 100%;
 }
 .cr-sheet-title { font-size: 32rpx; font-weight: 600; }
 .cr-sheet-close { color: #165dff; font-size: 28rpx; }
-.cr-sheet-body { padding: 20rpx 32rpx 40rpx; max-height: 64vh; }
+/* BUG-02-0015 根因修复：scroll-view 默认 width:100% + 默认 content-box，
+   32rpx 左右内边距被加在 100% 之外（实测 445px > 屏宽 411px），右侧 17px 写到屏外。
+   改为 border-box + width:100%，屏宽内收边，明细行右端不再溢出。 */
+.cr-sheet-body {
+  padding: 20rpx 32rpx 40rpx;
+  max-height: 64vh;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
 
 /* 下钻分段 */
 .cr-dr-section { margin-bottom: 28rpx; }
 .cr-dr-h { font-size: 28rpx; font-weight: 600; margin-bottom: 10rpx; color: #1f2329; }
+/* 明细行：标签列可压缩换行，数值列不压缩、右对齐、整列在屏宽内（BUG-02-0015） */
 .cr-dr-row {
   display: flex;
+  align-items: flex-start;
   justify-content: space-between;
   font-size: 26rpx;
   color: #4e5969;
   padding: 8rpx 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+.cr-dr-k {
+  flex: 1 1 auto;
+  min-width: 0;
+  word-break: break-word;
+}
+.cr-dr-v {
+  flex: 0 0 auto;
+  margin-left: 16rpx;
+  max-width: 62%;
+  text-align: right;
+  word-break: break-all;
 }
 .cr-dr-cf {
   display: flex;
+  align-items: flex-start;
   justify-content: space-between;
   font-size: 24rpx;
-  padding: 4r 0;
+  padding: 4rpx 0;
+  width: 100%;
+  box-sizing: border-box;
 }
+.cr-cf-ym { flex: 0 0 auto; }
+.cr-cf-d { flex: 1 1 auto; min-width: 0; text-align: right; word-break: break-all; }
 .cr-cf-s1 { color: #165dff; }
 .cr-cf-s2 { color: #e6870a; }
 

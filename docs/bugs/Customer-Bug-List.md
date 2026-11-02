@@ -527,16 +527,96 @@ Z=0.6 是**最低**缴费系数。它对应的**最低缴费基数**和**最低�
 （项目主实测，UI 布局缺陷：下钻明细表列宽/横向溢出未适配屏宽。）
 
 ### root cause analysis
-待 developer（worker3）定位：比较结果页下钻明细的列宽或容器宽度未做屏宽适配（疑似固定 px 宽度合计 > 屏宽、或 scroll-view 未开横向滚动 / 单元格未做 ellipsis 或换行）。需回填具体 wxml/wxss 文件与行号。
+**developer（worker3）实测定位，非推测**（基线 `8b6b5ea`，automator 直连常驻口 40215 取 `boundingClientRect`）
+
+根因在 **`pages/compare-result/compare-result.wxss` 的 `.cr-sheet-body`（下钻弹层正文 scroll-view，原第 169 行）盒模型**，不是列宽、也不是缺横向滚动：
+
+```css
+/* 修复前 */
+.cr-sheet-body { padding: 20rpx 32rpx 40rpx; max-height: 64vh; }
+```
+
+- 该节点是 `<scroll-view scroll-y class="cr-sheet-body">`（`compare-result.wxml` 第 157 行），`width` 未声明 → 默认 `100%`；
+- **未设 `box-sizing`**，小程序默认 `content-box`，于是 `padding: 20rpx 32rpx` 的**左右共 64rpx 被加在 100% 之外**，实际外宽 = 屏宽 + 64rpx ≈ 屏宽 + 35px；
+- 实测（模拟器 `windowWidth=411px`，`pixelRatio=2.625`，`1rpx≈0.548px`）：
+
+| 节点 | 实测 left | 实测 right | 实测 width | 是否超屏（屏宽 411px） |
+|---|---|---|---|---|
+| `.cr-sheet`（弹层） | 0 | 411 | 411 | 否 |
+| **`.cr-sheet-body`（正文）** | **0** | **445** | **445** | **是，溢出 34px** |
+| `.cr-dr-row`（明细行，44 行） | 17 | 428 | 411 | 是，行右端 17px 在屏外 |
+
+- `.cr-dr-row` 是 `display:flex; justify-content: space-between` 的自由两段布局，右端 `<text>` 无收缩约束 → 随容器一起被推到屏外 17px，正是项目主截图「最右 3 个字符被写到屏幕外」；
+- 同类隐患：`.cr-sheet-head`（padding 28rpx 32rpx）与 `.cr-sheet` 也缺 `box-sizing`，只是被父级 `overflow` 掩盖。
+
+### 补充：同文件既有 wcc 违例（0012 带入，非本单引入）
+`compare-result.wxml:221:92` 的 `{{drill.roi.eligible ? '是' : '否'}}` 在 `{{}}` 表达式内使用中文非 ASCII 字面量，wcc 报 `unexpected character inside expression`，`developer_test/TST-02-CT-1017/wxml-expr-check.js` 报 1 处 `non-ascii-in-expr`。
 
 ### fix solution description
-待修复：使明细列表在屏宽内完整显示数值（列宽自适应/横向可滚/关键数值列优先保证可见），不得出现字符被裁切在屏幕外。修复方案与 commit hash 回填本节。
+**修复（commit `f666b7a`，基线 `8b6b5ea`，未 push）— 纯 wxml/wxss 层，`calculator/` 全部文件零改动**
+
+1. `pages/compare-result/compare-result.wxss`
+   - `.cr-sheet-body`：新增 `width:100%` + **`box-sizing:border-box`** + `overflow-x:hidden`（根因修复点：padding 收进 100% 内）；
+   - `.cr-sheet`：新增 `box-sizing:border-box` + `max-width:100%` + `overflow:hidden`（弹层兜底，残余像素不外溢）；
+   - `.cr-sheet-head`：新增 `box-sizing:border-box` + `width:100%`；
+   - 明细行改**两段式自适应**（无固定 px）：`.cr-dr-k` = `flex:1 1 auto; min-width:0; word-break:break-word`（标签列可压缩换行）；`.cr-dr-v` = `flex:0 0 auto; max-width:62%; text-align:right; word-break:break-all`（**关键数值不压缩、右对齐、整列在屏内**）；
+   - `.cr-dr-row` / `.cr-dr-cf` 增 `width:100%` + `box-sizing:border-box`；现金流行拆 `.cr-cf-ym` / `.cr-cf-d`（数值右对齐，可压缩）；顺带修正原 `.cr-dr-cf` 的 `padding: 4r 0` 缺单位（无效声明）。
+2. `pages/compare-result/compare-result.wxml`：明细各行 `<text>` 全部标注 `cr-dr-k` / `cr-dr-v`（历史段、视同、账户锚点、自定义年度、J 三分项、ROI 明细、现金流合计）；「余额 / 年度：值」由单文本节点拆为标签 + 数值两节点（仅拆分，数值不变）。
+3. **CT-1017 违例清除**：`{{drill.roi.eligible ? '是' : '否'}}` → `<text wx:if="{{drill.roi.eligible}}">是</text><text wx:else>否</text>`，bool 判定仍直接取 `drill.roi.eligible`，**ROI 数值逻辑与 roiModel 零改动**。
+4. 新增 `developer_test/TST-02-CT-1043/drill-width-budget-check.js`（40 断言）：
+   - ① 下钻容器盒模型（`box-sizing:border-box` / `width:100%` / `overflow-x:hidden`）；
+   - ② 下钻弹层所有相关 class **固定 px 宽度 = 0**、固定 rpx 宽度合计 **0rpx ≤ 750rpx**；
+   - ③ 明细行两段式 flex 语义（标签可压缩、数值不压缩 + 右对齐 + 百分比 max-width）；
+   - ④ 行内宽度预算 **62% + 16rpx(2.13%) = 64.13% < 100%**（标签列始终 ≥35.87%）；
+   - ⑤ WXML 结构约束（每个 `.cr-dr-row` 顶层 text 必须带 `cr-dr-k`/`cr-dr-v`；中文表达式已移除）；
+   - ⑥ 数值口径零改动守卫（`calculator/*` 五个核心文件不被改动/不含样式类）。
 
 ### fix verification process
-待 tester（worker4）独立验收：真机/模拟器屏宽下打开 `数值下钻 → 查看明细`，断言最右列数值完全可见、无横向溢出、无字符裁切；截图取证。结果回填本节。
+**（developer worker3 自测：dev box automator 直连 40215 实测 + 静态断言；独立 GUI 验收归 tester）**
+
+**① 实测宽度（模拟器真渲染取值，修复前 → 修复后，屏宽 411px）**
+
+| 节点 | 修复前 max right | 修复后 max right | 修复前溢出 | 修复后溢出 |
+|---|---|---|---|---|
+| `.cr-sheet` | 411 | 411.3 | 0 | 0 |
+| `.cr-sheet-body` | **445** | **411.3** | **1（34px）** | **0** |
+| `.cr-dr-row`（41~44 行） | **428** | **394.3** | **全部行** | **0** |
+| `.cr-dr-row .cr-dr-v`（数值列） | —（无此节点） | 394.3 | — | **0** |
+| `.cr-dr-cf .cr-cf-d`（现金流 51 行） | — | 394.3 | — | **0** |
+
+两个分支均实测：ROI 正常列（`p2`，`roi.ok=true`）与 ROI 阻断列（`p1`，`reason=继续缴费为0，ROI不可用`，即原 221 行中文表达式所在分支），**溢出计数全部为 0**，数值列右边界 394.3px < 屏宽 411px，留 16.7px 安全边。
+
+**② 关键数值未被裁切（DOM 文本取证，ROI 阻断分支 41 行逐行读取）**
+```
+P月 10765.49 / 基础 5995.92 / 账户 3738.44 / 过渡 1031.13
+余额 672920（2026-08）
+ROI 不可用 / 原因 继续缴费为0，ROI不可用
+最低需缴月数 180 / 停保累计缴费月数 310
+继续缴费情形是否满足按月领取 是      ← 原 {{...?'是':'否'}} 改 wx:if 后渲染正确
+历史段 2026-01 至 2026-08 35945.25（企业）   ← 最右数值完整，无截断
+```
+
+**③ 宽度预算证据（回答工单点名项）**
+- 下钻弹层固定 px 宽度：**0 处**（`.cr-sheet` / `.cr-sheet-head` / `.cr-sheet-body` / `.cr-dr-*` / `.cr-cf-*` 全扫描）；
+- 固定 rpx 宽度合计：**0rpx**（修复后明细区不再有任何固定宽，全部 flex 权重 / 百分比）；
+- 行内宽度权重：数值列 `max-width:62%` + `margin-left:16rpx`(=2.13%) = **64.13%**，标签列弹性占 **≥35.87%**，合计 **100% 无溢出**；
+- 全文 `.wxss` 扫描：`pages/` + `app.wxss` 中**无任何非 rpx 的固定 px 宽度**（0 处命中）。
+
+**④ 回归（dev box 实跑）**
+- `developer_test` 全量：**48 文件 / pass=818 / fail=0 / badFiles=0**（上一轮基线 47 文件 pass=778，本轮 +TST-02-CT-1043 的 40 断言）；
+- `TST-02-CT-1017/wxml-expr-check.js`：**由 1 处违规转全绿**（5 文件 / 353 个 `{{}}` 表达式，无非 ASCII、配对正确、无 `?.`/`??`/`=>`/`;`）；
+- `tools/gates/bug-gate.js`：**BUG GATE PASS**；`tools/gates/matrix-gate.js`：**MATRIX GATE PASS**（79 行，仅 2 条历史 one-script-multi-testcase 警告）；
+- 计算引擎零触碰：`git show --stat f666b7a` 仅 5 个文件（2 个页面样式/结构 + 1 个新增测试 + logs），`calculator/**` 无改动。
+
+**⑤ 给 tester 的独立 GUI 验收点**
+1. 「方案比较」→ 录入 ≥2 方案 → 「比较结果」→ 任一列「查看明细」；
+2. 断言：明细列表**无横向溢出**、最右数值（如历史段末行 `35945.25`、`R续累计`、`ROI 百分比`）**完整可见**、字符不被裁切；
+3. 覆盖 ROI 正常列与 ROI 阻断列两种分支（阻断列需让某方案 R续=0，如起始月=退休月）；
+4. 截图取证；
+5. 注意：本单状态为 `fixed`（**未 closed**），因 0015/0016/0017 共用矩阵行 `TST-02-MT-9004`，该行仍 FAIL，最终关闭须等项目主复测该行。
 
 ### bug status
-**bug status**: open
+**bug status**: fixed
 
 ## BUG-02-0016
 ### testcase ID
