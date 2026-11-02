@@ -633,7 +633,7 @@ ROI 不可用 / 原因 继续缴费为0，ROI不可用
 **实现前实测确认（基线 bfd8e88）**：旧两行（argmin R续 基准）对 R续 最大的方案只能给出「退休后抵回 907 个月」，而 ROI 已按逐方案停保基线算出该方案 ΔP=2749.23，两个口径确实分叉——需求成立。
 
 ### fix solution description
-**已实现（worker3，commit 见下方 verification；基线 `9e7814d`，本地 commit 未 push）——纯新增视图，不改任何计算引擎口径**
+**已实现（worker3，commit `045b4af`，基线 `9e7814d`，本地 commit 未 push）——纯新增视图，不改任何计算引擎口径**
 
 按规格 `docs/design/stop-baseline-payback-design-bug16.md` §5 实现，四个文件：
 
