@@ -620,17 +620,29 @@ ROI 不可用 / 原因 继续缴费为0，ROI不可用
 
 ## BUG-02-0016
 ### testcase ID
-- TST-02-MT-9004
+- TST-02-CT-1044（模型级，developer，新增；见矩阵新增行）
+- TST-02-MT-9006（项目主手测 GUI，并行存在）
 
 ### failure description
 **Requirement update**（需求变更，非缺陷）：需新增 requirement ID、设计新 testcase 并加入矩阵。
 "方案比较" 输出页 → "比较结果" → `回本月数`：当前**仅以 `R续` 最小的方案为基准**。要求**增加以 `R续=0` 方案（即停保情形）为基准的两行显示**，利率分别取 `利率=0` 与 "比较结果" 页面里的利率输入值；这样可以算出**全部方案**的回本时间，与 ROI 的算法基线保持一致。
 
 ### root cause analysis
-非缺陷，属需求变更。现状：回本月数仅按 R续 最小方案作基准，缺少以 R续=0（停保）为基准的口径，导致无法覆盖全部方案的回本时间，且与 ROI 基线口径不一致。
+非缺陷，属需求变更。现状：回本月数仅按 R续 最小方案作基准（`calculator/paybackModel.js selectBaseline()` L123-133），缺少以 R续=0（停保）为基准的口径，导致无法覆盖全部方案的回本时间，且与 ROI 逐方案停保基线（`calculator/roiModel.js buildCaseInput(...,false)` L27-46）口径不一致。
 
 ### fix solution description
-待实施：①在 requirements 中新增 requirement ID 并写入规格；②`回本月数` 增补以 `R续=0`（停保）为基准的两行，利率分别用 `0` 与页面利率输入值；③与 ROI 基线口径对齐；④新增/更新 testcase 并写入矩阵（与项目主的 MT 并行存在）。实施内容与 commit hash 回填本节。
+**需求变更规格已出（architect worker2 task-92，基线 bfd8e88）——待 worker3 实现，本单不写产品代码。**
+
+1) 新增 requirement：**REQ-02-CAL-002**（`docs/specifications/specification-phase2.md` §11.0 索引、§11.1 初始矩阵、§10.2 正文定义），来源注明本单。
+2) 新增 testcase：**TST-02-CT-1044**（模型级，developer）——设计见 `docs/testcase_design/TST-02-CT-1044-stop-baseline-payback.md`，脚本入口 `developer_test/TST-02-CT-1044/stop-baseline-payback-check.js`（占位，实现后填充）；已写入矩阵**新增行**，result=FAIL、bug=BUG-02-0016。项目主手测 **TST-02-MT-9006** 并行存在，互不替代。
+3) 实现规格：**`docs/design/stop-baseline-payback-design-bug16.md`**。要点：
+   - 现状回本基准＝argmin(R续)，位于 `calculator/paybackModel.js selectBaseline()` L123-133（由 `computeAtRate()` L137 调用）；视图组装在 `calculator/compareResultModel.js buildView()` L130。
+   - 新基准＝**逐方案停保**，复用 `calculator/roiModel.js buildCaseInput(...,false)` L27-46 与 `computeROI()` 产出的 `baselineMonthly/baselineEligible`（与 ROI 同一数据源，禁止第二套逻辑）。
+   - 新增两行：`回本月数（停保基准·0%）`、`回本月数（停保基准·页面利率%）`；覆盖**全部方案**；原 argmin R续 两行**保留**（共 4 行）。
+   - 公式沿用 spec-phase1 §9.3，仅换基准；因停保月负担=0 且 T_b=T_k，分支 A 不触发，走 B/C。
+   - 边界：R续=0→「—（即停保基准）」；永不回本→「该利率下无法抵回」；停保不足最低年限→「不可用（停保基准不足最低缴费年限）」；页面利率=0 两行同值仍显示两行。
+   - **数值口径**：不得改动现有 ROI 与旧两行回本结果（回归 ±0），仅新增视图。
+   - 实施内容与 commit hash 待 worker3 回填。
 
 ### fix verification process
 待 tester（worker4）独立验收：`回本月数` 出现以 R续=0 为基准的两行（利率=0 与页面输入利率），数值与独立重算一致；与 ROI 基线口径勾稽；新 requirement/testcase 已入矩阵且门禁 PASS。结果回填本节。
