@@ -143,6 +143,62 @@ function computeDouble(series, userAnnualRate) {
   };
 }
 
+// ============================================================================
+// BUG-02-0016（REQ-02-CAL-002）：停保（R续=0）基准回本月数——纯新增，不改上面任何函数语义。
+// 基准＝逐方案自身「0 投入」情形（T_b ＝ T_k，故分支 A 不会触发），月负担恒 0：
+//   d_m = burdenK_m − 0 = burdenK_m
+//   FV_k = Σ_{m=0..T_k} d_m·(1+i)^(T_k−m)
+//   ΔP_k = P月_k^继续 − P月_k^停保   ← 与 ROI 分子同一个减数（调用方传入 it.pMonthly / it.baselineMonthly）
+//   r=0: n=FV/ΔP；r>0: n=−ln(1−FV·i/ΔP)/ln(1+i)；向上取整到整月
+// 分支码：'SELF' 该方案本身即停保基准 / 'NA' 停保基准不足最低缴费年限 /
+//         'B' 退休后抵回 / 'C' 该利率下无法抵回。
+// ============================================================================
+function computeStopBaseline(series, annualRate) {
+  var rate = typeof annualRate === 'number' ? annualRate : 0;
+  var i = rate / 12;
+  var byId = {};
+
+  series.forEach(function (k) {
+    var pStop = (typeof k.pStop === 'number') ? k.pStop : null;
+    var dP = (typeof k.pMonthly === 'number' && pStop != null) ? round2(k.pMonthly - pStop) : null;
+
+    // 边界 3：停保基准不满足最低缴费年限 —— 无回本可言
+    if (k.stopEligible === false) {
+      byId[k.id] = { branch: 'NA', months: null, ceilMonths: null, FV: null, dP: dP, rate: rate };
+      return;
+    }
+    // 边界 1：该方案本身即停保（R续=0，继续==停保）—— 它是自己的基准，不参与排名
+    if (!(k.rTotal > 0)) {
+      byId[k.id] = { branch: 'SELF', months: null, ceilMonths: null, FV: 0, dP: 0, rate: rate };
+      return;
+    }
+
+    // 停保侧月负担恒 0（T_b == T_k，故全程落在 m<=T_b 区间，d_m = burdenK_m）
+    var stopB = { id: k.id + ':stop', T: k.T, burdens: {}, pMonthly: 0 };
+    var FV = futureValue(cashflows(stopB, k), k.T, i);
+
+    // 边界 2：ΔP_k <= 0（多投入不多领）或年金现值不足 → 无法抵回
+    var n = branchBMonths(FV, dP, i);
+    if (!isFinite(n)) {
+      byId[k.id] = { branch: 'C', months: Infinity, ceilMonths: null, FV: round2(FV), dP: dP, rate: rate };
+      return;
+    }
+    byId[k.id] = { branch: 'B', months: n, ceilMonths: Math.ceil(n), FV: round2(FV), dP: dP, rate: rate };
+  });
+
+  return { mode: 'stop', annualRate: rate, byId: byId };
+}
+
+// 停保基准双列（0% + 页面利率），结构对齐 computeDouble（仅为排版一致，不复用其结果）。
+function computeStopDouble(series, userAnnualRate) {
+  var rate = typeof userAnnualRate === 'number' ? userAnnualRate : 0;
+  return {
+    at0: computeStopBaseline(series, 0),
+    atUser: computeStopBaseline(series, rate),
+    userAnnualRate: rate
+  };
+}
+
 module.exports = {
   ORIGIN_YM: ORIGIN_YM,
   retireOffset: retireOffset,
@@ -155,5 +211,7 @@ module.exports = {
   evaluateOne: evaluateOne,
   computeAtRate: computeAtRate,
   computeDouble: computeDouble,
+  computeStopBaseline: computeStopBaseline,
+  computeStopDouble: computeStopDouble,
   round2: round2
 };

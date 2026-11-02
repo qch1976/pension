@@ -628,27 +628,91 @@ ROI 不可用 / 原因 继续缴费为0，ROI不可用
 "方案比较" 输出页 → "比较结果" → `回本月数`：当前**仅以 `R续` 最小的方案为基准**。要求**增加以 `R续=0` 方案（即停保情形）为基准的两行显示**，利率分别取 `利率=0` 与 "比较结果" 页面里的利率输入值；这样可以算出**全部方案**的回本时间，与 ROI 的算法基线保持一致。
 
 ### root cause analysis
-非缺陷，属需求变更。现状：回本月数仅按 R续 最小方案作基准（`calculator/paybackModel.js selectBaseline()` L123-133），缺少以 R续=0（停保）为基准的口径，导致无法覆盖全部方案的回本时间，且与 ROI 逐方案停保基线（`calculator/roiModel.js buildCaseInput(...,false)` L27-46）口径不一致。
+非缺陷，属需求变更。现状：回本月数仅按 R续 最小方案作基准（`calculator/paybackModel.js selectBaseline()`，基准即 argmin R续，由 `computeAtRate()` 调用），缺少以 R续=0（停保）为基准的口径，导致无法覆盖全部方案的回本时间，且与 ROI 逐方案停保基线（`calculator/roiModel.js buildCaseInput(sharedInput, plan, false)` L27-46 与 `computeROI()` 产出的 `baselineMonthly` / `baselineEligible`）口径不一致。
+
+**实现前实测确认（基线 bfd8e88）**：旧两行（argmin R续 基准）对 R续 最大的方案只能给出「退休后抵回 907 个月」，而 ROI 已按逐方案停保基线算出该方案 ΔP=2749.23，两个口径确实分叉——需求成立。
 
 ### fix solution description
-**需求变更规格已出（architect worker2 task-92，基线 bfd8e88）——待 worker3 实现，本单不写产品代码。**
+**已实现（worker3，commit 见下方 verification；基线 `9e7814d`，本地 commit 未 push）——纯新增视图，不改任何计算引擎口径**
 
-1) 新增 requirement：**REQ-02-CAL-002**（`docs/specifications/specification-phase2.md` §11.0 索引、§11.1 初始矩阵、§10.2 正文定义），来源注明本单。
-2) 新增 testcase：**TST-02-CT-1044**（模型级，developer）——设计见 `docs/testcase_design/TST-02-CT-1044-stop-baseline-payback.md`，脚本入口 `developer_test/TST-02-CT-1044/stop-baseline-payback-check.js`（占位，实现后填充）；已写入矩阵**新增行**，result=FAIL、bug=BUG-02-0016。项目主手测 **TST-02-MT-9006** 并行存在，互不替代。
-3) 实现规格：**`docs/design/stop-baseline-payback-design-bug16.md`**。要点：
-   - 现状回本基准＝argmin(R续)，位于 `calculator/paybackModel.js selectBaseline()` L123-133（由 `computeAtRate()` L137 调用）；视图组装在 `calculator/compareResultModel.js buildView()` L130。
-   - 新基准＝**逐方案停保**，复用 `calculator/roiModel.js buildCaseInput(...,false)` L27-46 与 `computeROI()` 产出的 `baselineMonthly/baselineEligible`（与 ROI 同一数据源，禁止第二套逻辑）。
-   - 新增两行：`回本月数（停保基准·0%）`、`回本月数（停保基准·页面利率%）`；覆盖**全部方案**；原 argmin R续 两行**保留**（共 4 行）。
-   - 公式沿用 spec-phase1 §9.3，仅换基准；因停保月负担=0 且 T_b=T_k，分支 A 不触发，走 B/C。
-   - 边界：R续=0→「—（即停保基准）」；永不回本→「该利率下无法抵回」；停保不足最低年限→「不可用（停保基准不足最低缴费年限）」；页面利率=0 两行同值仍显示两行。
-   - **数值口径**：不得改动现有 ROI 与旧两行回本结果（回归 ±0），仅新增视图。
-   - 实施内容与 commit hash 待 worker3 回填。
+按规格 `docs/design/stop-baseline-payback-design-bug16.md` §5 实现，四个文件：
+
+1. **`calculator/paybackModel.js`** — 新增 `computeStopBaseline(series, annualRate)` / `computeStopDouble(series, userAnnualRate)`（**现有 `selectBaseline` / `computeAtRate` / `computeDouble` 一行未动，语义冻结**）：
+   - 停保基准 = 逐方案自身 0 投入情形。因 `T_b = T_k`，全程落在 `m <= T_b` 区间：`d_m = burdenK_m − 0`，直接复用已有 `cashflows()` / `futureValue()` / `branchBMonths()`，**未复制公式**。
+   - `ΔP_k = pMonthly − pStop`，其中 `pStop` 由调用方传入 `roiModel.computeROI()` 的 `baselineMonthly`（**与 ROI 分子同一个减数**）。
+   - 分支码：`SELF`（本身即停保）/ `NA`（停保基准不足最低缴费年限）/ `B`（退休后抵回）/ `C`（无法抵回），输出结构对齐 `computeAtRate`：`{ mode:'stop', annualRate, byId:{[id]:{branch,months,ceilMonths,FV,dP,rate}} }`。
+2. **`calculator/compareResultModel.js`** — `buildView()` 内：
+   - 新增 `stopSeries`：在原 `series` 上追加 `pStop = it.baselineMonthly`、`stopEligible = it.baselineEligible`（均直接取 `roiModel.computeROI` 产出，**未另建停保引擎调用**）；
+   - `stopDbl = PB.computeStopDouble(stopSeries, rate)`；
+   - 列字段新增 `pbS0` / `pbSU`（复用 `paybackText()`，在其内新增 `SELF` / `NA` 两个文案分支；`paybackText` 对旧分支的输出**逐字未变**）。
+3. **`pages/compare-result/compare-result.wxml`** — 在原有两行后追加两行（结构照抄，`cr-cell`/`cr-cell-grey` 灰显规则一致）：
+   - 标签 `回本月数（停保基准·0%）` 绑 `c.pbS0.text/sub`；
+   - 标签 `回本月数（停保基准·{{view.userRatePercent}}%）` 绑 `c.pbSU.text/sub`。
+4. **`pages/compare-result/compare-result.js`** — 仅透传（`view` 直接绑定），**未改一行**（无新逻辑）。
+
+**边界实现（规格 §6 六项全覆盖）**
+| # | 场景 | 实现位置 | 显示 |
+|---|---|---|---|
+| 1 | 该方案 R续 = 0 | `computeStopBaseline` `!(k.rTotal > 0)` → `branch:'SELF'` | 「—（即停保基准）」，不参与排名 |
+| 2 | 永不回本（ΔP≤0 或年金现值不足） | `branchBMonths()` 返回 Infinity → `branch:'C'` | 「无法抵回（该利率下）」 |
+| 3 | `baselineEligible=false` | 前置 `k.stopEligible === false` → `branch:'NA'` | 「不可用（停保基准不足最低缴费年限）」，与 ROI blocked 口径一致 |
+| 4 | 页面利率 = 0 | `computeStopDouble` 两列各自计算 | 两行同值，**仍渲染两行**（wxml 两个独立 `cr-row`，不合并） |
+| 5 | 利率 null/undefined | `typeof annualRate === 'number' ? annualRate : 0` | 按 0 处理 |
+| 6 | 方案灰显（grey） | wxml `cr-cell-grey` 类沿用原规则 | 新两行同步灰显，文案同边界 3 |
+
+**新增 testcase 实现**：`developer_test/TST-02-CT-1044/stop-baseline-payback-check.js`（占位骨架 → **109 断言**，A1~A10 全覆盖；期望值由脚本按规格公式**独立复算**，不读被测 FV/dP/months 中间量；含 A4 与 ROI 的 `baselineMonthly`/`pMonthly` 勾稽、A9 旧两行数值冻结快照）。
 
 ### fix verification process
-待 tester（worker4）独立验收：`回本月数` 出现以 R续=0 为基准的两行（利率=0 与页面输入利率），数值与独立重算一致；与 ROI 基线口径勾稽；新 requirement/testcase 已入矩阵且门禁 PASS。结果回填本节。
+**（developer worker3 自测：dev box node 直算产品模块；独立 GUI 验收归 tester）**
+
+**① 新两行实测数值（真实夹具 `My-Case.md`，3 方案，基线前后对照）**
+```
+方案集 A（p0 z=0.6/retire2033-07，p1 z=1.3/retire2035-09，p2 z=3.0/retire2030-12）
+利率 0%   : p0 退休后抵回 48个月 | p1 退休后抵回 31个月 | p2 退休后抵回 122个月
+利率 1.5% : p0 退休后抵回 48→52个月 | p1 31→34个月 | p2 122→137个月
+利率 20%  : 0%列不变 | 1.5%列 → 全部「无法抵回（该利率下）」（分支C）
+方案集 B（含 R续=0 方案 p1 retire2026-12）
+          : p1 两行均为「—（即停保基准）」（branch=SELF），p0 仍给正常月数
+```
+
+**② 与 ROI 勾稽（A4，逐方案实测）**
+```
+方案  pMonthly   baselineMonthly   ΔP(新行减数)   R续       停保基准合格
+p0    13290.69   10765.69          2525.00        119228    true
+p1    15505.25   11036.19          4469.06        136086.91 true
+p2    13617.98   10558.64          3059.34        370749.6  true
+```
+切点：新行 `ΔP === round2(pMonthly − baselineMonthly)`，**与 ROI 分子同一个减数**；A4 另逐方案将 `roiModel.computeROI()` 的 `baselineMonthly` / `pMonthly` 与回本行所用值做相等断言（0 误差）。
+
+**③ 旧两行数值冻结（A9，与改动前逐字比对，±0）**
+```
+改动前（bfd8e88 实跑快照）→ 改动后
+A|0%   p0 基准方案（R续最小） | p1 退休前抵回 1个月 | p2 退休后抵回 907个月
+A|1.5% p0 基准方案 | p1 退休前抵回 1个月 | p2 「0%列 907个月 / 用户利率列 无法抵回」
+A|20%  同 1.5% 口径
+B|0%   p0 退休前抵回 1个月 | p1 基准方案（R续最小）
+B|1.5% 同 B|0%
+全部逐字相等，0 差异；baselineId 仍为 p0（argmin R续），BASELINE 分支唯一，列数=方案数（停保基准未新增列/未加徽标）
+```
+
+**④ 测试与回归（dev box 实跑）**
+- `TST-02-CT-1044`：**pass=109 fail=0**（A1~A10 全覆盖）
+- 全量 `developer_test`：**49 文件 / pass=927 / fail=0 / badFiles=0**（上轮基线 48 文件 pass=818，本轮 +CT-1044 的 109 断言）
+- `tools/gates/bug-gate.js`：**BUG GATE PASS**；`tools/gates/matrix-gate.js`：**MATRIX GATE PASS**（80 行）
+- 引擎零触碰：`pensionEngine` / `planAssembler` / `rContribution` / `roiModel` **无任何改动**（`buildCaseInput` 仅被 `computeROI` 原有路径读取）；`compare-result.js` 未改
+
+**⑤ 给 tester 的独立 GUI 验收点**
+1. 「方案比较」→ 录入 ≥2 方案（其中至少一个 `起始月 = 退休月` 以覆盖 R续=0）→「比较结果」；
+2. `回本月数` 区应出现 **4 行**：旧的 `回本月数（0%）`/`（页面利率%）` + 新的 `回本月数（停保基准·0%）`/`（停保基准·页面利率%）`；
+3. 新两行覆盖**全部方案列**（含旧行显示「基准方案」的那一列，新行应给实际月数）；
+4. R续=0 的方案列：两行显示「—（即停保基准）」；
+5. 页面利率输入 0 时新两行同值但仍是两行；改 20% 后出现「无法抵回（该利率下）」；
+6. 数值与独立重算一致（按设计规格 §4 公式：`FV=Σ burden_m(1+i)^(T−m)`，`ΔP=pMonthly−baselineMonthly`，`r=0` 时 `FV/ΔP`，`r>0` 时 `−ln(1−FV·i/ΔP)/ln(1+i)`，向上取整）；
+7. 回归：旧两行与改动前完全一致；
+8. 🔴 本单状态 `fixed`（**未 closed**）：最终关闭须等 tester 独立 GUI 验收（含 MT-9006）后同批处理。
 
 ### bug status
-**bug status**: open
+**bug status**: fixed
 
 ## BUG-02-0017
 ### testcase ID

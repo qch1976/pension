@@ -95,6 +95,24 @@
         </view>
       </view>
 
+      <!-- 回本月数：停保（R续=0）基准·0%（BUG-02-0016 / REQ-02-CAL-002） -->
+      <view class="cr-row">
+        <view class="cr-cell cr-cell-label">回本月数（停保基准·0%）</view>
+        <view class="cr-cell {{c.grey ? 'cr-cell-grey' : ''}}" wx:for="{{view.columns}}" wx:for-item="c" wx:key="id">
+          <view class="cr-pb-text">{{c.pbS0.text}}</view>
+          <view class="cr-pb-sub">{{c.pbS0.sub}}</view>
+        </view>
+      </view>
+
+      <!-- 回本月数：停保（R续=0）基准·页面利率（BUG-02-0016 / REQ-02-CAL-002） -->
+      <view class="cr-row">
+        <view class="cr-cell cr-cell-label">回本月数（停保基准·{{view.userRatePercent}}%）</view>
+        <view class="cr-cell {{c.grey ? 'cr-cell-grey' : ''}}" wx:for="{{view.columns}}" wx:for-item="c" wx:key="id">
+          <view class="cr-pb-text">{{c.pbSU.text}}</view>
+          <view class="cr-pb-sub">{{c.pbSU.sub}}</view>
+        </view>
+      </view>
+
       <!-- ROI -->
       <view class="cr-row">
         <view class="cr-cell cr-cell-label">ROI</view>

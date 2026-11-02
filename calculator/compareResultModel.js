@@ -47,9 +47,13 @@ function planIsEstimated(plan) {
 
 // 回本结果展示文本
 function paybackText(res) {
-  if (res.branch === 'BASELINE') return { text: '基准方案', sub: '（R续最小）' };
-  if (res.branch === 'A') return { text: '退休前抵回', sub: res.ceilMonths + '个月' };
-  if (res.branch === 'B') return { text: '退休后抵回', sub: res.ceilMonths + '个月' };
+  var br = res && res.branch;
+  // BUG-02-0016 停保基准专用分支
+  if (br === 'SELF') return { text: '—', sub: '（即停保基准）' };
+  if (br === 'NA') return { text: '不可用', sub: '（停保基准不足最低缴费年限）' };
+  if (br === 'BASELINE') return { text: '基准方案', sub: '（R续最小）' };
+  if (br === 'A') return { text: '退休前抵回', sub: res.ceilMonths + '个月' };
+  if (br === 'B') return { text: '退休后抵回', sub: res.ceilMonths + '个月' };
   return { text: '无法抵回', sub: '（该利率下）' };
 }
 
@@ -129,6 +133,17 @@ function buildView(sharedInput, plans, userAnnualRate) {
   });
   var dbl = PB.computeDouble(series, rate);
 
+  // BUG-02-0016（REQ-02-CAL-002）：停保（R续=0）基准双列。
+  // pStop / stopEligible 直接取 roiModel.computeROI 已产出的 baselineMonthly / baselineEligible，
+  // 与 ROI 分子共用同一个减数，不另建停保引擎调用。
+  var stopSeries = items.map(function (it, i) {
+    var s = series[i];
+    s.pStop = it.baselineMonthly;
+    s.stopEligible = it.baselineEligible;
+    return s;
+  });
+  var stopDbl = PB.computeStopDouble(stopSeries, rate);
+
   // 3) 逐方案列
   var columns = items.map(function (it, i) {
     var s = series[i];
@@ -168,6 +183,12 @@ function buildView(sharedInput, plans, userAnnualRate) {
       pb0Branch: pb0.branch,
       pbU: paybackText(pbU),
       pbUBranch: pbU.branch,
+
+      // BUG-02-0016：回本月数（停保基准）双列 —— 与 ROI 基线同源，纯新增
+      pbS0: paybackText(stopDbl.at0.byId[it.id]),
+      pbS0Branch: stopDbl.at0.byId[it.id].branch,
+      pbSU: paybackText(stopDbl.atUser.byId[it.id]),
+      pbSUBranch: stopDbl.atUser.byId[it.id].branch,
 
       // ROI
       roiStatus: it.status,
