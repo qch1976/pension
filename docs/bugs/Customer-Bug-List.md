@@ -553,7 +553,7 @@ Z=0.6 是**最低**缴费系数。它对应的**最低缴费基数**和**最低�
 `compare-result.wxml:221:92` 的 `{{drill.roi.eligible ? '是' : '否'}}` 在 `{{}}` 表达式内使用中文非 ASCII 字面量，wcc 报 `unexpected character inside expression`，`developer_test/TST-02-CT-1017/wxml-expr-check.js` 报 1 处 `non-ascii-in-expr`。
 
 ### fix solution description
-**修复（commit `f666b7a`，基线 `8b6b5ea`，未 push）— 纯 wxml/wxss 层，`calculator/` 全部文件零改动**
+**修复（commit `7fe6a94`，基线 `8b6b5ea`，未 push）— 纯 wxml/wxss 层，`calculator/` 全部文件零改动**
 
 1. `pages/compare-result/compare-result.wxss`
    - `.cr-sheet-body`：新增 `width:100%` + **`box-sizing:border-box`** + `overflow-x:hidden`（根因修复点：padding 收进 100% 内）；
@@ -606,7 +606,7 @@ ROI 不可用 / 原因 继续缴费为0，ROI不可用
 - `developer_test` 全量：**48 文件 / pass=818 / fail=0 / badFiles=0**（上一轮基线 47 文件 pass=778，本轮 +TST-02-CT-1043 的 40 断言）；
 - `TST-02-CT-1017/wxml-expr-check.js`：**由 1 处违规转全绿**（5 文件 / 353 个 `{{}}` 表达式，无非 ASCII、配对正确、无 `?.`/`??`/`=>`/`;`）；
 - `tools/gates/bug-gate.js`：**BUG GATE PASS**；`tools/gates/matrix-gate.js`：**MATRIX GATE PASS**（79 行，仅 2 条历史 one-script-multi-testcase 警告）；
-- 计算引擎零触碰：`git show --stat f666b7a` 仅 5 个文件（2 个页面样式/结构 + 1 个新增测试 + logs），`calculator/**` 无改动。
+- 计算引擎零触碰：`git show --stat 7fe6a94` 仅 5 个文件（2 个页面样式/结构 + 1 个新增测试 + logs），`calculator/**` 无改动。
 
 **⑤ 给 tester 的独立 GUI 验收点**
 1. 「方案比较」→ 录入 ≥2 方案 → 「比较结果」→ 任一列「查看明细」；
