@@ -192,6 +192,12 @@ Component({
         // 只接受页面模型已有键，避免注入静态/未知字段
         if (Object.prototype.hasOwnProperty.call(base, k)) patch[k] = pageData[k];
       });
+      // BUG-02-0018/0019：.txt 普遍不带性别字段，pageData 的 male/worker 只是兼底默认值，
+      // 不得用空值或兼底值覆盖用户在界面上已选的性别（否则女/女干部会被导航回男性口径）。
+      if (!pageData || pageData.genderFromFile === false) delete patch.gender;
+      if (!pageData || pageData.femaleTypeFromFile === false) delete patch.femaleType;
+      delete patch.genderFromFile;
+      delete patch.femaleTypeFromFile;
       // 共享区不承载方案级 retire/future 利率差异项，剔除
       delete patch.retireYM;
       this.setData(patch, this.recomputeWarnings);

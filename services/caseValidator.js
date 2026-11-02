@@ -61,6 +61,12 @@ function mapParsedToPageData(parsed, options) {
   var hasDeemed = !!(f.deemedStartYM || f.deemedEndYM);
 
   var d = {
+    // BUG-02-0018/0019：mapParsedToPageData 是「文件 → 页面 data」的纯映射，默认值必须保持
+    // 可被引擎接受的合法值（male/worker），否则无性别字段的旧夹具会直接报「性别缺失」
+    // （TST-02-UT-1035 回归即因此）。避免覆盖用户选择的职责下沉到调用方：
+    //   - shared-data.applyPrefill / pages/index.applyImportResult 已做到「文件未提供性别就不写 patch」，
+    //     因此用户已选的「女 / 女干部」不会被覆盖；
+    //   - 需要显式指定时仍可传 options.gender / options.femaleType。
     gender: options.gender || 'male',
     femaleType: options.femaleType || 'worker',
     birthYM: f.birthday ? ymOfDate(f.birthday) : '',
@@ -81,7 +87,13 @@ function mapParsedToPageData(parsed, options) {
     doc31Eligible: false,
     doc31TransferYM: '',
     enterpriseInsuredYM: f.accountStartYM || '',
-    subsidyExcludedText: ''
+    subsidyExcludedText: '',
+    // BUG-02-0018/0019：标明「文件里是否真的带了性别/女性身份」。
+    // 文件普遍不带这两个字段，此时上面的 male/worker 只是保证引擎可跑的兼底默认值，
+    // 调用方（shared-data.applyPrefill / pages/index.applyImportResult）据此**不把它回写**，
+    // 以免把用户已选的「女 / 女干部」覆盖成男性口径。
+    genderFromFile: !!(options.gender),
+    femaleTypeFromFile: !!(options.femaleType)
   };
   return d;
 }

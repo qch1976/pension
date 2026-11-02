@@ -112,7 +112,12 @@ Page({
       ['gender', 'femaleType', 'birthYM', 'workStartYM', 'retireYM', 'hasDeemed',
        'deemedStartYM', 'deemedEndYM', 'accountBalanceManual', 'manualBalanceYM',
        'futureMonthlyRatePct', 'entryMode', 'enterpriseInsuredYM'].forEach(function (k) {
-        if (pd[k] !== undefined) patch[k] = pd[k];
+        if (pd[k] === undefined) return;
+        // BUG-02-0018/0019：.txt 普遍不带性别字段，mapParsedToPageData 的 male/worker 只是兼底默认值。
+        // 此时不得回写，保留用户在界面上已选的「女 / 女干部」，否则法定退休年月与合法下限全按男性算。
+        if (k === 'gender' && pd.genderFromFile === false) return;
+        if (k === 'femaleType' && pd.femaleTypeFromFile === false) return;
+        patch[k] = pd[k];
       });
     }
     this.setData(patch, this.refreshRetireHint);
@@ -138,6 +143,14 @@ Page({
   refreshDefaultRetire: function () {
     var d = this.data;
     if (!d.birthYM) return;
+    // BUG-02-0018：retireYM 已存在（文件导入值或用户已选值）时**不得用法定值覆盖**。
+    // 原实现无条件取法定值，导致导入 e7-wife4.txt（文件自带 2031-07）后被改写为
+    // 男性/女性法定值（2044-07 / 2034-11 / 2039-06），与文件不一致。
+    // 仅当 retireYM 为空（新建/清空）时才推导缺省法定值。
+    if (/^\d{4}-\d{2}$/.test(d.retireYM || '')) {
+      this.refreshRetireHint();
+      return;
+    }
     var stat = computeStatutoryRetireYM(d.gender, d.femaleType, d.birthYM);
     this.setData({ retireYM: stat }, this.refreshRetireHint);
   },
