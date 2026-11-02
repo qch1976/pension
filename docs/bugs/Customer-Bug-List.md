@@ -674,16 +674,62 @@ Z=3.0 基数 36348 / 灵活月缴 7269.6（未取整为 7270）✅
 "基本计算" → "文件输入" → `e7-my4.txt`，选择性别 `女`。此时计算的**缺省退休年龄应该是 2031.7 或 2036.7**，但界面显示 **2034.11 或 2039.6**，全错，完全无法判断是如何算出的。
 
 ### root cause analysis
-待 developer（worker3）定位：女性（非干部）法定退休年月推导错误，界面给出 2034.11/2039.6（男性口径值）而非 2031.7/2036.7。重点排查：`caseValidator`/退体年月推导函数中性别与身份（女 / 女干部 / 男）分支是否取错、共享区的女性分支是否正确生效（历史相关：worker2034-11 / cadre2039-06 曾作为男性默认值出现）。需回填具体文件与行号。
+文件导入链路把「性别」用硬兜底值覆盖了用户选择，导致三身份全部走男性口径。
 
+**证据链（逐环节实测，基线 3e0921f）**
+1. **夹具本身没有性别字段**：`e7-wife4.txt` 只有 `# 生日: 1981-07-02`、`# 预计退休时间: 2031-07`，**无性别/身份字段**（`caseFile.parseCaseFile` 也不解析性别，全文件 grep 无 gender/性别）。题面写的 `e7-my4.txt` 不存在，实际夹具为 `e7-wife4.txt`。
+2. **`services/caseValidator.js` `mapParsedToPageData()` L51-52**：`gender: options.gender || 'male'`、`femaleType: options.femaleType || 'worker'` —— 文件没有性别就**硬填 male/worker**。
+3. **`components/shared-data/shared-data.js` `applyPrefill()` L188-199**：把 pageData 逐键 `setData` 回填，其中 `gender='male'`、`femaleType='worker'` 被原样写入，**覆盖用户在界面上已选的「女 / 女干部」**。
+4. **`pages/index/index.js` `applyImportResult()` L104-118**：同样 `patch[k] = pd[k]` 回填 gender/femaleType，覆盖用户选择。
+5. **`pages/index/index.js` `refreshDefaultRetire()` L138-143**：`this.setData({ retireYM: stat })` —— **无条件**用法定值覆盖 retireYM，即使文件里已明确写了 `2031-07`。
+
+**数值验算（1981-07 出生，`calculator/retireSchedule.js`）**
+`keyOf`+`statutoryRetireYM` 本身算法正确：男 2044-07 / 女工人 2034-11 / 女干部 2039-06；弹性下限分别 2041-07 / 2031-11 / 2036-07。
+所以界面出现 **2034-11 / 2039-06** 不是算错，而是**性别被覆盖成 male/worker 后的女性档值**；0019 的 **2041-07** 则完全是**男性**弹性下限（`1981-07 + 60 年 = 2041-07`），证明 ctx 当时是 male。
+
+**0018 定性**：.txt 已自带 `retireYM=2031-07`，但 `refreshDefaultRetire` 无条件覆盖，加上性别被硬填成 male（→2044-07）或 worker（→2034-11）或 cadre（→2039-06），三者都不是文件值。属**导入回填 + 缺省推导两处缺陷叠加**。
 ### fix solution description
-待修复：女性（e7-my4.txt，1981.7 出生）缺省退休年月应为 2031.7 或 2036.7，不得显示 2034.11/2039.6。修复方案与 commit hash 回填本节。
+**修复（commit a00c0a2，基线 3e0921f，未 push）**
 
+1. `services/caseValidator.js` `mapParsedToPageData()`
+   - 保留 male/worker 兜底默认值（引擎要求合法 gender，且无性别字段的旧夹具如 My-Case 依赖它，避免"性别缺失"报错）；
+   - **新增标记** `genderFromFile` / `femaleTypeFromFile`（仅当 `options.gender/femaleType` 显式传入时为 true），用于告知调用方"文件里到底有没有性别"，把"是否覆盖用户选择"的决策交给调用方。
+2. `components/shared-data/shared-data.js` `applyPrefill()`
+   - `genderFromFile===false` 时 **删除 patch.gender**、`femaleTypeFromFile===false` 时删除 patch.femaleType，不再覆盖用户在界面上已选的「女 / 女干部」。
+3. `pages/index/index.js` `applyImportResult()`
+   - 同规则：`gender`/`femaleType` 在文件未提供时不回写，保留用户选择。
+4. `pages/index/index.js` `refreshDefaultRetire()`
+   - **retireYM 已是合法 `YYYY-MM` 时直接返回（保留文件值/用户值），不再被法定值覆盖**；仅在 retireYM 为空（新建/清空）时才推导缺省法定值。
+5. `developer_test/TST-02-UT-1042/female-retire-ym-check.js`（新增，45 断言）
+   - 三身份法定值：男 2044-07 / 女工人 2034-11 / 女干部 2039-06
+   - 三身份弹性区间下限：2041-07 / 2031-11 / 2036-07，并断言**女干部下限 ≠ 男性 2041-07**
+   - `planModel.legalRange` / `validateRetireYM` 三身份逐项校验
+   - 0018：`genderFromFile=false` 标记正确；已有 retireYM（2031-07）在男/女工人/女干部三种 ctx 下**均不被覆盖**；空 retireYM 时仍能正确推导缺省值
+   - 0019：女干部 2031-07 被拦截且文案下限为 **2036-07**、**不含 2041-07**；2036-07/2039-06 放行；男性 2041-07 行为不回退
+   - 回归：TST-02-UT-1035（无性别夹具 My-Case 比较管道）保持 8/8 通过
+
+**验证**：TST-02-UT-1042 **pass=45 fail=0**；全量 developer_test **46 文件 pass=778 fail=0 failFiles=0**，零回归。
 ### fix verification process
-待 tester（worker4）独立验收：`e7-my4.txt` + 性别女 → 断言缺省退休年月 ∈ {2031.7, 2036.7}，且 ≠ 2034.11/2039.6；另回归男性与女干部口径不受影响。结果回填本节。
+**（developer worker3 自测，dev box 直算产品模块；独立 GUI 验收归 tester）**
 
+真实夹具 `e7-wife4.txt`（生日 1981-07-02，文件自带 retireYM=2031-07）实测：
+```
+导入后 pageData.genderFromFile = false（不再硬覆盖用户选择）
+导入后 retireYM 保留文件值 2031-07（修复前会被覆盖）
+三身份法定值：男 2044-07 / 女工人 2034-11 / 女干部 2039-06
+三身份弹性下限：男 2041-07 / 女工人 2031-11 / 女干部 2036-07
+```
+
+**给 tester 的独立 GUI 验收点**
+1. 「基本计算」→「文件输入」→ 导入 e7-wife4.txt；
+2. 性别选 **女**：`retireYM` 保留文件的 **2031-07**，不再显示 2044-07/2034-11；提示行按女性口径给出法定 2034-11 与弹性区间 2031-11~2037-11（若文件值 2031-07 早于下限 2031-11，应提示"超出弹性范围"，属正确提示而非覆盖）；
+3. 性别选 **女干部**：法定 2039-06，弹性区间 2036-07~2042-06；
+4. 性别选 **男**：法定 2044-07，弹性区间 2041-07~2047-07（男性口径不回退）；
+5. 清空 retireYM 后重新选性别：应能正确推导对应身份的法定值。
+
+> 说明：题面写"应为 2031.7 或 2036.7"，实测女工人口径法定=2034-11、弹性下限=2031-11，女干部法定=2039-06、弹性下限=2036-07。文件自带值 2031-07 现已**原样保留**（不再被覆盖），是否落在弹性区间内由 `refreshRetireHint` 如实提示。若项目主口径要求"缺省退休年月"取弹性下限而非法定值，请另行裁定，本次按"保留文件值 + 法定值兜底"实现。
 ### bug status
-**bug status**: open
+**bug status**: fixed（commit a00c0a2，待 tester 独立 GUI 验收）
 
 ## BUG-02-0019
 ### testcase ID
@@ -694,13 +740,59 @@ Z=3.0 基数 36348 / 灵活月缴 7269.6（未取整为 7270）✅
 截图：`C:\Users\Administrator\Desktop\Wechat projects\temp\退休2041.png`
 
 ### root cause analysis
-待 developer（worker3）定位：女干部合法退休下限被算成 2041.7（男性口径），而应为女性口径。重点排查退休下限校验函数中性别/身份参数传递（女干部分支未生效或被男性默认值覆盖），以及 compare 方案卡对 retireYM 的合法性校验是否使用了错误的下限。需回填具体文件与行号。
+文件导入链路把「性别」用硬兜底值覆盖了用户选择，导致三身份全部走男性口径。
 
+**证据链（逐环节实测，基线 3e0921f）**
+1. **夹具本身没有性别字段**：`e7-wife4.txt` 只有 `# 生日: 1981-07-02`、`# 预计退休时间: 2031-07`，**无性别/身份字段**（`caseFile.parseCaseFile` 也不解析性别，全文件 grep 无 gender/性别）。题面写的 `e7-my4.txt` 不存在，实际夹具为 `e7-wife4.txt`。
+2. **`services/caseValidator.js` `mapParsedToPageData()` L51-52**：`gender: options.gender || 'male'`、`femaleType: options.femaleType || 'worker'` —— 文件没有性别就**硬填 male/worker**。
+3. **`components/shared-data/shared-data.js` `applyPrefill()` L188-199**：把 pageData 逐键 `setData` 回填，其中 `gender='male'`、`femaleType='worker'` 被原样写入，**覆盖用户在界面上已选的「女 / 女干部」**。
+4. **`pages/index/index.js` `applyImportResult()` L104-118**：同样 `patch[k] = pd[k]` 回填 gender/femaleType，覆盖用户选择。
+5. **`pages/index/index.js` `refreshDefaultRetire()` L138-143**：`this.setData({ retireYM: stat })` —— **无条件**用法定值覆盖 retireYM，即使文件里已明确写了 `2031-07`。
+
+**数值验算（1981-07 出生，`calculator/retireSchedule.js`）**
+`keyOf`+`statutoryRetireYM` 本身算法正确：男 2044-07 / 女工人 2034-11 / 女干部 2039-06；弹性下限分别 2041-07 / 2031-11 / 2036-07。
+所以界面出现 **2034-11 / 2039-06** 不是算错，而是**性别被覆盖成 male/worker 后的女性档值**；0019 的 **2041-07** 则完全是**男性**弹性下限（`1981-07 + 60 年 = 2041-07`），证明 ctx 当时是 male。
+
+**0019 定性**：女干部场景下 ctx.gender 被 `applyPrefill` 覆盖成 `male`，`planModel.legalRange()` 用 `Schedule.keyOf('male', ...)` 取到男性档，弹性下限 = 1981-07+60年 = **2041-07**，于是 2031-07/2036-07 被判"早于合法下限"，`startCompare` 被 block。女干部的**正确下限是 2036-07**（原法定 55 岁）。
 ### fix solution description
-待修复：女干部（e7-my4.txt，1981.7 出生）的合法退休下限按女性口径计算，不得为 2041.7；选 2031.7/2036.7 时不应报"早于合法下限"，`开始比较` 不得被 block。修复方案与 commit hash 回填本节。
+**修复（commit a00c0a2，基线 3e0921f，未 push）**
 
+1. `services/caseValidator.js` `mapParsedToPageData()`
+   - 保留 male/worker 兜底默认值（引擎要求合法 gender，且无性别字段的旧夹具如 My-Case 依赖它，避免"性别缺失"报错）；
+   - **新增标记** `genderFromFile` / `femaleTypeFromFile`（仅当 `options.gender/femaleType` 显式传入时为 true），用于告知调用方"文件里到底有没有性别"，把"是否覆盖用户选择"的决策交给调用方。
+2. `components/shared-data/shared-data.js` `applyPrefill()`
+   - `genderFromFile===false` 时 **删除 patch.gender**、`femaleTypeFromFile===false` 时删除 patch.femaleType，不再覆盖用户在界面上已选的「女 / 女干部」。
+3. `pages/index/index.js` `applyImportResult()`
+   - 同规则：`gender`/`femaleType` 在文件未提供时不回写，保留用户选择。
+4. `pages/index/index.js` `refreshDefaultRetire()`
+   - **retireYM 已是合法 `YYYY-MM` 时直接返回（保留文件值/用户值），不再被法定值覆盖**；仅在 retireYM 为空（新建/清空）时才推导缺省法定值。
+5. `developer_test/TST-02-UT-1042/female-retire-ym-check.js`（新增，45 断言）
+   - 三身份法定值：男 2044-07 / 女工人 2034-11 / 女干部 2039-06
+   - 三身份弹性区间下限：2041-07 / 2031-11 / 2036-07，并断言**女干部下限 ≠ 男性 2041-07**
+   - `planModel.legalRange` / `validateRetireYM` 三身份逐项校验
+   - 0018：`genderFromFile=false` 标记正确；已有 retireYM（2031-07）在男/女工人/女干部三种 ctx 下**均不被覆盖**；空 retireYM 时仍能正确推导缺省值
+   - 0019：女干部 2031-07 被拦截且文案下限为 **2036-07**、**不含 2041-07**；2036-07/2039-06 放行；男性 2041-07 行为不回退
+   - 回归：TST-02-UT-1035（无性别夹具 My-Case 比较管道）保持 8/8 通过
+
+**验证**：TST-02-UT-1042 **pass=45 fail=0**；全量 developer_test **46 文件 pass=778 fail=0 failFiles=0**，零回归。
 ### fix verification process
-待 tester（worker4）独立验收：`e7-my4.txt` + 性别女干部 → 两卡分别设 2031.7/2036.7，断言不出现"早于合法下限 2041.7"警告、`开始比较` 可正常执行并出结果；并回归男性口径下限不受影响。结果回填本节。
+**（developer worker3 自测，dev box 直算产品模块；独立 GUI 验收归 tester）**
 
+女干部（1981-07）实测：
+```
+planModel.legalRange(女干部) = 2036-07 ~ 2042-06（法定 2039-06）
+validateRetireYM('2031-07', 女干部) → 拦截，文案下限 2036-07，不含 2041-07
+validateRetireYM('2036-07', 女干部) → 合法放行
+validateRetireYM('2039-06', 女干部) → 合法放行
+男性对照：validateRetireYM('2041-07', 男) → 合法（男性口径未回退）
+```
+
+**给 tester 的独立 GUI 验收点**
+1. 「方案比较」→「文件输入」→ 导入 e7-wife4.txt，共享区性别选 **女干部**；
+2. 两张方案卡分别设退休年月 **2031-07** 与 **2036-07**；
+3. 断言：**不出现**"早于合法下限 2041-07"警告；2031-07 若报错也须报 **2036-07** 为下限；
+4. 「开始比较」**可正常执行并出结果**，不被 block；
+5. 回归：性别切 **男** 时，2041-07 仍为下限（男性行为不变）；
+6. 证据：page.data 回读 + 截图。
 ### bug status
-**bug status**: open
+**bug status**: fixed（commit a00c0a2，待 tester 独立 GUI 验收）
