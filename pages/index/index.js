@@ -183,10 +183,47 @@ Page({
   },
   onSegBase: function (e) {
     var i = e.currentTarget.dataset.i;
-    this.setData({ ['segments[' + i + '].baseMonthly']: e.detail.value }, this.checkMonthBounds);
+    var patch = {};
+    patch['segments[' + i + '].baseMonthly'] = e.detail.value;
+    // BUG-02-0017（方案乙）：改基数 → Z 回算（4 位小数）。guard 防与 onSegZ 互相触发无限回写。
+    if (!this._zGuard) {
+      var seg = this.data.segments && this.data.segments[i];
+      var z = Model.zFromBase(e.detail.value, this.segYearOf(seg), this.parseCustomCYear(this.data.customCYearText));
+      patch['segments[' + i + '].zValue'] = (z == null ? '' : z.toFixed(Model.Z_DECIMALS));
+    }
+    this.setData(patch, this.checkMonthBounds);
+  },
+
+  // BUG-02-0017（方案乙）：改 Z → 基数重算（与方案比较页同源：denominatorForYear + roundLowestToYuan）。
+  onSegZ: function (e) {
+    var i = e.currentTarget.dataset.i;
+    var patch = {};
+    patch['segments[' + i + '].zValue'] = e.detail.value;
+    var seg = this.data.segments && this.data.segments[i];
+    var base = Model.baseFromZ(e.detail.value, this.segYearOf(seg), this.parseCustomCYear(this.data.customCYearText));
+    if (base != null) patch['segments[' + i + '].baseMonthly'] = String(base);
+    // 置 guard：本轮 setData 期间基数的 bindinput 回流不再反算 Z，避免来回打架
+    this._zGuard = true;
+    var self = this;
+    this.setData(patch, function () {
+      self._zGuard = false;
+      self.checkMonthBounds();
+    });
+  },
+
+  // 取缴费段所在「缴费年度」用于查 C；段起始年无值则退回共享历史最后缴费年。
+  segYearOf: function (seg) {
+    var ym = seg && seg.startYM;
+    if (/^\d{4}-\d{2}$/.test(ym || '')) return parseInt(ym.slice(0, 4), 10);
+    var d = this.data;
+    if (d.manualBalanceYM && /^\d{4}-\d{2}$/.test(d.manualBalanceYM)) {
+      return parseInt(d.manualBalanceYM.slice(0, 4), 10);
+    }
+    return new Date().getFullYear();
   },
   addSegment: function () {
-    var list = this.data.segments.concat([{ type: 'enterprise', startYM: '2000-01', endYM: '2000-12', baseMonthly: '' }]);
+    // BUG-02-0017：新段带 zValue 字段，与 Z值 输入框双向绑定
+    var list = this.data.segments.concat([{ type: 'enterprise', startYM: '2000-01', endYM: '2000-12', baseMonthly: '', zValue: '' }]);
     this.setData({ segments: list });
   },
   delSegment: function (e) {
@@ -201,7 +238,7 @@ Page({
     if (!list.length) { this.addSegment(); return; }
     var last = list[list.length - 1];
     var ns = D.toIndex(last.startYM) + 12, ne = D.toIndex(last.endYM) + 12;
-    list = list.concat([{ type: last.type, startYM: D.toYM(ns), endYM: D.toYM(ne), baseMonthly: last.baseMonthly }]);
+    list = list.concat([{ type: last.type, startYM: D.toYM(ns), endYM: D.toYM(ne), baseMonthly: last.baseMonthly, zValue: last.zValue || '' }]);
     this.setData({ segments: list }, this.checkMonthBounds);
     wx.showToast({ title: '已复制一段（起止+12个月）', icon: 'none' });
   },
@@ -463,10 +500,16 @@ Page({
       itemList: ['按60%档（灵活就业常见）', '按100%档', '按300%档'],
       success: function (res) {
         var ratio = [0.6, 1, 3][res.tapIndex];
+        var cc = this.parseCustomCYear(this.data.customCYearText);
         var list = d.segments.map(function (s) {
           var y = parseInt(s.startYM.slice(0, 4), 10);
           var caliber = P.fullCaliberMonthly[y - 1]; // 缴费指数分母取上年
-          if (caliber) s.baseMonthly = String(Math.round(caliber * ratio * 100) / 100);
+          if (caliber) {
+            s.baseMonthly = String(Math.round(caliber * ratio * 100) / 100);
+            // BUG-02-0017：同步回写 Z值（4 位小数）
+            var zz = Model.zFromBase(s.baseMonthly, y, cc);
+            s.zValue = (zz == null ? '' : zz.toFixed(Model.Z_DECIMALS));
+          }
           return s;
         });
         this.setData({ segments: list }, this.checkMonthBounds);

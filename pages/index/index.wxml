@@ -137,6 +137,12 @@
           <text class="label">月缴费基数(元)</text>
           <input type="digit" placeholder="如 10000" value="{{item.baseMonthly}}" data-i="{{index}}" bindinput="onSegBase" />
         </view>
+        <!-- BUG-02-0017（方案乙）：Z值 与 月缴费基数 双向自动转换（同源同取整，Z 保留 4 位小数） -->
+        <view class="row">
+          <text class="label">Z值</text>
+          <input type="digit" placeholder="如 0.6000" value="{{item.zValue}}" data-i="{{index}}" bindinput="onSegZ" />
+        </view>
+        <view class="muted" wx:if="{{item.zValue}}">Z={{item.zValue}} ⇄ 月基数 {{item.baseMonthly}} 元（与方案比较页同源；最低档 Z=0.6000 取整到元）</view>
       </view>
     </block>
     <button class="mini-btn" bindtap="addSegment">＋ 增加缴费段</button>

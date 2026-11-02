@@ -88,6 +88,43 @@ function exitCalculating(data) {
   return Object.assign({}, data, { calculating: false });
 }
 
+// ---------------------------------------------------------------------------
+// BUG-02-0017（方案乙）：基本计算页 Z值 ↔ 月缴费基数 双向转换。
+// 严格与方案比较页同源：
+//   - C（缴费指数分母）统一走 planAssembler.denominatorForYear（内部即引擎同源），禁魔法数；
+//   - 基数取整统一走 planAssembler.roundLowestToYuan（仅最低档 Z=0.6 到元，其余裸值不取整）；
+//   - Z 保留 4 位小数。
+// 纯函数、不依赖 wx，node 可直接断言。
+// ---------------------------------------------------------------------------
+var AsmRef = require('./planAssembler.js');
+var Z_DECIMALS = 4;
+
+// 四位小数归一（去掉浮点尾巴，返回 number）。
+function normZ(z) {
+  var n = Number(z);
+  if (!isFinite(n)) return NaN;
+  return Math.round(n * Math.pow(10, Z_DECIMALS)) / Math.pow(10, Z_DECIMALS);
+}
+
+// Z -> 月缴费基数（与方案比较页 buildAutoSegments 完全同源）。
+// yearY：用于取当年 C 的缴费年度；customCYear：自定义 C 年（页面「缺口年度C年手工录入」）。
+function baseFromZ(z, yearY, customCYear) {
+  var zz = normZ(z);
+  if (!isFinite(zz) || zz <= 0) return null;
+  var c = AsmRef.denominatorForYear(yearY, customCYear);
+  if (!(typeof c === 'number' && isFinite(c) && c > 0)) return null;
+  return AsmRef.roundLowestToYuan(zz * c, zz);
+}
+
+// 月缴费基数 -> Z（保留 4 位小数）。
+function zFromBase(base, yearY, customCYear) {
+  var b = Number(base);
+  if (!isFinite(b) || b <= 0) return null;
+  var c = AsmRef.denominatorForYear(yearY, customCYear);
+  if (!(typeof c === 'number' && isFinite(c) && c > 0)) return null;
+  return normZ(b / c);
+}
+
 // BUG-27：政策静态字段随代码/政策文件发布而变，必须始终取 constants/policyData.js 的最新值，
 // 绝不能被 storage 旧草稿回填覆盖（否则改 version/计发基数后模拟器仍显示旧值）。
 var STATIC_KEYS = [
@@ -109,5 +146,8 @@ module.exports = {
   buildResetData: buildResetData,
   enterCalculating: enterCalculating,
   exitCalculating: exitCalculating,
-  pickUserData: pickUserData
+  pickUserData: pickUserData,
+  Z_DECIMALS: Z_DECIMALS,
+  baseFromZ: baseFromZ,
+  zFromBase: zFromBase
 };
