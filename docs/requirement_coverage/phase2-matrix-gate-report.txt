@@ -1,6 +1,6 @@
-MATRIX GATE: PASS  2026-10-29T10:37:19.964Z
+MATRIX GATE: PASS  2026-11-02T17:03:33.705Z
 spec (baseline)=docs\requirement_coverage\phase2-final-coverage-matrix.md
-REQ index=0  final rows=77  unique TST=77  initial matrix=absent
+REQ index=0  final rows=79  unique TST=79  initial matrix=absent
 
 WARNINGS (3):
   ! TST-02-UT-1015: script path folder "TST-02-CT-1015" does not match testcase ID "TST-02-UT-1015" (historical one-script-multi-testcase; must be same-named folder or common/utils/customer_testcases for new cases)
