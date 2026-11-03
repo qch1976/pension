@@ -84,5 +84,6 @@
 | REQ-02-IN-003, REQ-02-VAL-004, REQ-02-FMT-000 | 缴费表5列（年内起始月份+缴费身份）解析/中文身份映射/旧3列向后兼容（BUG-02-0010 修复） | tester | no | TST-02-GT-4031 | 5列解析/身份映射/旧3列兼容 | system_test/TST-02-GT-4031/gt-4031.js | PASS | BUG-02-0010 |
 | REQ-02-CAL-000, REQ-02-VAL-004 | 文件导入后未触碰卡 retireYM 随真实 ctx 法定值刷新/手选保护（BUG-02-0008 修复复测） | tester | no | TST-02-GT-4032 | 未触碰卡退休月刷新与手选保护 | system_test/TST-02-GT-4032/gt-4032-task78.js | PASS 33/33 | BUG-02-0008 |
 | REQ-02-CAL-002 | 回本月数新增停保基准两行（利率0%与页面利率） | developer | no | TST-02-CT-1044 | 停保基准回本两行数值与ROI勾稽 | developer_test/TST-02-CT-1044/stop-baseline-payback-check.js | PASS 109/109 | BUG-02-0016 |
+| REQ-02-IN-008 | 年度模式缴费基数↔Z双向联动（2026-11-03 r5/r6 实测：年行无 zValue、无 onYearRowZ，6/6 FAIL）；月度模式已正常（0017）不在本单 | tester | no | TST-02-GT-4035 | 年度模式基数↔Z双向即时刷新（年基数→月基数÷months→Z；Z→月基数→年基数，Z 4位小数，0.6→7270、1.3→15750.8、3.0→36348） | system_test/TST-02-GT-4035/gt-4035-base-z-twoway.js | FAIL | BUG-02-0022 |
 
 > E7 六个 GUI 场景每个含 9 项 DOM/断言检查，共 54 项 GUI 断言全部 PASS（summary.json：6 pass / 0 fail）。

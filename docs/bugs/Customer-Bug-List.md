@@ -995,3 +995,44 @@ validateRetireYM('2039-06', 女干部) → 合法放行
 
 ### bug status
 **bug status**: open
+
+## BUG-02-0022
+
+### testcase ID
+- TST-02-GT-4035（独立入口：system_test/TST-02-GT-4035/gt-4035-base-z-twoway.js，REQ-02-IN-008）
+
+### failure description
+基本计算页（pages/index）【年度/年行录入模式】缺少「缴费基数 ↔ Z值」双向即时联动，违反 REQ-02-IN-008（规格 §10.4a）。
+规格要求：在年度模式录入时，改年缴费基数，Z值立即按「月缴费基数 = 年缴费基数 ÷ 年内缴费月数；Z = 月缴费基数 ÷ 缴费指数分母C」刷新（C=12116，Z保留4位小数）；改 Z 反向刷新缴费基数，且 Z=0.6→月基数7270（最低档个位四舍五入）、Z=1.3→15750.8（不取整）、Z=3.0→36348。
+实测（2026-11-03，task101 r5，干净进入 pages/index/index 后真实交互，独立 entry 脚本 system_test/TST-02-GT-4035/gt-4035-base-z-twoway.js，baseline=task101-pre-fix-r5）：
+- IN008-Y0 / Y1：年度行 yearRows[0] 上读不到 zValue 字段（zValue=undefined），即年度行无 Z值 绑定/输入框；改年缴费基数=189009.6（=15750.8×12）后 Z 不刷新（期望 1.3000，实际 undefined）。
+- IN008-Y2 / Y3 / Y4：页面不存在 onYearRowZ handler（typeof p.onYearRowZ === 'undefined'，hasHandler=false），Z=0.6 / 1.3 / 3.0 在年度模式无法输入，月基数无变化（annualBase 停留在 189009.6，换算 monthly=NaN）。
+- IN008-Y5：反向再改年缴费基数=87240（=7270×12）后 Z 仍为 undefined（期望 0.6000）。
+年度模式 6/6 断言 FAIL（r5 与 r6 两次实测完全一致，稳定复现）。
+影响：用户按年录入缴费基数时无法看到/输入本人平均缴费指数 Z，年度模式与方案比较口径脱节；灵活就业按 Z 档（0.6/1.3/3.0）快速录入在年度模式不可用。
+
+范围限定：本单仅覆盖【年度/年行录入模式】缺失。【分段月度录入模式】的基数↔Z双向联动由 BUG-02-0017 修复，本次同脚本 IN008-M1~M4 及 3 次独立复跑（system_test/temp 诊断脚本）三档全部正确（Z=0.6→7270、Z=1.3→15750.800000000001、Z=3.0→36348，改基数→Z=1.3000），不属于本缺陷。
+
+### root cause analysis
+- 产品代码 pages/index/index.js：月度段有 onSegZ / onSegBase（内含 Model.baseFromZ / Model.zFromBase 双向换算与 _zGuard 防回写），段对象含 zValue 字段；但年度录入路径 onYearRow 仅 setData 回写 yearRows[i][k]（annualBase/startMonth/months），年度行对象（inputPageModel.emptyYearRow：year/startMonth/annualBase/months）没有 zValue 字段，WXML 年度表也没有 Z值 输入列，页面没有 onYearRowZ（及年度侧基数→Z 反向）handler。
+- 即 BUG-02-0017 的 Z↔基数双向联动只落到了「分段月度」数据模型与 UI，未覆盖「年度/年行」录入模型（yearRows）与 expandYearRows 的换算链。
+- 换算能力本身已在数据层具备：calculator/inputPageModel.js 的 baseFromZ/zFromBase、calculator/planAssembler.js 的 denominatorForYear（2026 年 C=12116，已 Node 侧独立验算：0.6→7270、1.3→15750.800000000001、3.0→36348，反向 15750.8→1.3、7270→0.6），年度模式缺失的是字段绑定、handler 与在「年基数↔月基数（÷months）↔Z」之间的接线。
+- 背景（非缺陷）：同输入（e7-my1、Z=1.3、利率0、doc31 转企业 2000-11、退休 2033-07）基本计算页与方案比较页结果同源，历史 TST-02-MT-9004 / GT-4040 已证两页 P月=14715.77、Δ=0（7/7 PASS）。
+
+### fix solution description
+- 在年度/年行录入链路补齐与月度模式同源的双向联动（具体实现由开发/架构决定，不在此锚定）：
+  1. yearRows 行模型增加 zValue 字段；年度表增加 Z值 输入列（bindinput，4 位小数展示）。
+  2. 新增年度侧 handler：改 Z → 月基数=Model.baseFromZ（C 按年度取 denominatorForYear，最低档 0.6 到元、其余不取整）→ 年缴费基数=月基数×months；改年缴费基数 → 月基数=annualBase÷months → Z=Model.zFromBase（4 位小数）。换算与方案比较页/月度模式严格同源，禁止另立魔法常数；注意 months/startMonth 变化时的重算与与 expandYearRows、年度越界提示（collectYearRowWarnings）的一致。
+  3. 加与月度侧等价的回写 guard，避免 Z/基数互相触发死循环；清空或非法值时 zValue/基数回空不报错。
+- 验收锚点：REQ-02-IN-008，独立入口 TST-02-GT-4035 年/月两模式双向联动全绿；不得回归月度模式（BUG-02-0017）与两页 14715.77 同源。
+
+### fix verification process
+- 待开发修复后，tester 在 dev box 经 PensionGuiRun / automator 40215 独立重跑 system_test/TST-02-GT-4035/gt-4035-base-z-twoway.js：
+  - 年度模式 IN008-Y0~Y5：zValue 字段存在；年基数 189009.6→Z=1.3000；Z=0.6→月基数7270（年基数×12）、Z=1.3→15750.8、Z=3.0→36348；年基数 87240→Z=0.6000。
+  - 月度模式 IN008-M1~M4 保持全 PASS（回归 BUG-02-0017）。
+  - §③ 同输入两页一致：补跑（本轮因 webview 反复空态未取到本脚本实测；历史 GT-4040 已证 basic=compare=14715.77 Δ=0），GUI 稳定后由后续验收任务补 IN008-P1~P6。
+  - 证据：logs/result-GT4035-IN008.json、run-trace.log、GT4035-yearmode.png 等截图（mp.screenshot 原生）。
+- 当前（2026-11-03）未修复，status=open。
+
+### bug status
+**bug status**: open
