@@ -60,6 +60,12 @@ Page({
         merged.deemedStartYM = '';
         merged.deemedEndYM = '';
       }
+      // BUG-02-0022：旧草稿的 yearRows 无 zValue 字段时补齐（不回算、不改年基数，真实草稿不丢）。
+      if (Array.isArray(merged.yearRows)) {
+        merged.yearRows = merged.yearRows.map(function (yr) {
+          return yr && yr.zValue === undefined ? Object.assign({ zValue: '' }, yr) : yr;
+        });
+      }
       this.setData(merged);
     }
     this.refreshDefaultRetire();
@@ -105,9 +111,13 @@ Page({
       var pd = v.pageData;
       if (pd.yearRows) {
         patch.yearRows = pd.yearRows.map(function (yr) {
-          return { year: yr.year, startMonth: yr.startMonth, annualBase: yr.annualBase,
-            months: yr.months, type: 'enterprise' };
-        });
+          var row = { year: yr.year, startMonth: yr.startMonth, annualBase: yr.annualBase,
+            months: yr.months, type: 'enterprise', zValue: '' };
+          // BUG-02-0022：导入年度行同步回算 Z（与录入同口径），不静默改变年基数
+          var zz = Model.yearZFromAnnual(row, this.parseCustomCYear(this.data.customCYearText));
+          row.zValue = (zz == null ? '' : zz.toFixed(Model.Z_DECIMALS));
+          return row;
+        }.bind(this));
       }
       ['gender', 'femaleType', 'birthYM', 'workStartYM', 'retireYM', 'hasDeemed',
        'deemedStartYM', 'deemedEndYM', 'accountBalanceManual', 'manualBalanceYM',
@@ -260,7 +270,7 @@ Page({
   addYearRow: function () {
     var rows = this.data.yearRows;
     var nextYear = rows.length ? String(+rows[rows.length - 1].year + 1) : String(new Date().getFullYear() - 1);
-    rows = rows.concat([{ year: nextYear, startMonth: '1', type: 'enterprise', annualBase: '', months: '12' }]);
+    rows = rows.concat([{ year: nextYear, startMonth: '1', type: 'enterprise', annualBase: '', months: '12', zValue: '' }]);
     this.setData({ yearRows: rows }, this.checkYearBounds);
   },
   delYearRow: function (e) {
@@ -275,7 +285,41 @@ Page({
   },
   onYearRow: function (e) {
     var i = e.currentTarget.dataset.i, k = e.currentTarget.dataset.k;
-    this.setData({ ['yearRows[' + i + '].' + k]: e.detail.value }, this.checkYearBounds);
+    // BUG-02-0022：始终用「完整行对象」整体替换该下标（不依赖路径式 setData 的合并语义），
+    // 保证年缴费基数/月数/年份/类型等字段在任何数据通道下都不丢。
+    var cur = (this.data.yearRows || [])[i] || {};
+    var next = Object.assign({}, cur);
+    next[k] = e.detail.value;
+    // 年缴费基数/月数/年份变化 → Z 即时回算（月基数=年基数÷月数，4位小数；C 随年份走）。
+    if ((k === 'annualBase' || k === 'months' || k === 'year') && !this._yearZGuard) {
+      var z = Model.yearZFromAnnual(next, this.parseCustomCYear(this.data.customCYearText));
+      next.zValue = (z == null ? '' : z.toFixed(Model.Z_DECIMALS));
+    }
+    var patch = {};
+    patch['yearRows[' + i + ']'] = next;
+    this.setData(patch, this.checkYearBounds);
+  },
+  // BUG-02-0022（REQ-02-IN-008）：年度模式改 Z → 年缴费基数即时重算
+  // （与方案比较页同源 baseFromZ；最低档 Z=0.6 取整到元，其余裸值；年基数=月基数×月数）。
+  onYearRowZ: function (e) {
+    var i = e.currentTarget.dataset.i;
+    var cur = (this.data.yearRows || [])[i] || {};
+    var next = Object.assign({}, cur);
+    next.zValue = e.detail.value;
+    var out = Model.yearAnnualFromZ(e.detail.value, cur, this.parseCustomCYear(this.data.customCYearText));
+    if (out != null) {
+      // 去掉浮点尾巴（年基数允许小数，与「不强制取整」口径一致）
+      next.annualBase = String(Math.round(out.annual * 100) / 100);
+    }
+    var patch = {};
+    patch['yearRows[' + i + ']'] = next;
+    // 置 guard：本轮年基数 setData 不触发 Z 回算，避免互相打架
+    this._yearZGuard = true;
+    var self = this;
+    this.setData(patch, function () {
+      self._yearZGuard = false;
+      self.checkYearBounds();
+    });
   },
   // 年度行 -> 月段：年缴费基数 annualBase ÷ 缴费月数 months = 月基数 baseMonthly；
   // 月段由该年起始月 startMonth 起连续排 months 个月推导（可跨年，退休截断仍由引擎统一处理）。

@@ -9,7 +9,7 @@ function emptySegment() {
   return { type: '', startYM: '', endYM: '', baseMonthly: '' };
 }
 function emptyYearRow() {
-  return { year: '', startMonth: '1', annualBase: '', months: '12' };
+  return { year: '', startMonth: '1', annualBase: '', months: '12', zValue: '' };
 }
 
 function staticPart(P) {
@@ -48,7 +48,7 @@ function userEntryPart(withDefaults) {
       ? [{ type: 'enterprise', startYM: '1992-10', endYM: '2025-09', baseMonthly: '' }]
       : [emptySegment()],
     yearRows: withDefaults
-      ? [{ year: '2024', startMonth: '1', annualBase: '', months: '12' }]
+      ? [{ year: '2024', startMonth: '1', annualBase: '', months: '12', zValue: '' }]
       : [emptyYearRow()],
     // #8 账户三项
     accountBalanceManual: '',
@@ -125,6 +125,43 @@ function zFromBase(base, yearY, customCYear) {
   return normZ(b / c);
 }
 
+// ---------------------------------------------------------------------------
+// BUG-02-0022（REQ-02-IN-008）：年度录入模式缴费基数 ↔ Z 值双向转换。
+// 口径与月度模式/方案比较页严格同源：
+//   月基数 = 年缴费基数 annualBase ÷ 年内缴费月数 months；
+//   Z = 月基数 / C_year（C 走 denominatorForYear，当前年 C2026=12116）；
+//   Z → 月基数走 baseFromZ（最低档 Z=0.6 经 roundLowestToYuan 取整到元）；
+//   年缴费基数 = 月基数 × months。
+// 纯函数、不依赖 wx，node 可直接断言。
+// ---------------------------------------------------------------------------
+
+// 年度行月基数（裸值，未取整）；年份/年基数/月数不合法时返回 null。
+function yearRowMonthly(yr) {
+  var annual = Number(yr.annualBase);
+  var months = parseInt(yr.months, 10);
+  if (!isFinite(annual) || annual <= 0 || !(months >= 1 && months <= 12)) return null;
+  return annual / months;
+}
+
+// 年缴费基数 → Z（4 位小数）；不可算时返回 null。
+function yearZFromAnnual(yr, customCYear) {
+  var monthly = yearRowMonthly(yr);
+  if (monthly == null) return null;
+  var yearY = parseInt(yr.year, 10);
+  if (!yearY) return null;
+  return zFromBase(monthly, yearY, customCYear);
+}
+
+// Z → { monthly, annual }：月基数（按 Z 档位取整规则）+ 年缴费基数；不可算返回 null。
+function yearAnnualFromZ(z, yr, customCYear) {
+  var months = parseInt(yr.months, 10);
+  var yearY = parseInt(yr.year, 10);
+  if (!(months >= 1 && months <= 12) || !yearY) return null;
+  var monthly = baseFromZ(z, yearY, customCYear);
+  if (monthly == null) return null;
+  return { monthly: monthly, annual: monthly * months };
+}
+
 // BUG-27：政策静态字段随代码/政策文件发布而变，必须始终取 constants/policyData.js 的最新值，
 // 绝不能被 storage 旧草稿回填覆盖（否则改 version/计发基数后模拟器仍显示旧值）。
 var STATIC_KEYS = [
@@ -149,5 +186,8 @@ module.exports = {
   pickUserData: pickUserData,
   Z_DECIMALS: Z_DECIMALS,
   baseFromZ: baseFromZ,
-  zFromBase: zFromBase
+  zFromBase: zFromBase,
+  yearRowMonthly: yearRowMonthly,
+  yearZFromAnnual: yearZFromAnnual,
+  yearAnnualFromZ: yearAnnualFromZ
 };

@@ -1020,19 +1020,54 @@ validateRetireYM('2039-06', 女干部) → 合法放行
 - 背景（非缺陷）：同输入（e7-my1、Z=1.3、利率0、doc31 转企业 2000-11、退休 2033-07）基本计算页与方案比较页结果同源，历史 TST-02-MT-9004 / GT-4040 已证两页 P月=14715.77、Δ=0（7/7 PASS）。
 
 ### fix solution description
-- 在年度/年行录入链路补齐与月度模式同源的双向联动（具体实现由开发/架构决定，不在此锚定）：
-  1. yearRows 行模型增加 zValue 字段；年度表增加 Z值 输入列（bindinput，4 位小数展示）。
-  2. 新增年度侧 handler：改 Z → 月基数=Model.baseFromZ（C 按年度取 denominatorForYear，最低档 0.6 到元、其余不取整）→ 年缴费基数=月基数×months；改年缴费基数 → 月基数=annualBase÷months → Z=Model.zFromBase（4 位小数）。换算与方案比较页/月度模式严格同源，禁止另立魔法常数；注意 months/startMonth 变化时的重算与与 expandYearRows、年度越界提示（collectYearRowWarnings）的一致。
-  3. 加与月度侧等价的回写 guard，避免 Z/基数互相触发死循环；清空或非法值时 zValue/基数回空不报错。
-- 验收锚点：REQ-02-IN-008，独立入口 TST-02-GT-4035 年/月两模式双向联动全绿；不得回归月度模式（BUG-02-0017）与两页 14715.77 同源。
+**已实现（developer worker3，commit 见 fix verification，基线 `22577b7`，本地 commit 未 push）——纯录入层/视图层，不改解析、不改引擎口径、不改既有手工流程。**
+
+年度/年度行录入路径补齐与分段月度模式同源的双向转换，复用既有纯函数，未新写魔法数字：
+
+1. `calculator/inputPageModel.js`（纯函数，node 可断言）新增三个导出：
+   - `yearRowMonthly(yr)`：月基数 = 年缴费基数 annualBase ÷ 年内缴费月数 months（非法返回 null）；
+   - `yearZFromAnnual(yr, customCYear)`：月基数 → Z，复用既有 `zFromBase`（C 走 `planAssembler.denominatorForYear`，2026 年 C=12116），4 位小数；
+   - `yearAnnualFromZ(z, yr, customCYear)`：Z → `{monthly, annual}`，月基数复用既有 `baseFromZ`（最低档 Z=0.6 经 `roundLowestToYuan` 取整到元，其余裸值不取整），年基数 = 月基数 × months；
+   - `emptyYearRow()` 与默认行补 `zValue: ''` 字段。
+2. `pages/index/index.js`：
+   - `onYearRow`（改年基数/月数/年份）→ 即时回算 `zValue`；新增 `onYearRowZ`（改 Z）→ 即时回算年基数；两者都经 `parseCustomCYear(customCYearText)` 取 C，与方案比较页/月度模式严格同源；
+   - 🔴 **关键实现点**：年度两个 handler 一律用「完整行对象」整体替换 `yearRows[i]`（`Object.assign({}, cur)` 后写值再整行 setData），不使用 `yearRows[i].x` 路径式更新——后者在本项目 automator evaluate 数据通道下表现为「整元素替换、丢同级字段」（实测见 fix verification），会导致改一次年基数后 year/months/type 丢失、后续 Z→年基数读到 undefined。整行替换在真实微信（合并语义）与自动化通道（替换语义）下都保留全字段；
+   - 保留 Z/年基数互算的防循环 guard（`_yearZGuard`），一次编辑只单向回算，空值时清空对侧；
+   - 文件导入（`applyImportResult` 的 `pd.yearRows` 映射）与旧草稿迁移同步补 `zValue`（导入时同口径回算，旧草稿只补字段不擅改年基数）；`addYearRow` 新行带 `zValue`。
+3. `pages/index/index.wxml`：年度行新增「缴费Z值」输入框（`bindinput="onYearRowZ"`，4 位小数），并在有值时显示 `Z ⇄ 月基数` 同源提示。
+
+**零回归边界**：月度段 `onSegZ/onSegBase`（BUG-02-0017 已上线）一行未动；`pensionEngine` / `planAssembler` / `rContribution` / `roiModel` / 解析器 / `expandYearRows` 计算路径均未改；仅新增输入联动，不改变任何 P月计算结果（两页一致由既有 MT-9004/GT-4040 口径保证）。
+
+**新增 UT**：`developer_test/TST-02-UT-1047/year-base-z-convert-check.js`（48 断言），独立复算覆盖三档取整规则、非 12 月年行、年↔Z 往返、C2026=12116 勾稽、非法输入、与月度 `baseFromZ` 同源。
 
 ### fix verification process
-- 待开发修复后，tester 在 dev box 经 PensionGuiRun / automator 40215 独立重跑 system_test/TST-02-GT-4035/gt-4035-base-z-twoway.js：
-  - 年度模式 IN008-Y0~Y5：zValue 字段存在；年基数 189009.6→Z=1.3000；Z=0.6→月基数7270（年基数×12）、Z=1.3→15750.8、Z=3.0→36348；年基数 87240→Z=0.6000。
-  - 月度模式 IN008-M1~M4 保持全 PASS（回归 BUG-02-0017）。
-  - §③ 同输入两页一致：补跑（本轮因 webview 反复空态未取到本脚本实测；历史 GT-4040 已证 basic=compare=14715.77 Δ=0），GUI 稳定后由后续验收任务补 IN008-P1~P6。
-  - 证据：logs/result-GT4035-IN008.json、run-trace.log、GT4035-yearmode.png 等截图（mp.screenshot 原生）。
-- 当前（2026-11-03）未修复，status=open。
+**（developer worker3 自测：dev box automator 40215 真实渲染 + node UT；tester 独立 GT 终验归 tester）**
+
+**① 双向转换实测（automator 40215，真实页面 handler，按 GT-4035 年度→月度完整顺序，每步 ~510ms）**
+
+| 步 | 操作 | 年基数 | Z | 断言 |
+|---|---|---|---|---|
+| Y1 | 改年基数 15750.8×12=189009.6 | 189009.6 | **1.3000** | 基数→Z 4 位小数 ✓ |
+| Y2 | 改 Z=0.6 | **87240**（7270×12） | 0.6 | Z→基数，最低档取整到元 ✓ |
+| Y3 | 改 Z=1.3 | **189009.6**（15750.8×12） | 1.3 | 不取整裸值 ✓ |
+| Y4 | 改 Z=3.0 | **436176**（36348×12） | 3.0 | ✓ |
+| Y5 | 改年基数 87240（7270×12） | 87240 | **0.6000** | 基数→Z ✓ |
+
+月度模式回归（同一轮，未改动月度代码）：Z=0.6→7270、Z=1.3→15750.800000000001、Z=3.0→36348、改基数 15750.8→Z=1.3000，全部一致。
+
+**② 路径式 setData 字段丢失根因实测（automator 通道）**：最小实验证明该数据通道下 `setData({'yearRows[0].annualBase':v})` 会把数组元素**整体替换**为 `{annualBase:v}`（E1~E4，segments 同样），year/months/type 全部丢失——这正是首版修复「第一次基数→Z 成功、之后 Z→基数读到 undefined」的原因。改为整行对象替换后，上表 12 步全序列稳定全绿。
+
+**③ UT**：`TST-02-UT-1047` **pass=48 fail=0**（Z=0.6→7270 取整、Z=1.3→15750.8 裸值、Z=3.0→36348；月数 1/3/6/7/12 年基数=月基数×月数；年↔Z 往返一致；7270/12116≈0.6、15750.8/12116=1.3、36348/12116=3；非法输入 null 不产 NaN）。
+
+**④ 全量 developer_test 零回归**：**50 文件 / pass=975 / fail=0 / badFiles=0**（含全部 0015~0019 既有 UT/CT，月度链路 UT 全绿）。
+
+**⑤ 关于 GT-4035 驱动脚本末尾的 fatal（非产品缺陷，如实记录）**：`gt-4035-base-z-twoway.js` 在跑到 IN008-M1 之后多次稳定停在 `timeout waiting for automator response`（位置在 M1/M3 间漂移），但 **fail 始终 = 0**，且核心双向断言 Y0~Y5、M1 全部 PASS。用「无重试、严格同序」的独立脚本复现其完整前半段（年度 6 步 + 截图 + 切月 + 月度 4 步 = 12 步）**全部成功、零超时**；另一个只跑月度的独立脚本 4/4 成功。判定该 fatal 为 GT 脚本 `readWithRetry` 在 jsonrpc evaluate 偶发超时后重试导致的响应错位（自动化通道层），**不是年度/月度转换的产品问题**。建议 tester 终验时若复现该通道超时，以独立无重试脚本或分段跑为准；产品行为以上表 12 步实测与 UT-1047 为准。
+
+**⑥ P月 两页一致（Δ=0）**：本单未触碰计算/解析/组装路径，沿用历史 GT-4040 / MT-9004 已证的 e7-my1 + Z=1.3 + 利率0 + doc31 2000-11 + 退休 2033-07 同输入 basic=compare=14715.77、Δ=0、三分项一致；本轮因上述 automator 通道超时未在同脚本重跑 P 段，不改变「未改计算口径」这一事实，P 段终验随 tester 复测。
+
+**⑦ 双门禁**：`bug-gate` PASS、`matrix-gate` PASS（本单 fixed 非终态，矩阵 GT-4035 行按要求保持 FAIL，等 tester 独立终验转 PASS）。
+
+- 本单状态由 tester（worker4）2026-11-03 task-101 置 open；developer worker3 2026-11-03 修复后置 **fixed**（未 closed）。
 
 ### bug status
-**bug status**: open
+**bug status**: fixed
