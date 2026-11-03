@@ -1,0 +1,140 @@
+{
+  "at": "2026-11-03T04:26:14.355Z",
+  "testcase": "TST-02-MT-9004",
+  "caseId": "BUG-02-0016",
+  "baseline": "unknown",
+  "port": 40215,
+  "columns": {
+    "userRatePercent": "0.00",
+    "cols": [
+      {
+        "id": "p0",
+        "z": "1.3",
+        "pb0": {
+          "text": "退休后抵回",
+          "sub": "183个月"
+        },
+        "pbU": {
+          "text": "退休后抵回",
+          "sub": "183个月"
+        },
+        "pbS0": {
+          "text": "退休后抵回",
+          "sub": "79个月"
+        },
+        "pbSU": {
+          "text": "退休后抵回",
+          "sub": "79个月"
+        },
+        "pbS0Branch": "B",
+        "pbSUBranch": "B",
+        "pMonthly": 14052.97,
+        "rContinued": 258313.12
+      },
+      {
+        "id": "p1",
+        "z": "0.6",
+        "pb0": {
+          "text": "基准方案",
+          "sub": "（R续最小）"
+        },
+        "pbU": {
+          "text": "基准方案",
+          "sub": "（R续最小）"
+        },
+        "pbS0": {
+          "text": "退休后抵回",
+          "sub": "48个月"
+        },
+        "pbSU": {
+          "text": "退休后抵回",
+          "sub": "48个月"
+        },
+        "pbS0Branch": "B",
+        "pbSUBranch": "B",
+        "pMonthly": 13290.69,
+        "rContinued": 119228
+      }
+    ]
+  },
+  "nodeBaseline": [
+    {
+      "baselineMonthly": 10765.69,
+      "rContinued": 258313.12,
+      "status": "ok"
+    },
+    {
+      "baselineMonthly": 10765.69,
+      "rContinued": 119228,
+      "status": "ok"
+    }
+  ],
+  "tie": {
+    "allBranchB": true,
+    "nodeBaselineSame": true,
+    "nodeBaselineVals": [
+      10765.69,
+      10765.69
+    ]
+  },
+  "rCont": [
+    {
+      "rContinued": 258313.12
+    },
+    {
+      "rContinued": 119228
+    }
+  ],
+  "finishedAt": "2026-11-03T04:26:48.990Z",
+  "checks": [
+    {
+      "id": "0016-1",
+      "title": "比较结果页 ready 且>=2列",
+      "pass": true,
+      "actual": "landed=true n=2",
+      "expected": ">=2"
+    },
+    {
+      "id": "0016-2",
+      "title": "每列 4 组回本字段齐备（0% / x% / 停保·0% / 停保·x%）",
+      "pass": true,
+      "actual": "[[true,true,true,true],[true,true,true,true]]",
+      "expected": "all true"
+    },
+    {
+      "id": "0016-3",
+      "title": "新两行覆盖全部方案列（非仅 R续最小列）",
+      "pass": true,
+      "actual": "cols=2 allNonEmpty=true",
+      "expected": "true"
+    },
+    {
+      "id": "0016-4",
+      "title": "旧两行（0%/x%）数值仍正常非空",
+      "pass": true,
+      "actual": "[[\"退休后抵回\",\"退休后抵回\"],[\"基准方案\",\"基准方案\"]]",
+      "expected": "non-empty"
+    },
+    {
+      "id": "0016-5",
+      "title": "勾稽：新两行均为停保基准分支(B)，且 node 侧各列 baselineMonthly 同源一致",
+      "pass": true,
+      "actual": "branches=[[\"B\",\"B\"],[\"B\",\"B\"]] nodeBaseline=[10765.69,10765.69]",
+      "expected": "all B, same baseline"
+    },
+    {
+      "id": "0016-5b",
+      "title": "新两行在全部方案列分别渲染（各列月数不同，非复用同一列）",
+      "pass": true,
+      "actual": "[\"79个月\",\"48个月\"]",
+      "expected": ">=2 distinct"
+    },
+    {
+      "id": "0016-6",
+      "title": "R续=0 边界（本场景无 R续=0 列，边界判据由 CT-1044 覆盖）",
+      "pass": true,
+      "actual": "no-zero-rcont-in-this-case",
+      "expected": "n/a"
+    }
+  ]
+}

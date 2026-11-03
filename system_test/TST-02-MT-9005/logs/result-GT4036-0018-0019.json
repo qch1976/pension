@@ -1,0 +1,244 @@
+{
+  "at": "2026-11-03T04:12:40.765Z",
+  "testcase": "TST-02-MT-9005",
+  "caseIds": [
+    "BUG-02-0018",
+    "BUG-02-0019"
+  ],
+  "baseline": "unknown",
+  "port": 40215,
+  "expected": {
+    "maleStat": "2044-07",
+    "femaleWorkerStat": "2034-11",
+    "femaleCadreStat": "2039-06",
+    "rangeMale": {
+      "minIdx": 24498,
+      "maxIdx": 24570,
+      "minYM": "2041-07",
+      "maxYM": "2047-07",
+      "statutoryYM": "2044-07"
+    },
+    "rangeWorker": {
+      "minIdx": 24382,
+      "maxIdx": 24454,
+      "minYM": "2031-11",
+      "maxYM": "2037-11",
+      "statutoryYM": "2034-11"
+    },
+    "rangeCadre": {
+      "minIdx": 24438,
+      "maxIdx": 24509,
+      "minYM": "2036-07",
+      "maxYM": "2042-06",
+      "statutoryYM": "2039-06"
+    }
+  },
+  "basic_女": {
+    "gender": "female",
+    "femaleType": "worker",
+    "retireYM": "2031-07",
+    "retireHint": "按P-05对照表，您的法定退休年月为 2034-11（较原法定年龄延迟 40 个月）；当前选择 2031-07，超出弹性范围（2031-11~2037-11），请核对",
+    "boundWarnings": [
+      "高于2019年度核定区间上限（4713~23565 元/月）：24483 元/月，允许录入但实际申报通常按核定基数征收，请核对（E-05/P08）"
+    ]
+  },
+  "basic_女干部": {
+    "gender": "female",
+    "femaleType": "cadre",
+    "retireYM": "2031-07",
+    "retireHint": "按P-05对照表，您的法定退休年月为 2039-06（较原法定年龄延迟 35 个月）；当前选择 2031-07，超出弹性范围（2036-07~2042-06），请核对",
+    "boundWarnings": [
+      "高于2019年度核定区间上限（4713~23565 元/月）：24483 元/月，允许录入但实际申报通常按核定基数征收，请核对（E-05/P08）"
+    ]
+  },
+  "basic_男": {
+    "gender": "male",
+    "femaleType": "worker",
+    "retireYM": "2031-07",
+    "retireHint": "按P-05对照表，您的法定退休年月为 2044-07（较原法定年龄延迟 36 个月）；当前选择 2031-07，超出弹性范围（2041-07~2047-07），请核对",
+    "boundWarnings": [
+      "高于2019年度核定区间上限（4713~23565 元/月）：24483 元/月，允许录入但实际申报通常按核定基数征收，请核对（E-05/P08）"
+    ]
+  },
+  "basic_emptyRetire": {
+    "retireYM": "2044-07",
+    "gender": "female",
+    "ft": "cadre"
+  },
+  "compareCtx": {
+    "gender": "female",
+    "ft": "cadre"
+  },
+  "comparePlans": {
+    "plans": [
+      "2031-07",
+      "2036-07"
+    ],
+    "ctx": {
+      "gender": "female",
+      "femaleType": "cadre",
+      "birthYM": "1981-07",
+      "historyEndYM": "2025-12"
+    }
+  },
+  "errs2031": [
+    "退休年月 2031-07 早于合法下限 2036-07（弹性提前不低于原法定年龄且不早于 2026-09），不能比较"
+  ],
+  "errs2036": [],
+  "ctxMale": {
+    "gender": "male",
+    "femaleType": "cadre",
+    "birthYM": "1981-07",
+    "historyEndYM": "2025-12"
+  },
+  "errsMale2041": [],
+  "errsMale2036": [
+    "退休年月 2036-07 早于合法下限 2041-07（弹性提前不低于原法定年龄且不早于 2026-09），不能比较"
+  ],
+  "startCompare": {
+    "landed": true,
+    "columns": [
+      {
+        "P": 10630.34,
+        "R": 156054.08,
+        "JA": 4819.39,
+        "eligible": true
+      },
+      {
+        "P": 12343.83,
+        "R": 366387.84,
+        "JA": 5647.53,
+        "eligible": true
+      }
+    ]
+  },
+  "finishedAt": "2026-11-03T04:14:23.643Z",
+  "checks": [
+    {
+      "id": "0018-0",
+      "title": "独立 pre-derive：男2044-07/女工2034-11/女干2039-06",
+      "pass": true,
+      "actual": "2044-07/2034-11/2039-06",
+      "expected": "2044-07/2034-11/2039-06"
+    },
+    {
+      "id": "0019-0",
+      "title": "独立 pre-derive：女干部弹性下限=2036-07 且 ≠男 2041-07",
+      "pass": true,
+      "actual": "cadreMin=2036-07(24438) maleMin=2041-07(24498)",
+      "expected": "2036-07 (≠2041-07)"
+    },
+    {
+      "id": "0018-女-1",
+      "title": "基本计算 选女 后 gender 未被文件覆盖",
+      "pass": true,
+      "actual": "gender=female",
+      "expected": "female"
+    },
+    {
+      "id": "0018-女-2",
+      "title": "基本计算 选女 retireYM 保留文件值 2031-07（不被法定 2034-11 覆盖）",
+      "pass": true,
+      "actual": "retireYM=2031-07",
+      "expected": "2031-07"
+    },
+    {
+      "id": "0018-女干部-1",
+      "title": "基本计算 选女干部 后 gender 未被文件覆盖",
+      "pass": true,
+      "actual": "gender=female",
+      "expected": "female"
+    },
+    {
+      "id": "0018-女干部-2",
+      "title": "基本计算 选女干部 retireYM 保留文件值 2031-07（不被法定 2039-06 覆盖）",
+      "pass": true,
+      "actual": "retireYM=2031-07",
+      "expected": "2031-07"
+    },
+    {
+      "id": "0018-男-1",
+      "title": "基本计算 选男 后 gender 未被文件覆盖",
+      "pass": true,
+      "actual": "gender=male",
+      "expected": "male"
+    },
+    {
+      "id": "0018-男-2",
+      "title": "基本计算 选男 retireYM 保留文件值 2031-07（不被法定 2044-07 覆盖）",
+      "pass": true,
+      "actual": "retireYM=2031-07",
+      "expected": "2031-07"
+    },
+    {
+      "id": "0018-empty",
+      "title": "清空 retireYM 后选女干部 → 推导法定 2039-06",
+      "pass": false,
+      "actual": "{\"retireYM\":\"2044-07\",\"gender\":\"female\",\"ft\":\"cadre\"}",
+      "expected": "2039-06"
+    },
+    {
+      "id": "0019-1",
+      "title": "方案比较页可用",
+      "pass": true,
+      "actual": "gotoCompare=true",
+      "expected": "true"
+    },
+    {
+      "id": "0019-2",
+      "title": "共享区切女干部后 ctx 未被文件覆盖",
+      "pass": true,
+      "actual": "{\"gender\":\"female\",\"ft\":\"cadre\"}",
+      "expected": "female/cadre"
+    },
+    {
+      "id": "0019-3",
+      "title": "女干部 2031-07 被判\"早于合法下限\"",
+      "pass": true,
+      "actual": "[\"退休年月 2031-07 早于合法下限 2036-07（弹性提前不低于原法定年龄且不早于 2026-09），不能比较\"]",
+      "expected": "has error"
+    },
+    {
+      "id": "0019-4",
+      "title": "下限文案 = 2036-07（含 2036-07）",
+      "pass": true,
+      "actual": "[\"退休年月 2031-07 早于合法下限 2036-07（弹性提前不低于原法定年龄且不早于 2026-09），不能比较\"]",
+      "expected": "contains 2036-07"
+    },
+    {
+      "id": "0019-5",
+      "title": "🔴 下限文案绝不含 2041-07（男性值）",
+      "pass": true,
+      "actual": "[\"退休年月 2031-07 早于合法下限 2036-07（弹性提前不低于原法定年龄且不早于 2026-09），不能比较\"]",
+      "expected": "NOT contains 2041-07"
+    },
+    {
+      "id": "0019-6",
+      "title": "女干部 2036-07 放行（无退休红错）",
+      "pass": true,
+      "actual": "[]",
+      "expected": "[]"
+    },
+    {
+      "id": "0019-7",
+      "title": "男口径不回退：男 2041-07 放行",
+      "pass": true,
+      "actual": "{\"ctx\":\"male\",\"err\":[]}",
+      "expected": "male, []"
+    },
+    {
+      "id": "0019-8",
+      "title": "男口径不回退：男 2036-07 被拦",
+      "pass": true,
+      "actual": "[\"退休年月 2036-07 早于合法下限 2041-07（弹性提前不低于原法定年龄且不早于 2026-09），不能比较\"]",
+      "expected": "has error"
+    },
+    {
+      "id": "0019-9",
+      "title": "女干部合法退休（2039-06/2036-07）可开始比较不被 block",
+      "pass": true,
+      "actual": "landed=true n=2",
+      "expected": "landed=true"
+    }
+  ]
+}

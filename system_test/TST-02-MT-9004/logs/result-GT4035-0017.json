@@ -1,0 +1,214 @@
+{
+  "at": "2026-11-03T04:10:00.229Z",
+  "testcase": "TST-02-MT-9004",
+  "caseId": "BUG-02-0017",
+  "baseline": "unknown",
+  "port": 40215,
+  "params": {
+    "Z": "1.3",
+    "rate": 0,
+    "doc31": true,
+    "transferYM": "2000-11",
+    "retire": "2033-07"
+  },
+  "zField": {
+    "segN": 28,
+    "zCount": 1,
+    "lastZ": "1.3",
+    "entryMode": "year"
+  },
+  "z13": {
+    "baseMonthly": "15750.800000000001",
+    "zValue": "1.3"
+  },
+  "z06": {
+    "baseMonthly": "7270",
+    "zValue": "0.6"
+  },
+  "z30": {
+    "baseMonthly": "36348",
+    "zValue": "3.0"
+  },
+  "b13": {
+    "baseMonthly": "15750.800000000001",
+    "zValue": "1.3000"
+  },
+  "b06": {
+    "baseMonthly": "7270",
+    "zValue": "0.6000"
+  },
+  "pingpong": [
+    {
+      "b": "15750.800000000001",
+      "z": "1.3"
+    },
+    {
+      "b": "15750.8",
+      "z": "1.3000"
+    },
+    {
+      "b": "15750.800000000001",
+      "z": "1.3"
+    },
+    {
+      "b": "15750.8",
+      "z": "1.3000"
+    }
+  ],
+  "basicInput": {
+    "n": 27,
+    "gender": "male",
+    "retire": "2033-07",
+    "rate": 0,
+    "doc31": true,
+    "transfer": "2000-11",
+    "deemed": "1995-07~2000-10",
+    "first3": [
+      "enterprise|2000-11|2000-12|3071.000000",
+      "enterprise|2001-01|2001-12|3444.000000",
+      "enterprise|2002-01|2002-12|3932.000000"
+    ],
+    "last3": [
+      "enterprise|2024-01|2024-12|34587.000000",
+      "enterprise|2025-01|2025-12|35547.000000",
+      "enterprise|2026-01|2026-08|35945.250000"
+    ]
+  },
+  "basic": {
+    "ok": true,
+    "P": 11893.33,
+    "J": [
+      6154.36,
+      4915.64,
+      823.33
+    ]
+  },
+  "compareInput": {
+    "n": 27,
+    "gender": "male",
+    "rate": 0,
+    "doc31": true,
+    "transfer": "2000-11",
+    "deemed": "1995-07~2000-10",
+    "first3": [
+      "enterprise|2000-11|2000-12|3071.000000",
+      "enterprise|2001-01|2001-12|3444.000000",
+      "enterprise|2002-01|2002-12|3932.000000"
+    ],
+    "last3": [
+      "enterprise|2024-01|2024-12|34587.000000",
+      "enterprise|2025-01|2025-12|35547.000000",
+      "enterprise|2026-01|2026-08|35945.250000"
+    ]
+  },
+  "compare": {
+    "landed": true,
+    "P": 14715.77,
+    "J": [
+      null,
+      null,
+      null
+    ]
+  },
+  "finishedAt": "2026-11-03T04:11:01.606Z",
+  "checks": [
+    {
+      "id": "0017-1",
+      "title": "自动段带 zValue 绑定（Z值输入框可用）",
+      "pass": true,
+      "actual": "{\"segN\":28,\"zCount\":1,\"lastZ\":\"1.3\",\"entryMode\":\"year\"}",
+      "expected": "zCount>=1"
+    },
+    {
+      "id": "0017-2",
+      "title": "Z=1.3 → 基数 15750.800000000001",
+      "pass": true,
+      "actual": "base=15750.800000000001",
+      "expected": "15750.800000000001"
+    },
+    {
+      "id": "0017-3",
+      "title": "Z=0.6 → 基数 7270（最低档取整）",
+      "pass": true,
+      "actual": "base=7270",
+      "expected": "7270"
+    },
+    {
+      "id": "0017-4",
+      "title": "Z=3.0 → 基数 36348",
+      "pass": true,
+      "actual": "base=36348",
+      "expected": "36348"
+    },
+    {
+      "id": "0017-5",
+      "title": "红线 Z=0.6 月缴(20%)=1454",
+      "pass": true,
+      "actual": 1454,
+      "expected": "1454"
+    },
+    {
+      "id": "0017-6",
+      "title": "红线 Z=3.0 月缴(20%)=7269.6 且 ≠7270",
+      "pass": true,
+      "actual": 7269.6,
+      "expected": "7269.6 (≠7270)"
+    },
+    {
+      "id": "0017-7",
+      "title": "改基数 → Z 回算 1.3000（4位小数）",
+      "pass": true,
+      "actual": "zValue=1.3000",
+      "expected": "1.3000"
+    },
+    {
+      "id": "0017-8",
+      "title": "改基数 7270 → Z=0.6000",
+      "pass": true,
+      "actual": "zValue=0.6000",
+      "expected": "0.6000"
+    },
+    {
+      "id": "0017-9",
+      "title": "连续来回编辑稳定无污染",
+      "pass": true,
+      "actual": "[{\"b\":\"15750.800000000001\",\"z\":\"1.3\"},{\"b\":\"15750.8\",\"z\":\"1.3000\"},{\"b\":\"15750.800000000001\",\"z\":\"1.3\"},{\"b\":\"15750.8\",\"z\":\"1.3000\"}]",
+      "expected": "stable 15750.8/1.3000"
+    },
+    {
+      "id": "0017-10",
+      "title": "基本计算 结果页 ready",
+      "pass": true,
+      "actual": "path=pages/result/result",
+      "expected": "pages/result/result"
+    },
+    {
+      "id": "0017-11",
+      "title": "基本计算 P月 有限正值",
+      "pass": true,
+      "actual": 11893.33,
+      "expected": "finite >0"
+    },
+    {
+      "id": "0017-12",
+      "title": "方案比较 结果页 ready 且2列",
+      "pass": true,
+      "actual": "landed=true n=2",
+      "expected": "2"
+    },
+    {
+      "id": "0017-13",
+      "title": "两页 P月 一致 Δ<0.01",
+      "pass": false,
+      "actual": "basic=11893.33 compare=14715.77 Δ=-2822.44",
+      "expected": "Δ<0.01"
+    },
+    {
+      "id": "0017-14",
+      "title": "两页三分项一致（Δ 各项 <0.01）",
+      "pass": false,
+      "actual": "[6154.36,4915.64,823.33] vs [null,null,null]",
+      "expected": "all Δ<0.01"
+    }
+  ]
+}

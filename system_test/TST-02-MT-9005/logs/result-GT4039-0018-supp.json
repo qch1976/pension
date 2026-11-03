@@ -1,0 +1,80 @@
+{
+  "at": "2026-11-03T04:20:44.793Z",
+  "testcase": "TST-02-MT-9005",
+  "caseId": "BUG-02-0018-supp",
+  "baseline": "unknown",
+  "port": 40215,
+  "basicAfterFemale": {
+    "gender": "female",
+    "ft": "worker",
+    "retireYM": "2031-07",
+    "hint": "按P-05对照表，您的法定退休年月为 2034-11（较原法定年龄延迟 40 个月）；当前选择 2031-07，超出弹性范围（2031-11~2037-11），请核对",
+    "boundWarnings": [
+      "高于2019年度核定区间上限（4713~23565 元/月）：24483 元/月，允许录入但实际申报通常按核定基数征收，请核对（E-05/P08）"
+    ],
+    "errorMsg": ""
+  },
+  "rangeWorker": {
+    "minIdx": 24382,
+    "maxIdx": 24454,
+    "minYM": "2031-11",
+    "maxYM": "2037-11",
+    "statutoryYM": "2034-11"
+  },
+  "basicResult": {
+    "ok": true,
+    "path": "pages/result/result",
+    "P": 6290.19
+  },
+  "ctx": {
+    "gender": "female",
+    "femaleType": "cadre",
+    "birthYM": "1981-07",
+    "historyEndYM": "2025-12"
+  },
+  "finishedAt": "2026-11-03T04:21:31.822Z",
+  "checks": [
+    {
+      "id": "0018s-1",
+      "title": "保留文件值 2031-07（未被法定值覆盖）",
+      "pass": true,
+      "actual": "retireYM=2031-07",
+      "expected": "2031-07"
+    },
+    {
+      "id": "0018s-2",
+      "title": "2031-07 早于女工人弹性下限 2031-11（应给出提示）",
+      "pass": true,
+      "actual": "2031-07 idx=24378 min=2031-11(24382)",
+      "expected": "early"
+    },
+    {
+      "id": "0018s-3",
+      "title": "🔴 warning 不阻断：点计算仍能出结果页",
+      "pass": true,
+      "actual": "path=pages/result/result P=6290.19",
+      "expected": "pages/result/result"
+    },
+    {
+      "id": "0018s-4",
+      "title": "结果 P月 为有限正值（计算真实完成）",
+      "pass": true,
+      "actual": 6290.19,
+      "expected": "finite >0"
+    },
+    {
+      "id": "0018s-5",
+      "title": "女干部 2031-07 在比较页被判早于下限（合规拦截，文案 2036-07）",
+      "pass": true,
+      "actual": "[\"退休年月 2031-07 早于合法下限 2036-07（弹性提前不低于原法定年龄且不早于 2026-09），不能比较\"]",
+      "expected": "contains 2036-07"
+    },
+    {
+      "id": "0018s-6",
+      "title": "该文案不含 2041-07（男性值）",
+      "pass": true,
+      "actual": "[\"退休年月 2031-07 早于合法下限 2036-07（弹性提前不低于原法定年龄且不早于 2026-09），不能比较\"]",
+      "expected": "NOT 2041-07"
+    }
+  ]
+}
