@@ -1001,8 +1001,33 @@ Z=3.0 基数 36348 / 灵活月缴 7269.6（未取整为 7270）✅
 
 **⑥ 待项目主复测**：本单 2026-11-04 由 developer 置 **fixed**（🔴 未 closed）；矩阵 `TST-02-MT-9005` 行按要求**保持 FAIL**，等项目主再次手测（女性 1981 出生：女工弹性下限 2031-07、女干部 2036-07）通过后由 tester/项目主转 PASS、同批关单。
 
+### tester 独立 GUI 取证（worker4，2026-11-04 task-105；fixed 非终态，不代项目主关单）
+独立入口脚本 `system_test/TST-02-MT-9005/mt9005-gui.js`（node --check 过），经 PensionGuiRun 单次投递进活动 session 2，连常驻口 40215；夹具 `e7-wife4.txt`（1981-07 女、文件无性别字段）。tester 独立取值，未引用 developer 回显；结果机读 `logs/result-MT9005-0019.json`，原生 `mp.screenshot()` 证据图 3 张（MT9005-worker-2031-07-allow.png 55.5KB、-cadre-2036-06-block.png 64.9KB、-basic-female-worker-hint.png 82.6KB）。
+
+**单次 GUI 取证 18/18 PASS、fail=0、exit0（aborted=undefined）**：
+
+基本计算页（0018 保真 + 身份即时 + warning 不阻断）：
+- A0 导入后 route=pages/index/index、birthYM=1981-07；
+- A1 0018：文件自带 retireYM=**2031-07** 导入后保留（不被法定值覆盖）；
+- A2w 切「女工人」即时生效，retireHint 法定 2034-11（延迟40月）、当前 2031-07 属弹性范围；无 2041-07；
+- A2c 切「女干部」即时生效，retireHint 法定 2039-06、当前 2031-07 超出弹性范围（**2036-07**~2042-06）；无 2041-07；
+- A3 身份多次切换后文件 retireYM 仍 2031-07 保留；
+- A4 🔴 warning 不阻断：女工 2031-07 onCalculate **真跳结果页**，P月=**6290.19**（有限正值）。
+
+方案比较页（放行/拦截 GUI 判定 = startCompare 是否真跳结果页；卡红错文案用卡 recheck 同一纯函数 PM.planErrors 独立取证）：
+- B1 女工人 **2031-07 放行**：卡无退休红错、startCompare 真跳 pages/compare-result（ctx=female/worker/1981-07）；
+- B2 女工人 **2031-06 拦截**：红错「退休年月 2031-06 早于合法下限 **2031-07**（弹性提前不低于原法定年龄且不早于 2026-09），不能比较」，文案**不含 2041-07**，startCompare landed=false；
+- B3 女干部 **2036-07 放行**：卡无红错、startCompare 真跳结果页；
+- B4 女干部 **2036-06 拦截**：红错下限 **2036-07**、不含 2041-07，landed=false；
+- B5 身份即时生效：同一退休值 2031-07，女工人合法（无红错）、女干部报 2036-07（非男性 2041-07）——证明界面身份切换后 ctx 即时跟随、女性不被男性口径污染；
+- B6 男口径不回退：男 2041-07 仍合法（无红错）。
+
+取证结论：developer 第二轮根因修复（flexibleRange 下限直接取原法定退休月 orig，commit 001ce27）在 GUI 层表现符合项目主裁定——女工弹性下限 2031-07、女干部 2036-07、女性场景绝无男性 2041-07；身份切换即时生效、0018 文件值保留、warning 不阻断计算。过程中 r1~r3 的 FAIL/ABORT 均为 tester 驱动问题（连续切身份后计算未跳页、跨场景 navigateBack 后 compare 通道取 null），通过 A4 干净重导复刻 GT-4039 已证路径 + 每场景独立重进 compare + evSure 读取兜底解决，非产品缺陷。
+
+🔴 **本取证为 tester 独立验收，非终态**：MT-9005 矩阵行按要求**保持 FAIL**、本单保持 **fixed**，等项目主本人再次手测通过后才转 PASS / closed（关单由项目主/Manager 同批执行，tester 不代关）。
+
 ### bug status
-**bug status**: fixed
+**bug status**: fixed（developer 001ce27 根因修复；tester worker4 2026-11-04 独立 GUI 取证 18/18 PASS；🔴 待项目主本人再次手测 MT-9005 后才转 closed）
 
 ## BUG-02-0022
 

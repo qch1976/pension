@@ -1,0 +1,314 @@
+{
+  "at": "2026-11-04T04:42:22.675Z",
+  "testcase": "TST-02-MT-9005",
+  "requirement": "REQ-02-CAL-000",
+  "bug": "BUG-02-0019",
+  "mode": "gui-evidence-fixed-not-closed",
+  "baseline": "unknown",
+  "port": 40215,
+  "fixture": "e7-wife4.txt",
+  "basicAfterImport": {
+    "route": "pages/index/index",
+    "birthYM": "1981-07",
+    "gender": "female",
+    "femaleType": "worker",
+    "retireYM": "2031-07"
+  },
+  "basicWorker": {
+    "route": "pages/index/index",
+    "gender": "female",
+    "femaleType": "worker",
+    "retireYM": "2031-07",
+    "retireHint": "按P-05对照表，您的法定退休年月为 2034-11（较原法定年龄延迟 40 个月）；当前选择 2031-07，属弹性提前/延迟范围（各不超过3年、提前不低于原法定年龄，且须满足最低缴费年限）"
+  },
+  "basicCadre": {
+    "route": "pages/index/index",
+    "gender": "female",
+    "femaleType": "cadre",
+    "retireYM": "2031-07",
+    "retireHint": "按P-05对照表，您的法定退休年月为 2039-06（较原法定年龄延迟 35 个月）；当前选择 2031-07，超出弹性范围（2036-07~2042-06），请核对"
+  },
+  "basicWorkerBack": {
+    "route": "pages/index/index",
+    "gender": "female",
+    "femaleType": "worker",
+    "retireYM": "2031-07",
+    "retireHint": "按P-05对照表，您的法定退休年月为 2034-11（较原法定年龄延迟 40 个月）；当前选择 2031-07，属弹性提前/延迟范围（各不超过3年、提前不低于原法定年龄，且须满足最低缴费年限）"
+  },
+  "basicCalc": {
+    "landed": true,
+    "path": "pages/result/result",
+    "P": 6290.19,
+    "errorMsg": ""
+  },
+  "workerAllow": {
+    "tag": "wAllow",
+    "ctx": {
+      "gender": "female",
+      "femaleType": "worker",
+      "birthYM": "1981-07"
+    },
+    "plans": [
+      {
+        "windowStartYM": "",
+        "retireYM": "2031-07",
+        "z": "1.3",
+        "segType": "flexible"
+      },
+      {
+        "windowStartYM": "",
+        "retireYM": "2034-11",
+        "z": "0.6",
+        "segType": "enterprise"
+      }
+    ],
+    "e0": [],
+    "e1": [],
+    "landed": true,
+    "cols": [
+      {
+        "P": 7841.03,
+        "R": 207910.56,
+        "JA": 2895.5,
+        "eligible": true
+      },
+      {
+        "P": 8063.25,
+        "R": 61692,
+        "JA": 3017.27,
+        "eligible": true
+      }
+    ]
+  },
+  "workerBlock": {
+    "tag": "wBlock",
+    "ctx": {
+      "gender": "female",
+      "femaleType": "worker",
+      "birthYM": "1981-07"
+    },
+    "plans": [
+      {
+        "windowStartYM": "",
+        "retireYM": "2031-06",
+        "z": "1.3",
+        "segType": "flexible"
+      },
+      {
+        "windowStartYM": "",
+        "retireYM": "2034-11",
+        "z": "0.6",
+        "segType": "enterprise"
+      }
+    ],
+    "e0": [
+      "退休年月 2031-06 早于合法下限 2031-07（弹性提前不低于原法定年龄且不早于 2026-09），不能比较"
+    ],
+    "e1": [],
+    "landed": false,
+    "cols": []
+  },
+  "cadreAllow": {
+    "tag": "cAllow",
+    "ctx": {
+      "gender": "female",
+      "femaleType": "cadre",
+      "birthYM": "1981-07"
+    },
+    "plans": [
+      {
+        "windowStartYM": "",
+        "retireYM": "2036-07",
+        "z": "1.3",
+        "segType": "flexible"
+      },
+      {
+        "windowStartYM": "",
+        "retireYM": "2039-06",
+        "z": "0.6",
+        "segType": "enterprise"
+      }
+    ],
+    "e0": [],
+    "e1": [],
+    "landed": true,
+    "cols": [
+      {
+        "P": 9408.81,
+        "R": 396920.16,
+        "JA": 3766.04,
+        "eligible": true
+      },
+      {
+        "P": 9133.54,
+        "R": 93702,
+        "JA": 3639.85,
+        "eligible": true
+      }
+    ]
+  },
+  "cadreBlock": {
+    "tag": "cBlock",
+    "ctx": {
+      "gender": "female",
+      "femaleType": "cadre",
+      "birthYM": "1981-07"
+    },
+    "plans": [
+      {
+        "windowStartYM": "",
+        "retireYM": "2036-06",
+        "z": "1.3",
+        "segType": "flexible"
+      },
+      {
+        "windowStartYM": "",
+        "retireYM": "2039-06",
+        "z": "0.6",
+        "segType": "enterprise"
+      }
+    ],
+    "e0": [
+      "退休年月 2036-06 早于合法下限 2036-07（弹性提前不低于原法定年龄且不早于 2026-09），不能比较"
+    ],
+    "e1": [],
+    "landed": false,
+    "cols": []
+  },
+  "identityImmediate": {
+    "eWorker": [],
+    "eCadre": [
+      "退休年月 2031-07 早于合法下限 2036-07（弹性提前不低于原法定年龄且不早于 2026-09），不能比较"
+    ]
+  },
+  "male": [],
+  "finishedAt": "2026-11-04T04:45:43.917Z",
+  "checks": [
+    {
+      "id": "M9005-A0",
+      "title": "导入 e7-wife4 落基本页 出生1981-07",
+      "pass": true,
+      "actual": "{\"route\":\"pages/index/index\",\"birthYM\":\"1981-07\",\"gender\":\"female\",\"femaleType\":\"worker\",\"retireYM\":\"2031-07\"}",
+      "expected": "index/birth=1981-07"
+    },
+    {
+      "id": "M9005-A1",
+      "title": "0018：文件自带 retireYM=2031-07 导入后保留（不被法定值覆盖）",
+      "pass": true,
+      "actual": "retireYM=2031-07",
+      "expected": "2031-07"
+    },
+    {
+      "id": "M9005-A2w",
+      "title": "切女工人即时生效 且弹性下限提示 2031-07",
+      "pass": true,
+      "actual": "hint=按P-05对照表，您的法定退休年月为 2034-11（较原法定年龄延迟 40 个月）；当前选择 2031-07，属弹性提前/延迟范围（各不超过3年、提前不低于原法定年龄，且须满足最低缴费年限）",
+      "expected": "female/worker 含2031-07 无2041-07"
+    },
+    {
+      "id": "M9005-A2c",
+      "title": "切女干部即时生效 且弹性下限提示 2036-07（绝无2041-07）",
+      "pass": true,
+      "actual": "hint=按P-05对照表，您的法定退休年月为 2039-06（较原法定年龄延迟 35 个月）；当前选择 2031-07，超出弹性范围（2036-07~2042-06），请核对",
+      "expected": "female/cadre 含2036-07 无2041-07"
+    },
+    {
+      "id": "M9005-A3",
+      "title": "身份多次切换后文件 retireYM 仍 2031-07 保留",
+      "pass": true,
+      "actual": "retireYM=2031-07",
+      "expected": "2031-07"
+    },
+    {
+      "id": "M9005-A4",
+      "title": "warning 不阻断：女工2031-07 计算真跳结果页 P有限",
+      "pass": true,
+      "actual": "landed=true P=6290.19",
+      "expected": "result页/P>0"
+    },
+    {
+      "id": "M9005-B1a",
+      "title": "女工 2031-07 卡无退休红错",
+      "pass": true,
+      "actual": "[]",
+      "expected": "[]（放行）"
+    },
+    {
+      "id": "M9005-B1b",
+      "title": "女工 2031-07 startCompare 真跳结果页（放行）",
+      "pass": true,
+      "actual": "landed=true ctx={\"gender\":\"female\",\"femaleType\":\"worker\",\"birthYM\":\"1981-07\"}",
+      "expected": "landed=true"
+    },
+    {
+      "id": "M9005-B2a",
+      "title": "女工 2031-06 卡退休红错 下限2031-07",
+      "pass": true,
+      "actual": "[\"退休年月 2031-06 早于合法下限 2031-07（弹性提前不低于原法定年龄且不早于 2026-09），不能比较\"]",
+      "expected": "含下限2031-07"
+    },
+    {
+      "id": "M9005-B2b",
+      "title": "女工拦截文案绝不出现男性值 2041-07",
+      "pass": true,
+      "actual": "[\"退休年月 2031-06 早于合法下限 2031-07（弹性提前不低于原法定年龄且不早于 2026-09），不能比较\"]",
+      "expected": "无2041-07"
+    },
+    {
+      "id": "M9005-B2c",
+      "title": "女工 2031-06 startCompare 不跳结果页（拦截）",
+      "pass": true,
+      "actual": "landed=false",
+      "expected": "landed=false"
+    },
+    {
+      "id": "M9005-B3a",
+      "title": "女干部 2036-07 卡无退休红错",
+      "pass": true,
+      "actual": "[]",
+      "expected": "[]（放行）"
+    },
+    {
+      "id": "M9005-B3b",
+      "title": "女干部 2036-07 startCompare 真跳结果页（放行）",
+      "pass": true,
+      "actual": "landed=true",
+      "expected": "landed=true"
+    },
+    {
+      "id": "M9005-B4a",
+      "title": "女干部 2036-06 卡退休红错 下限2036-07",
+      "pass": true,
+      "actual": "[\"退休年月 2036-06 早于合法下限 2036-07（弹性提前不低于原法定年龄且不早于 2026-09），不能比较\"]",
+      "expected": "含下限2036-07"
+    },
+    {
+      "id": "M9005-B4b",
+      "title": "女干部拦截文案绝不出现 2041-07",
+      "pass": true,
+      "actual": "[\"退休年月 2036-06 早于合法下限 2036-07（弹性提前不低于原法定年龄且不早于 2026-09），不能比较\"]",
+      "expected": "无2041-07"
+    },
+    {
+      "id": "M9005-B4c",
+      "title": "女干部 2036-06 startCompare 不跳结果页（拦截）",
+      "pass": true,
+      "actual": "landed=false",
+      "expected": "landed=false"
+    },
+    {
+      "id": "M9005-B5",
+      "title": "身份即时生效：同值2031-07 女工合法、女干部报2036-07（非2041-07）",
+      "pass": true,
+      "actual": "worker=[] cadre=[\"退休年月 2031-07 早于合法下限 2036-07（弹性提前不低于原法定年龄且不早于 2026-09），不能比较\"]",
+      "expected": "女工[] / 女干部含2036-07"
+    },
+    {
+      "id": "M9005-B6",
+      "title": "男 2041-07 仍合法（口径不回退）",
+      "pass": true,
+      "actual": "[]",
+      "expected": "[]"
+    }
+  ]
+}
