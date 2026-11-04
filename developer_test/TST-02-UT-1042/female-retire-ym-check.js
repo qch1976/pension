@@ -20,18 +20,23 @@ A.eq(S.statutoryRetireYM('male', BIRTH), '2044-07', '男 1981-07 法定 2044-07'
 A.eq(S.statutoryRetireYM('worker', BIRTH), '2034-11', '女工人 1981-07 法定 2034-11');
 A.eq(S.statutoryRetireYM('cadre', BIRTH), '2039-06', '女干部 1981-07 法定 2039-06');
 
-// ===== 2. 三身份弹性区间（下限 = max(原法定, 法定-36)）=====
+// ===== 2. 三身份弹性区间（BUG-02-0019 重修：下限 = 原法定退休月本身，不再 max(原,法定−36)）=====
 var rM = S.flexibleRange('male', BIRTH);
 var rW = S.flexibleRange('worker', BIRTH);
 var rC = S.flexibleRange('cadre', BIRTH);
 A.eq(D.toYM(rM.min), '2041-07', '男 弹性下限 2041-07（原法定 60 岁）');
 A.eq(D.toYM(rM.max), '2047-07', '男 弹性上限 2047-07');
-A.eq(D.toYM(rW.min), '2031-11', '女工人 弹性下限 2031-11（原法定 50 岁 1975→1981 对应 2031-11）');
+A.eq(D.toYM(rW.min), '2031-07', '女工人 弹性下限 2031-07（原法定 50 岁；BUG-02-0019 重修，旧误值 2031-11 已废）');
 A.eq(D.toYM(rW.max), '2037-11', '女工人 弹性上限 2037-11');
 A.eq(D.toYM(rC.min), '2036-07', '女干部 弹性下限 2036-07（原法定 55 岁）');
 A.eq(D.toYM(rC.max), '2042-06', '女干部 弹性上限 2042-06');
-// 关键：女干部下限绝不能等于男性下限
+// 关键：女干部/女工下限绝不能等于男性下限
 A.ok(D.toYM(rC.min) !== '2041-07', '女干部下限 ≠ 男性 2041-07（0019 核心断言）');
+A.ok(D.toYM(rW.min) !== '2041-07', '女工人下限 ≠ 男性 2041-07（女性场景不得出现男性值）');
+// 下限恒等于原法定月，且法定月未被改动
+A.eq(D.toYM(rW.min), D.toYM(rW.original), '女工人 弹性下限 === 原法定退休月');
+A.eq(D.toYM(rC.min), D.toYM(rC.original), '女干部 弹性下限 === 原法定退休月');
+A.eq(D.toYM(rM.min), D.toYM(rM.original), '男 弹性下限 === 原法定退休月');
 
 // ===== 3. keyOf 三身份映射 =====
 A.eq(S.keyOf('male', ''), 'male', 'keyOf(男)=male');
@@ -46,8 +51,8 @@ var lrW = PM.legalRange(ctx('female', 'worker'), D);
 var lrC = PM.legalRange(ctx('female', 'cadre'), D);
 A.eq(lrM.minYM, '2041-07', 'legalRange 男 min=2041-07');
 A.eq(lrM.statutoryYM, '2044-07', 'legalRange 男 法定=2044-07');
-A.eq(lrW.minYM, '2031-11', 'legalRange 女工人 min=2031-11');
-A.eq(lrW.statutoryYM, '2034-11', 'legalRange 女工人 法定=2034-11');
+A.eq(lrW.minYM, '2031-07', 'legalRange 女工人 min=2031-07（BUG-02-0019 重修）');
+A.eq(lrW.statutoryYM, '2034-11', 'legalRange 女工人 法定=2034-11（法定口径未改）');
 A.eq(lrC.minYM, '2036-07', 'legalRange 女干部 min=2036-07');
 A.eq(lrC.statutoryYM, '2039-06', 'legalRange 女干部 法定=2039-06');
 
@@ -62,9 +67,14 @@ A.eq(PM.validateRetireYM('2039-06', ctx('female', 'cadre'), D), null, '女干部
 // 男性行为不回退
 A.ok(!!PM.validateRetireYM('2036-07', ctx('male', ''), D), '男 2036-07 应被拦截（早于 2041-07）');
 A.eq(PM.validateRetireYM('2041-07', ctx('male', ''), D), null, '男 2041-07 合法（男口径未被改动）');
-// 女工人
-A.eq(PM.validateRetireYM('2031-07', ctx('female', 'worker'), D) !== null, true, '女工人 2031-07 早于下限 2031-11 被拦截');
-A.eq(PM.validateRetireYM('2031-11', ctx('female', 'worker'), D), null, '女工人 2031-11 合法');
+// 女工人（BUG-02-0019 重修）：2031-07 放行（原 50 岁），2031-06 拦截
+A.eq(PM.validateRetireYM('2031-07', ctx('female', 'worker'), D), null, '女工人 2031-07 合法放行（弹性下限=原法定 2031-07）');
+A.ok(!!PM.validateRetireYM('2031-06', ctx('female', 'worker'), D), '女工人 2031-06 早于下限 2031-07 被拦截');
+A.ok(!/2041-07/.test(PM.validateRetireYM('2031-06', ctx('female', 'worker'), D) || ''), '女工人 2031-06 拦截文案不含男性值 2041-07');
+// 女干部边界：2036-07 放行，2036-06 拦截
+A.eq(PM.validateRetireYM('2036-07', ctx('female', 'cadre'), D), null, '女干部 2036-07 合法放行');
+A.ok(!!PM.validateRetireYM('2036-06', ctx('female', 'cadre'), D), '女干部 2036-06 早于下限 2036-07 被拦截');
+A.ok(!/2041-07/.test(PM.validateRetireYM('2036-06', ctx('female', 'cadre'), D) || ''), '女干部 2036-06 拦截文案不含男性值 2041-07');
 
 // ===== 5. 0018：导入不得用 male/worker 硬默认覆盖性别 =====
 // 解析真实夹具（不含性别字段），验证 pageData.gender/femaleType 为空而非 male/worker
@@ -111,7 +121,7 @@ A.eq(refreshRetire({ gender: 'male', femaleType: '', birthYM: BIRTH, retireYM: '
   '2044-07', '空 retireYM 时推导男法定 2044-07');
 
 // ===== 7. 女干部 2031-07 若被采纳，是否属弹性区间内的合法值？=====
-A.ok(D.toIndex('2031-07') < D.toIndex('2036-07'), '女干部 2031-07 早于弹性下限 2036-07（应提示超范围）');
+A.ok(D.toIndex('2031-07') === D.toIndex('2036-07') - 60, '女工人下限 2031-07 比女干部 2036-07 早 5 年（原 50 vs 原 55）');
 // 该值本身不是女性档法定值，仅作数据保真（不被覆盖）；合法性由 validateRetireYM 另行判定
 
 A.finish();

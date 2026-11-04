@@ -951,50 +951,58 @@ Z=3.0 基数 36348 / 灵活月缴 7269.6（未取整为 7270）✅
 
 **0019 定性**：女干部场景下 ctx.gender 被 `applyPrefill` 覆盖成 `male`，`planModel.legalRange()` 用 `Schedule.keyOf('male', ...)` 取到男性档，弹性下限 = 1981-07+60年 = **2041-07**，于是 2031-07/2036-07 被判"早于合法下限"，`startCompare` 被 block。女干部的**正确下限是 2036-07**（原法定 55 岁）。
 ### fix solution description
-**修复（commit a00c0a2，基线 3e0921f，未 push）**
+**第二轮修复（developer worker3，2026-11-04，commit 见 fix verification；基线 `b3b5872`，本地 commit 未 push）——只改弹性下限取法，法定退休年月与养老金引擎口径一律不动。**
 
-1. `services/caseValidator.js` `mapParsedToPageData()`
-   - 保留 male/worker 兜底默认值（引擎要求合法 gender，且无性别字段的旧夹具如 My-Case 依赖它，避免"性别缺失"报错）；
-   - **新增标记** `genderFromFile` / `femaleTypeFromFile`（仅当 `options.gender/femaleType` 显式传入时为 true），用于告知调用方"文件里到底有没有性别"，把"是否覆盖用户选择"的决策交给调用方。
-2. `components/shared-data/shared-data.js` `applyPrefill()`
-   - `genderFromFile===false` 时 **删除 patch.gender**、`femaleTypeFromFile===false` 时删除 patch.femaleType，不再覆盖用户在界面上已选的「女 / 女干部」。
-3. `pages/index/index.js` `applyImportResult()`
-   - 同规则：`gender`/`femaleType` 在文件未提供时不回写，保留用户选择。
-4. `pages/index/index.js` `refreshDefaultRetire()`
-   - **retireYM 已是合法 `YYYY-MM` 时直接返回（保留文件值/用户值），不再被法定值覆盖**；仅在 retireYM 为空（新建/清空）时才推导缺省法定值。
-5. `developer_test/TST-02-UT-1042/female-retire-ym-check.js`（新增，45 断言）
-   - 三身份法定值：男 2044-07 / 女工人 2034-11 / 女干部 2039-06
-   - 三身份弹性区间下限：2041-07 / 2031-11 / 2036-07，并断言**女干部下限 ≠ 男性 2041-07**
-   - `planModel.legalRange` / `validateRetireYM` 三身份逐项校验
-   - 0018：`genderFromFile=false` 标记正确；已有 retireYM（2031-07）在男/女工人/女干部三种 ctx 下**均不被覆盖**；空 retireYM 时仍能正确推导缺省值
-   - 0019：女干部 2031-07 被拦截且文案下限为 **2036-07**、**不含 2041-07**；2036-07/2039-06 放行；男性 2041-07 行为不回退
-   - 回归：TST-02-UT-1035（无性别夹具 My-Case 比较管道）保持 8/8 通过
+**上一轮为何没生效（被项目主复测退回「FAIL 无变化」）**：上一轮只处理了「女干部场景出现男性 2041-07」的性别串用问题（女干部下限正确给到 2036-07），但**没有改 `calculator/retireSchedule.js flexibleRange()` 的下限算法本身**——它仍是 `min = max(原法定月 orig, 法定月 stat − 36)`。女干部 1981-07 延迟 35 月，stat−36 恰好 ≤ orig，max 取 orig=2036-07（看似正确）；但女工人 1981-07 延迟 **40 月（>36）**，stat=2034-11、stat−36=2031-11 > orig=2031-07，max 错误取到 **2031-11**。所以女工场景「没有任何变化」。
 
-**验证**：TST-02-UT-1042 **pass=45 fail=0**；全量 developer_test **46 文件 pass=778 fail=0 failFiles=0**，零回归。
+**本轮根因修复（精确一行语义）**：
+- `calculator/retireSchedule.js flexibleRange(key,birthYM)`：下限 `Math.max(orig, stat−36)` → **直接取原法定退休月 `orig`**。
+- 依据规格 §退休设计澄清（task-100 9b015e1）与项目主 2026-11-03 18:24 裁定：**弹性提前退休下限 = 原法定退休年龄本身**，废止「新法定−3年再与原年龄取大值」的表述与实现。
+- 🔴 未用 `max(原年龄, 新法定−3年)`（那恰是女工 2031-11 的错误来源）；上限仍为 `stat+36`（弹性延迟最多 3 年）；`statutoryRetireYM`/`delayMonths` 法定口径一行未动。
+
+**影响面（调用方自动跟随，无额外改动）**：
+- `calculator/planModel.js legalRange()/validateRetireYM()` 以 `flexibleRange.min` 为合法下限；
+- `calculator/pensionEngine.js` 计算 `withinFlexible/flexibleMinYM` 同源；
+- `pages/index/index.js` 退休年月超范围提示文案取 `D.toYM(range.min)`，女工场景提示下限随之变为 2031-07，且任何女性场景均不会出现男性 2041-07（worker/cadre 各自取 key，keyOf 不含 male）。
+
+**测试更新**：`developer_test/TST-02-UT-1042/female-retire-ym-check.js`（48→53 断言）：
+- 女工弹性下限断言 2031-11 → **2031-07**，并新增「下限 === 原法定退休月」三身份恒等断言；
+- 新增边界：女工 2031-07 **放行**、2031-06 **拦截**；女干部 2036-07 放行、2036-06 拦截；两类女性拦截文案均断言**不含 2041-07**；女工下限比女干部早 5 年（原50 vs 原55）；
+- 保留 0018：文件自带 retireYM（如 2031-07）不被法定值覆盖、warning 不阻断计算；男口径 2041-07 不回退。
+
 ### fix verification process
-**（developer worker3 自测，dev box 直算产品模块；独立 GUI 验收归 tester）**
+**（developer worker3 自测：dev box node 直跑纯逻辑 + 全量回归；项目主手测 MT-9005 为最终验收）**
 
-女干部（1981-07）实测：
-```
-planModel.legalRange(女干部) = 2036-07 ~ 2042-06（法定 2039-06）
-validateRetireYM('2031-07', 女干部) → 拦截，文案下限 2036-07，不含 2041-07
-validateRetireYM('2036-07', 女干部) → 合法放行
-validateRetireYM('2039-06', 女干部) → 合法放行
-男性对照：validateRetireYM('2041-07', 男) → 合法（男性口径未回退）
-```
+**① 三身份弹性下限实测（birthYM=1981-07，dev box node，修复前→修复后）**
 
-**给 tester 的独立 GUI 验收点**
-1. 「方案比较」→「文件输入」→ 导入 e7-wife4.txt，共享区性别选 **女干部**；
-2. 两张方案卡分别设退休年月 **2031-07** 与 **2036-07**；
-3. 断言：**不出现**"早于合法下限 2041-07"警告；2031-07 若报错也须报 **2036-07** 为下限；
-4. 「开始比较」**可正常执行并出结果**，不被 block；
-5. 回归：性别切 **男** 时，2041-07 仍为下限（男性行为不变）；
-6. 证据：page.data 回读 + 截图。
+| 身份 | 原法定月 orig | 法定退休月 stat（未改） | 修复前下限 | 修复后下限 | 上限 |
+|---|---|---|---|---|---|
+| 女工人 | 2031-07（原50） | 2034-11（延迟40月） | **2031-11（错）** | **2031-07 ✓** | 2037-11 |
+| 女干部 | 2036-07（原55） | 2039-06（延迟35月） | 2036-07 | **2036-07 ✓** | 2042-06 |
+| 男 | 2041-07（原60） | 2044-07（延迟36月） | 2041-07 | **2041-07 ✓（不回退）** | 2047-07 |
 
-复测（2026-11-03）：FAIL，没有任何变化。女性1981出生，弹性退休下限应=2031（女工人）、=2036（女干部）。
+全部满足验收目标：女工 2031-07（非 2031-11）、女干部 2036-07、男 2041-07；三个法定退休年月与修复前逐字一致（养老金计算口径零变化）。
+
+**② 放行/拦截边界实测（`planModel.validateRetireYM`，女工与女干部）**
+- 女工人：2031-07 → null（合法放行）；2031-06 → 拦截，文案下限 2031-07 且不含 2041-07；
+- 女干部：2036-07 → null（放行）；2036-06 → 拦截，文案下限 2036-07 且不含 2041-07；
+- 男：2036-07 仍拦截（早于 2041-07）、2041-07 放行——男口径未回退。
+
+**③ 性别保真（0018/前次修复要求保留，回归通过）**
+- 文件未提供性别时 `mapParsedToPageData` 给引擎兼底 male/worker 但 `genderFromFile/femaleTypeFromFile=false`，调用方不回写用户界面所选身份；
+- 文件自带 `retireYM=2031-07` 时三身份均原样保留、不被法定值覆盖；该值在女工/干部口径下可正常计算（warning 非阻断），0018 口径不回退。
+
+**④ 全量回归（dev box 实跑）**
+- `TST-02-UT-1042`：**pass=53 fail=0**；
+- 全量 `developer_test`：**50 文件 / pass=983 / fail=0 / badFiles=0**（含 0015~0018/0022 全部既有 UT/CT，养老金引擎相关测试零失败）；
+- `tools/gates/bug-gate.js`：**BUG GATE PASS**；`tools/gates/matrix-gate.js`：**MATRIX GATE PASS**。
+
+**⑤ 引擎零改动声明**：本轮仅改 `calculator/retireSchedule.js` 一行下限语义 + 注释，未改 `pensionEngine.js`/`planAssembler.js`/`rContribution.js`/`roiModel.js` 任何养老金计算；法定退休年月、延迟月数、上下限上限均不变，P月 数值口径不受影响。
+
+**⑥ 待项目主复测**：本单 2026-11-04 由 developer 置 **fixed**（🔴 未 closed）；矩阵 `TST-02-MT-9005` 行按要求**保持 FAIL**，等项目主再次手测（女性 1981 出生：女工弹性下限 2031-07、女干部 2036-07）通过后由 tester/项目主转 PASS、同批关单。
 
 ### bug status
-**bug status**: open
+**bug status**: fixed
 
 ## BUG-02-0022
 

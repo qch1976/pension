@@ -48,14 +48,18 @@ function isAffected(key, birthYM) {
 }
 
 // 弹性退休允许区间（年月 index）：
-//   下限 = max(原法定退休月, 法定退休月 - 36)；上限 = 法定退休月 + 36。
+//   下限 = 原法定退休月（原法定年龄对应月）；上限 = 法定退休月 + 36。
+//   BUG-02-0019（项目主 2026-11-03 裁定，规格 §退休设计澄清）：
+//   弹性提前退休下限 = 原法定退休年龄本身，【不】再按「新法定−3年」与原年龄取大值。
+//   旧实现 max(orig, stat−36) 在延迟 >36 月人群（如女工人 1981-07 延迟 40 月）
+//   会把下限抬到 orig 之后（2031-11），错误；正确下限为 orig=2031-07。
 //   （办法第三条：弹性提前不低于原法定年龄；达到最低缴费年限为前提，资格另算。）
 function flexibleRange(key, birthYM) {
   var c = CONFIG[key];
   var orig = D.toIndex(birthYM) + c.originalAge * 12;
   var stat = D.toIndex(statutoryRetireYM(key, birthYM));
   return {
-    min: Math.max(orig, stat - 36),
+    min: orig,
     max: stat + 36,
     statutory: stat,
     original: orig
