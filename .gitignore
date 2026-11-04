@@ -30,3 +30,7 @@ Desktop.ini
 *.bak
 .vscode/
 .idea/
+
+# ---- PensionGuiRun runtime state (per-delivery, never commit) ----
+system_test/utils/job.txt
+system_test/utils/job-result.json
