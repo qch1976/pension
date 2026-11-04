@@ -67,7 +67,7 @@
 | REQ-02-CAL-000, REQ-02-VAL-004 | 起始月越界校验（项目主手测） | YDL | no | TST-02-MT-9002 | 越界起始月拦截（手测） | （manual，无脚本） | PASS | - |
 | REQ-02-CAL-000 | 基本计算与方案比较一致性（项目主手测） | YDL | no | TST-02-MT-9003 | 基本计算与方案比较结果一致 | （manual，无脚本） | PASS | BUG-02-0012, BUG-02-0013, BUG-02-0014 |
 | REQ-02-CAL-000 | 基本计算与方案比较一致性2（项目主手测） | YDL | no | TST-02-MT-9004 | 基本计算与方案比较结果一致 | （manual，无脚本） | PASS | BUG-02-0015, BUG-02-0016, BUG-02-0017 |
-| REQ-02-CAL-000 | 基本计算与方案比较一致性3（项目主手测）, my wife | YDL | no | TST-02-MT-9005 | 基本计算与方案比较结果一致 | （manual，无脚本） | FAIL | BUG-02-0019 |
+| REQ-02-CAL-000 | 基本计算与方案比较一致性3（项目主手测）, my wife | YDL | no | TST-02-MT-9005 | 基本计算与方案比较结果一致 | （manual，无脚本） | PASS | BUG-02-0019 |
 | REQ-02-CAL-000 | 见 testcase brief | YDL | no | TST-02-MT-9006 | 项目主2026-11-03复测文件退休年月一致 | （manual，无脚本） | PASS | BUG-02-0018 |
 | REQ-02-CAL-000 | my1 缺省起始月展示+数据层（BUG-02-0004） | tester | no | TST-02-GT-4019 | My缺省起始月数据层断言 | system_test/TST-02-GT-4019/gt4019-planstart.js | PASS | - |
 | REQ-02-CAL-000 | wife5 缺省起始月=paidTo+1=2026-01（BUG-02-0004） | tester | no | TST-02-GT-4020 | wife缺省起始月=paidTo+1 | system_test/TST-02-GT-4020/gt4020-planstart-wife.js | PASS | - |
@@ -84,6 +84,9 @@
 | REQ-02-IN-003, REQ-02-VAL-004, REQ-02-FMT-000 | 缴费表5列（年内起始月份+缴费身份）解析/中文身份映射/旧3列向后兼容（BUG-02-0010 修复） | tester | no | TST-02-GT-4031 | 5列解析/身份映射/旧3列兼容 | system_test/TST-02-GT-4031/gt-4031.js | PASS | BUG-02-0010 |
 | REQ-02-CAL-000, REQ-02-VAL-004 | 文件导入后未触碰卡 retireYM 随真实 ctx 法定值刷新/手选保护（BUG-02-0008 修复复测） | tester | no | TST-02-GT-4032 | 未触碰卡退休月刷新与手选保护 | system_test/TST-02-GT-4032/gt-4032-task78.js | PASS 33/33 | BUG-02-0008 |
 | REQ-02-CAL-002 | 回本月数新增停保基准两行（利率0%与页面利率） | developer | no | TST-02-CT-1044 | 停保基准回本两行数值与ROI勾稽 | developer_test/TST-02-CT-1044/stop-baseline-payback-check.js | PASS 109/109 | BUG-02-0016 |
+| REQ-02-IN-006 | 文件导入后年/月录入模式切换数据等价同源、不丢历史段、两路径结果一致（fcp：后续 phase 处理） | tester | no | TST-02-GT-4033 | 年/月录入切换数据等价同源（fcp 暂缓，待 D3 恢复，BUG-02-0020） | system_test/TST-02-GT-4033/ (planned, fcp, D3 链 task-96/97/98) | PASS | BUG-02-0020 |
+| REQ-02-IN-007 | 身份/出生变化时法定退休年月无条件联动重算；文件退休时间可编辑；计算以界面值为准（fcp：后续 phase 处理；2026-11-04 项目主更新口径取消0018保护） | tester | no | TST-02-GT-4034 | 身份变化退休联动（fcp 暂缓，待 D3 恢复，BUG-02-0021） | system_test/TST-02-GT-4034/ (planned, fcp, D3 链 task-96/97/98) | PASS | BUG-02-0021 |
 | REQ-02-IN-008 | 年度+月度模式缴费基数↔Z双向联动（2026-11-04 day-r2 单次同跑19/19 PASS：年6/6、月三档7270/15750.8/36348反向1.3000、两页14715.77三分项Δ=0） | tester | no | TST-02-GT-4035 | 年/月模式基数↔Z双向即时刷新（Z 4位小数，0.6→7270、1.3→15750.8、3.0→36348；两页同源14715.77） | system_test/TST-02-GT-4035/gt-4035-linear.js | PASS | BUG-02-0022 |
+| REQ-02-IN-008 | Z 值整年对齐（项目主2026-11-04手测）：2027年录入年缴费218088元、1–6月，Z应整年对齐=1.5，实际误算=3.0 | YDL | no | TST-02-MT-9007 | Z须按全年12月对齐，不除缴费月数 | （manual，无脚本） | FAIL | BUG-02-0023 |
 
 > E7 六个 GUI 场景每个含 9 项 DOM/断言检查，共 54 项 GUI 断言全部 PASS（summary.json：6 pass / 0 fail）。
