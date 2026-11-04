@@ -1069,5 +1069,17 @@ validateRetireYM('2039-06', 女干部) → 合法放行
 
 - 本单状态由 tester（worker4）2026-11-03 task-101 置 open；developer worker3 2026-11-03 修复后置 **fixed**（未 closed）。
 
+### tester 独立 GUI 终验（worker4，2026-11-04 task-103）
+独立入口脚本 `system_test/TST-02-GT-4035/gt-4035-linear.js`（node --check 过），经 PensionGuiRun 在活动 session 2 单次投递（不引用 developer 回显，全部本次独立取值；结果文件 logs/result-GT4035-IN008.json，3 张 mp.screenshot 原生截图）。
+
+**同跑全绿 19/19 PASS（fail=0，exit0）**：
+- 年度模式 Y1/Y0/Y2/Y3/Y4/Y5 = 6/6：年行 zValue 绑定存在；189009.6（15750.8×12）→ Z=1.3000；Z=0.6→月基数 7270（年 87240，最低档到元）；Z=1.3→15750.8（不取整）；Z=3.0→36348（年 436176）；87240→Z=0.6000。
+- 切月/就绪：P0 expandYearRows 重建 27 段进入月态；M0 route=index/entryMode=month/onSegZ+onSegBase 均为 function。
+- 月度模式 M1~M4 = 4/4（回归 BUG-02-0017）：0.6→7270、1.3→15750.800000000001、3.0→36348；改基数 15750.8→Z=1.3000。
+- 未来段 P0b：2026-09~2033-06 Z=1.3→15750.8。
+- §③ 两页一致：基本页与方案比较页均 P月=**14715.77**、Δ=0；三分项均 [8126.27,5667.88,921.62]，各项 Δ=0（P1~P6）。
+
+结论：REQ-02-IN-008 年/月两模式基数↔Z 双向联动符合规格，两页同源无回归。先前夜间多轮 FAIL/ABORT 均为测试驱动顺序与 jsonrpc 通道问题（M 段在真实切月前执行、reLaunch 偶尔 settle entry），已通过顺序调整 + ensureIndex（entry 时走真实 goBasic）+ 同 evaluate 同 tick 读回解决；非产品缺陷。
+
 ### bug status
-**bug status**: fixed
+**bug status**: closed（developer worker3 修复 + tester worker4 2026-11-04 独立 GUI 终验 19/19 PASS，Manager 复核后放行）

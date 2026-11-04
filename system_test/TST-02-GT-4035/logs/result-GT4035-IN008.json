@@ -1,8 +1,9 @@
 {
-  "at": "2026-11-03T14:15:29.962Z",
+  "at": "2026-11-04T02:59:05.527Z",
   "testcase": "TST-02-GT-4035",
   "requirement": "REQ-02-IN-008",
   "caseId": "BUG-02-0022",
+  "mode": "linear-ordered",
   "baseline": "unknown",
   "port": 40215,
   "params": {
@@ -13,8 +14,235 @@
     "transferYM": "2000-11",
     "retire": "2033-07"
   },
-  "finishedAt": "2026-11-03T14:16:44.269Z",
-  "appLogs": [],
-  "aborted": "NO_PAGE_AFTER_RELAUNCH",
-  "checks": []
+  "yBaseToZ": {
+    "route": "pages/index/index",
+    "months": "12",
+    "annualBase": "189009.6",
+    "zValue": "1.3000"
+  },
+  "yZ06": {
+    "hasHandler": true,
+    "route": "pages/index/index",
+    "months": "12",
+    "annualBase": "87240",
+    "zValue": "0.6"
+  },
+  "yZ13": {
+    "hasHandler": true,
+    "route": "pages/index/index",
+    "months": "12",
+    "annualBase": "189009.6",
+    "zValue": "1.3"
+  },
+  "yZ30": {
+    "hasHandler": true,
+    "route": "pages/index/index",
+    "months": "12",
+    "annualBase": "436176",
+    "zValue": "3.0"
+  },
+  "yReverse": {
+    "route": "pages/index/index",
+    "months": "12",
+    "annualBase": "87240",
+    "zValue": "0.6000"
+  },
+  "switchToMonth": {
+    "ok": true,
+    "route": "pages/index/index",
+    "mode": "month",
+    "n": 27
+  },
+  "monthReady": {
+    "route": "pages/index/index",
+    "entryMode": "month",
+    "n": 27,
+    "onSegZ": "function",
+    "onSegBase": "function"
+  },
+  "monthZ": {
+    "z06": {
+      "route": "pages/index/index",
+      "mode": "month",
+      "baseMonthly": "7270",
+      "zValue": "0.6"
+    },
+    "z13": {
+      "route": "pages/index/index",
+      "mode": "month",
+      "baseMonthly": "15750.800000000001",
+      "zValue": "1.3"
+    },
+    "z30": {
+      "route": "pages/index/index",
+      "mode": "month",
+      "baseMonthly": "36348",
+      "zValue": "3.0"
+    }
+  },
+  "monthReverse": {
+    "route": "pages/index/index",
+    "mode": "month",
+    "baseMonthly": "15750.800000000001",
+    "zValue": "1.3000"
+  },
+  "autoSeg": {
+    "route": "pages/index/index",
+    "baseMonthly": "15750.800000000001",
+    "zValue": "1.3"
+  },
+  "basic": {
+    "ok": true,
+    "P": 14715.77,
+    "J": [
+      8126.27,
+      5667.88,
+      921.62
+    ]
+  },
+  "compare": {
+    "landed": true,
+    "P": 14715.77,
+    "J": [
+      8126.27,
+      5667.88,
+      921.62
+    ]
+  },
+  "finishedAt": "2026-11-04T03:00:52.336Z",
+  "checks": [
+    {
+      "id": "IN008-Y1",
+      "title": "年度 189009.6 → Z 1.3000",
+      "pass": true,
+      "actual": "route=pages/index/index z=1.3000",
+      "expected": "index/1.3000"
+    },
+    {
+      "id": "IN008-Y0",
+      "title": "年度行存在 zValue 绑定",
+      "pass": true,
+      "actual": "zValue=1.3000",
+      "expected": "present"
+    },
+    {
+      "id": "IN008-Y2",
+      "title": "年度 Z=0.6 → 月基数 7270",
+      "pass": true,
+      "actual": "monthly=7270",
+      "expected": "7270"
+    },
+    {
+      "id": "IN008-Y3",
+      "title": "年度 Z=1.3 → 月基数 15750.8",
+      "pass": true,
+      "actual": "monthly=15750.8",
+      "expected": "15750.8"
+    },
+    {
+      "id": "IN008-Y4",
+      "title": "年度 Z=3.0 → 月基数 36348",
+      "pass": true,
+      "actual": "monthly=36348",
+      "expected": "36348"
+    },
+    {
+      "id": "IN008-Y5",
+      "title": "年度 87240 → Z 0.6000",
+      "pass": true,
+      "actual": "zValue=0.6000",
+      "expected": "0.6000"
+    },
+    {
+      "id": "IN008-P0",
+      "title": "切月录入 segments 由 yearRows 重建（进入月态）",
+      "pass": true,
+      "actual": "{\"ok\":true,\"route\":\"pages/index/index\",\"mode\":\"month\",\"n\":27}",
+      "expected": "ok=true"
+    },
+    {
+      "id": "IN008-M0",
+      "title": "月录入态就绪（route=index / entryMode=month / handler 齐）",
+      "pass": true,
+      "actual": "{\"route\":\"pages/index/index\",\"entryMode\":\"month\",\"n\":27,\"onSegZ\":\"function\",\"onSegBase\":\"function\"}",
+      "expected": "index/month/fns"
+    },
+    {
+      "id": "IN008-M1",
+      "title": "月度 Z=0.6 → 月基数 7270",
+      "pass": true,
+      "actual": "{\"route\":\"pages/index/index\",\"mode\":\"month\",\"baseMonthly\":\"7270\",\"zValue\":\"0.6\"}",
+      "expected": "index/month/7270"
+    },
+    {
+      "id": "IN008-M2",
+      "title": "月度 Z=1.3 → 月基数 15750.8",
+      "pass": true,
+      "actual": "{\"route\":\"pages/index/index\",\"mode\":\"month\",\"baseMonthly\":\"15750.800000000001\",\"zValue\":\"1.3\"}",
+      "expected": "15750.8"
+    },
+    {
+      "id": "IN008-M3",
+      "title": "月度 Z=3.0 → 月基数 36348",
+      "pass": true,
+      "actual": "{\"route\":\"pages/index/index\",\"mode\":\"month\",\"baseMonthly\":\"36348\",\"zValue\":\"3.0\"}",
+      "expected": "36348"
+    },
+    {
+      "id": "IN008-M4",
+      "title": "月度改基数 15750.8 → Z 1.3000",
+      "pass": true,
+      "actual": "{\"route\":\"pages/index/index\",\"mode\":\"month\",\"baseMonthly\":\"15750.800000000001\",\"zValue\":\"1.3000\"}",
+      "expected": "index/month/1.3000"
+    },
+    {
+      "id": "IN008-P0b",
+      "title": "未来段 Z=1.3 → 基数 15750.8",
+      "pass": true,
+      "actual": "{\"route\":\"pages/index/index\",\"baseMonthly\":\"15750.800000000001\",\"zValue\":\"1.3\"}",
+      "expected": "15750.8"
+    },
+    {
+      "id": "IN008-P1",
+      "title": "基本计算结果页 ready",
+      "pass": true,
+      "actual": "path=pages/result/result",
+      "expected": "pages/result/result"
+    },
+    {
+      "id": "IN008-P2",
+      "title": "基本计算 P月=14715.77",
+      "pass": true,
+      "actual": "P=14715.77",
+      "expected": "14715.77"
+    },
+    {
+      "id": "IN008-P3",
+      "title": "方案比较结果页 ready 且2列",
+      "pass": true,
+      "actual": "landed=true n=2",
+      "expected": "2"
+    },
+    {
+      "id": "IN008-P4",
+      "title": "方案比较 P月=14715.77",
+      "pass": true,
+      "actual": "P=14715.77",
+      "expected": "14715.77"
+    },
+    {
+      "id": "IN008-P5",
+      "title": "两页 P月一致 Δ=0",
+      "pass": true,
+      "actual": "basic=14715.77 compare=14715.77 Δ=0",
+      "expected": "Δ<0.01"
+    },
+    {
+      "id": "IN008-P6",
+      "title": "两页三分项 8126.27/5667.88/921.62 一致",
+      "pass": true,
+      "actual": "[8126.27,5667.88,921.62] vs [8126.27,5667.88,921.62]",
+      "expected": "8126.27/5667.88/921.62"
+    }
+  ]
 }
